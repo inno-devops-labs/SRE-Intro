@@ -32,12 +32,20 @@ REQUEST_DURATION = Histogram("gateway_request_duration_seconds", "Request durati
 client = httpx.AsyncClient(timeout=GATEWAY_TIMEOUT_MS / 1000)
 
 
+def _normalize_path(path: str) -> str:
+    """Normalize URL paths to avoid high-cardinality labels from UUIDs/IDs."""
+    import re
+    path = re.sub(r'/events/\d+', '/events/{id}', path)
+    path = re.sub(r'/reserve/[a-f0-9-]+', '/reserve/{id}', path)
+    return path
+
+
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     start = time.time()
     response = await call_next(request)
     duration = time.time() - start
-    path = request.url.path
+    path = _normalize_path(request.url.path)
     if not path.startswith("/metrics"):
         REQUEST_COUNT.labels(request.method, path, response.status_code).inc()
         REQUEST_DURATION.labels(request.method, path).observe(duration)
