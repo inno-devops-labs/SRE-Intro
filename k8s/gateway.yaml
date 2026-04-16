@@ -16,6 +16,8 @@ spec:
         - name: gateway
           image: ghcr.io/inno-devops-labs/quickticket-gateway:bffba819763445b07e27826da9fab8eac1af95c9
           imagePullPolicy: Always
+      imagePullSecrets:
+        - name: ghcr-secret
           ports:
             - containerPort: 8080
           env:
