@@ -12,12 +12,12 @@ spec:
       labels:
         app: events
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: events
           image: ghcr.io/inno-devops-labs/quickticket-events:bffba819763445b07e27826da9fab8eac1af95c9
           imagePullPolicy: Always
-      imagePullSecrets:
-        - name: ghcr-secret
           ports:
             - containerPort: 8081
           env:
