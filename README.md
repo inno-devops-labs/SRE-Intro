@@ -533,3 +533,4 @@ Upon completing this course, you will have:
 **Bonus achievements (Labs 11-12):**
 - Extended a microservice architecture with inter-service resilience patterns
 - Implemented advanced Kubernetes resilience (PDB, anti-affinity, zero-downtime migrations)
+# SRE-Intro
