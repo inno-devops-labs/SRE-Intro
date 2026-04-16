@@ -87,12 +87,19 @@ def get_db():
         db_pool.putconn(conn)
 
 
+def _normalize_path(path: str) -> str:
+    import re
+    path = re.sub(r'/events/\d+', '/events/{id}', path)
+    path = re.sub(r'/reservations/[a-f0-9-]+', '/reservations/{id}', path)
+    return path
+
+
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     start = time.time()
     response = await call_next(request)
     duration = time.time() - start
-    path = request.url.path
+    path = _normalize_path(request.url.path)
     if not path.startswith("/metrics"):
         REQUEST_COUNT.labels(request.method, path, response.status_code).inc()
         REQUEST_DURATION.labels(request.method, path).observe(duration)
