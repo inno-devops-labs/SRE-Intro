@@ -226,7 +226,7 @@ How fast did it recover? Compare with Lab 1 where you had to manually `docker co
 
 ---
 
-## Task 2 — Probes & Resource Limits (3 pts)
+## Task 2 — Probes & Resource Limits (4 pts)
 
 > ⏭️ This task is optional. Skipping it will not affect future labs.
 
@@ -430,7 +430,7 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 - ✅ Self-healing demonstrated (pod delete + auto-recovery output)
 - ✅ Written comparison of K8s recovery vs docker-compose
 
-### Task 2 (3 pts)
+### Task 2 (4 pts)
 - ✅ Probes configured in manifests (kubectl describe output)
 - ✅ Readiness failure observed during Redis deletion
 - ✅ Resource limits set, node allocation shown
@@ -448,9 +448,9 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 | Task | Points | Criteria |
 |------|-------:|----------|
 | **Task 1** — K8s manifests + deployment | **6** | All manifests written from scratch, deployed, verified, self-healing demonstrated |
-| **Task 2** — Probes + resource limits | **3** | Probes added and tested, readiness failure observed, resource limits set |
+| **Task 2** — Probes + resource limits | **4** | Probes added and tested, readiness failure observed, resource limits set |
 | **Bonus Task** — Helm chart | **2.5** | Chart created, installed, working, monitoring optional |
-| **Total** | **11.5** | 9 main + 2.5 bonus |
+| **Total** | **12.5** | 10 main + 2.5 bonus |
 
 ---
 

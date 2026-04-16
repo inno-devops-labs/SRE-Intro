@@ -194,7 +194,7 @@ docker compose -f docker-compose.yaml -f ../docker-compose.monitoring.yaml start
 
 ---
 
-## Task 2 — Define SLOs & Recording Rules (3 pts)
+## Task 2 — Define SLOs & Recording Rules (4 pts)
 
 > ⏭️ This task is optional. Skipping it will not affect future labs.
 
@@ -314,7 +314,7 @@ PR checklist:
 - ✅ Saturation panel added (DB pool gauge)
 - ✅ Failure observed + answer about which signal detected first
 
-### Task 2 (3 pts)
+### Task 2 (4 pts)
 - ✅ SLI/SLO definitions with error budget math
 - ✅ Recording rules loaded in Prometheus
 - ✅ SLO gauge showing drop during failure
@@ -331,9 +331,9 @@ PR checklist:
 | Task | Points | Criteria |
 |------|-------:|----------|
 | **Task 1** — Monitoring + dashboard | **6** | prometheus.yml written, stack running, 2 panels built, failure observed |
-| **Task 2** — SLOs + recording rules | **3** | SLI/SLO definitions, rules loaded, SLO gauge |
+| **Task 2** — SLOs + recording rules | **4** | SLI/SLO definitions, rules loaded, SLO gauge |
 | **Bonus Task** — Failure correlation | **2.5** | Timeline, logs, root cause |
-| **Total** | **11.5** | 9 main + 2.5 bonus |
+| **Total** | **12.5** | 10 main + 2.5 bonus |
 
 ---
 
