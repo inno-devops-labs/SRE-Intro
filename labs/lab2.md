@@ -152,7 +152,7 @@ docker network inspect app_default --format '{{range .Containers}}{{.Name}}: {{.
 
 ---
 
-## Task 2 — Dockerfile Optimization (3 pts)
+## Task 2 — Dockerfile Optimization (4 pts)
 
 > ⏭️ This task is optional. Skipping it will not affect future labs.
 
@@ -281,7 +281,7 @@ docker exec app-gateway-1 whoami
 - ✅ Network inspect output with container IPs
 - ✅ Written answer explaining Docker DNS service discovery
 
-### Task 2 (3 pts)
+### Task 2 (4 pts)
 - ✅ `.dockerignore` files created
 - ✅ Image size comparison before/after
 - ✅ Non-root user added, `whoami` proves it
@@ -299,9 +299,9 @@ docker exec app-gateway-1 whoami
 | Task | Points | Criteria |
 |------|-------:|----------|
 | **Task 1** — Docker inspection & operations | **6** | All operational commands run, outputs documented, DNS discovery explained |
-| **Task 2** — Dockerfile optimization | **3** | .dockerignore added, non-root user working, size comparison documented |
+| **Task 2** — Dockerfile optimization | **4** | .dockerignore added, non-root user working, size comparison documented |
 | **Bonus Task** — Request tracing | **2.5** | Full request traced across 3 services with timestamps and analysis |
-| **Total** | **11.5** | 9 main + 2.5 bonus |
+| **Total** | **12.5** | 10 main + 2.5 bonus |
 
 ---
 

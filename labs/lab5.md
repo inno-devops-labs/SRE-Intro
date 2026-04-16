@@ -252,7 +252,7 @@ kubectl get deployment gateway -o jsonpath='{.metadata.labels.version}'
 
 ---
 
-## Task 2 — Rollback via GitOps (3 pts)
+## Task 2 — Rollback via GitOps (4 pts)
 
 > ⏭️ This task is optional. Skipping it will not affect future labs.
 
@@ -381,7 +381,7 @@ PR checklist:
 - ✅ Git change synced to cluster via ArgoCD
 - ✅ Written answer about `kubectl edit` with ArgoCD
 
-### Task 2 (3 pts)
+### Task 2 (4 pts)
 - ✅ Bad deploy detected (Degraded status + ImagePullBackOff)
 - ✅ `git revert` restored healthy state
 - ✅ Git log showing deploy + revert
@@ -399,9 +399,9 @@ PR checklist:
 | Task | Points | Criteria |
 |------|-------:|----------|
 | **Task 1** — CI + ArgoCD + GitOps | **6** | Workflow written, images pushed, ArgoCD deployed, GitOps loop verified |
-| **Task 2** — Rollback via Git | **3** | Bad deploy → git revert → recovery, timing measured |
+| **Task 2** — Rollback via Git | **4** | Bad deploy → git revert → recovery, timing measured |
 | **Bonus Task** — Auto tag update | **2.5** | Full automated loop: push → build → update tag → ArgoCD sync |
-| **Total** | **11.5** | 9 main + 2.5 bonus |
+| **Total** | **12.5** | 10 main + 2.5 bonus |
 
 ---
 

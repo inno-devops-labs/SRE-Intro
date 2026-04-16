@@ -184,7 +184,7 @@ PAYMENT_FAILURE_RATE=0.5 docker compose -f docker-compose.yaml -f ../docker-comp
 
 ---
 
-## Task 2 — Blameless Postmortem (3 pts)
+## Task 2 — Blameless Postmortem (4 pts)
 
 > ⏭️ This task is optional. Skipping it will not affect future labs.
 
@@ -301,7 +301,7 @@ PR checklist:
 - ✅ Timeline recorded from injection to resolution
 - ✅ Written answer about alert delay
 
-### Task 2 (3 pts)
+### Task 2 (4 pts)
 - ✅ Full blameless postmortem following the template
 - ✅ Focus on systems, not blame
 - ✅ Action items are specific and assigned
@@ -318,9 +318,9 @@ PR checklist:
 | Task | Points | Criteria |
 |------|-------:|----------|
 | **Task 1** — Alerts + runbook + incident | **6** | Both alerts configured, runbook written, failure detected + resolved, timestamps documented |
-| **Task 2** — Blameless postmortem | **3** | Full postmortem, blameless tone, concrete action items |
+| **Task 2** — Blameless postmortem | **4** | Full postmortem, blameless tone, concrete action items |
 | **Bonus Task** — Cross-tested runbook | **2.5** | Second runbook, peer-tested, updated from feedback |
-| **Total** | **11.5** | 9 main + 2.5 bonus |
+| **Total** | **12.5** | 10 main + 2.5 bonus |
 
 ---
 
