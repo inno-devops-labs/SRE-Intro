@@ -178,7 +178,7 @@ PAYMENT_FAILURE_RATE=0.5 docker compose -f docker-compose.yaml -f ../docker-comp
 - Webhook.site gives you a free URL: visit the site, copy your unique URL, paste as contact point
 - If "No data" in alert query — ensure loadgen is running and metrics are flowing
 - The SLO burn rate query uses 30m window — it needs 30 min of data to evaluate properly. Start with the error rate alert first (faster to test)
-- `PAYMENT_FAILURE_RATE=0.5` means 50% of charge requests fail — but charges are only ~10% of traffic, so overall error rate might be ~5%
+- `PAYMENT_FAILURE_RATE=0.5` means 50% of charge requests fail — but charges are only ~10% of traffic, so overall error rate is ~1-2%, not 50%! You may need to **lower your threshold** or kill payments entirely to trigger the alert. This threshold tuning is a real SRE skill.
 
 </details>
 
