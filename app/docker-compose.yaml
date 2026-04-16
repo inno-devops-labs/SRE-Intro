@@ -1,0 +1,71 @@
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "3080:8080"
+    environment:
+      - EVENTS_URL=http://events:8081
+      - PAYMENTS_URL=http://payments:8082
+      - GATEWAY_TIMEOUT_MS=5000
+    depends_on:
+      - events
+      - payments
+
+  events:
+    build: ./events
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=quickticket
+      - DB_USER=quickticket
+      - DB_PASS=quickticket
+      - DB_MAX_CONNS=10
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_TIMEOUT_MS=1000
+      - RESERVATION_TTL=300
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  payments:
+    build: ./payments
+    ports:
+      - "8082:8082"
+    environment:
+      - PAYMENT_FAILURE_RATE=${PAYMENT_FAILURE_RATE:-0.0}
+      - PAYMENT_LATENCY_MS=${PAYMENT_LATENCY_MS:-0}
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=quickticket
+      - POSTGRES_USER=quickticket
+      - POSTGRES_PASSWORD=quickticket
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./seed.sql:/docker-entrypoint-initdb.d/01-seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quickticket"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  postgres_data:
