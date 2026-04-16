@@ -1,0 +1,93 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "panels": [
+    {
+      "title": "Request Rate (Traffic)",
+      "description": "Golden Signal #2: How much demand is being placed on the system",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(gateway_requests_total[1m])) by (path)",
+          "legendFormat": "{{path}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "line", "fillOpacity": 10 }
+        }
+      }
+    },
+    {
+      "title": "Error Rate",
+      "description": "Golden Signal #3: Percentage of requests failing with 5xx",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(gateway_requests_total{status=~\"5..\"}[1m])) / sum(rate(gateway_requests_total[1m])) * 100",
+          "legendFormat": "5xx error %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": { "drawStyle": "line", "fillOpacity": 10 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "title": "Service Health (up/down)",
+      "description": "Prometheus 'up' metric — 1 = scrape succeeded, 0 = target unreachable",
+      "type": "table",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "up",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        { "id": "filterFieldsByName", "options": { "include": { "names": ["job", "Value"] } } }
+      ]
+    },
+    {
+      "title": "YOUR TURN: Add Latency panel here (p50 / p95 / p99)",
+      "description": "Use histogram_quantile() with gateway_request_duration_seconds_bucket",
+      "type": "text",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "options": { "mode": "markdown", "content": "## Add a Latency panel here\n\nReplace this text panel with a timeseries panel showing:\n- p50: `histogram_quantile(0.50, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))`\n- p95: `histogram_quantile(0.95, ...)`\n- p99: `histogram_quantile(0.99, ...)`\n\nSet unit to **seconds**." }
+    },
+    {
+      "title": "YOUR TURN: Add Saturation panel here",
+      "description": "Use events_db_pool_size gauge",
+      "type": "text",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "options": { "mode": "markdown", "content": "## Add a Saturation panel here\n\nReplace this text panel with a gauge showing:\n- Query: `events_db_pool_size`\n- Min: 0, Max: 10\n- Thresholds: green < 7, yellow < 9, red ≥ 9\n\nThis shows how many DB connections are active out of the pool maximum." }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["quickticket", "sre"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "QuickTicket — Golden Signals",
+  "uid": "quickticket-golden-signals"
+}
