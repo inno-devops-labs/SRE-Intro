@@ -116,7 +116,26 @@ image: ghcr.io/YOUR_USERNAME/quickticket-gateway:COMMIT_SHA
 imagePullPolicy: Always
 ```
 
-Do this for all 3 services (gateway, events, payments). Commit and push:
+Also add `imagePullSecrets` to each Deployment so k3d can pull private images:
+
+```yaml
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        ...
+```
+
+Create the pull secret in your cluster (you need a **classic PAT** with `read:packages` scope — [create one here](https://github.com/settings/tokens/new?scopes=read:packages)):
+
+```bash
+kubectl create secret docker-registry ghcr-secret \
+  --docker-server=ghcr.io \
+  --docker-username=YOUR_GITHUB_USERNAME \
+  --docker-password=YOUR_CLASSIC_PAT
+```
+
+Commit and push:
 
 ```bash
 git add k8s/
@@ -401,7 +420,7 @@ PR checklist:
 <details>
 <summary>⚠️ Common Pitfalls</summary>
 
-- **ghcr.io images private by default** — make them public in Packages settings, or create imagePullSecret
+- **ghcr.io images are private by default** — create an `imagePullSecret` with a classic PAT (fine-grained PATs don't work with ghcr.io)
 - **GitHub username must be lowercase** in ghcr.io URLs
 - **ArgoCD can't access private repos** — add repo with `argocd repo add` + GitHub PAT
 - **ArgoCD polls every 3 min** — use `argocd app sync` for instant sync during testing
