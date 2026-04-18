@@ -1,0 +1,33 @@
+# Continuous in-cluster loadgen for Lab 7.
+# Apply with:  kubectl apply -f labs/lab7/loadgen.yaml
+# Remove with: kubectl delete -f labs/lab7/loadgen.yaml
+#
+# Runs a single curl pod in a tight loop against the gateway Service. Traffic
+# goes through kube-proxy, so requests are load-balanced across all gateway
+# pods (stable + canary) — which is what you need to verify canary weights and
+# to give Prometheus something to measure.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadgen
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      containers:
+        - name: loadgen
+          image: curlimages/curl:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              while true; do
+                curl -s http://gateway:8080/events > /dev/null
+                curl -s http://gateway:8080/health > /dev/null
+                sleep 0.2
+              done
