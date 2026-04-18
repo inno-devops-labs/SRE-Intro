@@ -1,0 +1,46 @@
+# Full-path loadgen for Lab 8 (chaos experiments).
+#
+# Why a separate loadgen: the lab 7 loadgen only hits /events and /health, which
+# are READ paths (pure DB, no payments, no Redis). Chaos experiments that inject
+# failures into payments or Redis need mutating traffic (/reserve + /pay) to
+# actually produce the degradation you want to observe.
+#
+# This loadgen exercises the full checkout flow: reserve → pay, in a loop.
+#
+# Apply with:  kubectl apply -f labs/lab8/mixedload.yaml
+# Remove with: kubectl delete -f labs/lab8/mixedload.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mixedload
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mixedload
+  template:
+    metadata:
+      labels:
+        app: mixedload
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              while true; do
+                # Read path (no dependencies on payments / Redis)
+                curl -s http://gateway:8080/events > /dev/null
+
+                # Full checkout chain (exercises events+postgres+redis+payments)
+                RES=$(curl -s -X POST http://gateway:8080/events/1/reserve \
+                        -H "Content-Type: application/json" \
+                        -d '{"quantity":1}')
+                RID=$(echo "$RES" | sed -n 's/.*reservation_id":"\([^"]*\).*/\1/p')
+                if [ -n "$RID" ]; then
+                  curl -s -X POST http://gateway:8080/reserve/$RID/pay > /dev/null
+                fi
+
+                sleep 0.3
+              done
