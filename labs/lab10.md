@@ -5,32 +5,66 @@
 ![points](https://img.shields.io/badge/points-10%2B2.5-orange)
 ![tech](https://img.shields.io/badge/tech-Locust%20%2B%20DORA-informational)
 
-> **Goal:** Run load tests, calculate DORA metrics, identify toil, and write a reliability review — your capstone document.
-> **Deliverable:** A PR from `feature/lab10` with `submissions/lab10.md` (reliability review). Submit PR link via Moodle.
+> **Goal:** Run Locust load tests to find QuickTicket's breaking point, calculate DORA metrics, identify toil, and write a reliability review — your capstone document.
+> **Deliverable:** A PR from `feature/lab10` with `locustfile.py` at the repo root and `submissions/lab10.md` (reliability review). Submit PR link via Moodle.
 
 ---
 
 ## Overview
 
 In this lab you will:
-- Run load tests with Locust to find QuickTicket's breaking point
-- Calculate DORA metrics from your Git/CI history
-- Identify toil you encountered during the course
-- Write a reliability review — the capstone SRE document
 
-> **This is a synthesis lab.** No new tools to learn. You use everything from the last 9 weeks.
+- Run Locust load tests **in-cluster** at several load levels to find QuickTicket's breaking point
+- Calculate DORA metrics from your Git + Argo Rollouts history
+- Identify the toil you encountered across Labs 1-9
+- Write the reliability review — the capstone SRE document that ties everything together
+
+> **This is a synthesis lab.** No new infrastructure to stand up. You use the k3d cluster, monitoring, and CI/CD from previous weeks.
 
 ---
 
 ## Project State
 
-**You should have from all previous labs:**
-- QuickTicket with monitoring, alerting, CI/CD, GitOps, canary deployments, migrations, backups
-- A full set of submissions documenting your work
+**You should have from previous labs:**
+
+- QuickTicket on k3d with 5 gateway replicas (from Lab 7) and Postgres on a PVC (from Lab 9 Bonus).
+- In-cluster Prometheus in the `monitoring` namespace (Lab 7 Bonus).
+- A full set of submissions and git history covering Labs 1-9.
 
 **This lab produces:**
-- A reliability review that demonstrates SRE thinking
-- Your portfolio-ready repository
+
+- `locustfile.py` (at repo root) — the Locust scenario you reuse for future capacity tests.
+- `submissions/lab10.md` — your reliability review.
+
+---
+
+## Setup
+
+> ⚠️ **Do NOT load-test through `kubectl port-forward svc/gateway`.** That command picks one endpoint and stays there — you'll only exercise 1 of your 5 gateway pods and wrongly conclude the system can only handle a fraction of its real capacity. The load generator has to live **inside** the cluster so traffic goes through kube-proxy and is distributed across all replicas.
+
+Apply the provided Locust runner — a ConfigMap holding a starter `locustfile.py`:
+
+```bash
+kubectl apply -f labs/lab10/locust-runner.yaml
+```
+
+Sanity-check it:
+
+```bash
+kubectl get configmap locustfile
+```
+
+Copy the locustfile from the ConfigMap into your repo (to commit with your PR):
+
+```bash
+kubectl get configmap locustfile -o jsonpath='{.data.locustfile\.py}' > locustfile.py
+```
+
+Before you start load testing, **flush Redis** so stale reservation-holds from Labs 7-9 don't pollute inventory:
+
+```bash
+kubectl exec -i $(kubectl get pod -l app=redis -o name) -- redis-cli FLUSHDB
+```
 
 ---
 
@@ -38,189 +72,225 @@ In this lab you will:
 
 **Objective:** Find the system's limits and write a comprehensive reliability review.
 
-### 10.1: Install and run Locust
+### 10.1: Run Locust at three load levels
 
-```bash
-pip install locust
+For each level, create a Job that runs Locust in the cluster (hits `http://gateway:8080` — kube-proxy load-balances). Example for 10 users; repeat for 50 and 100:
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-10
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: locust
+          image: locustio/locust:2.43.4
+          command: ["locust"]
+          args:
+            - -f
+            - /mnt/locust/locustfile.py
+            - --host=http://gateway:8080
+            - --headless
+            - -u
+            - "10"                        # ← users
+            - -r
+            - "2"                         # ← ramp-up /s
+            - -t
+            - "60s"
+            - --only-summary
+          volumeMounts:
+            - { name: locustfile, mountPath: /mnt/locust }
+      volumes:
+        - name: locustfile
+          configMap: { name: locustfile }
 ```
 
-Create `locustfile.py` in the repo root:
-
-```python
-from locust import HttpUser, task, between
-
-class QuickTicketUser(HttpUser):
-    wait_time = between(0.5, 2)
-
-    @task(7)
-    def list_events(self):
-        self.client.get("/events")
-
-    @task(2)
-    def reserve(self):
-        self.client.post("/events/1/reserve",
-            json={"quantity": 1},
-            headers={"Content-Type": "application/json"})
-
-    @task(1)
-    def health(self):
-        self.client.get("/health")
-```
-
-Start QuickTicket with monitoring, then run Locust:
+Between runs, **flush Redis** so the previous run's held seats don't count against the next:
 
 ```bash
-cd app/
-docker compose -f docker-compose.yaml -f ../docker-compose.monitoring.yaml up -d
-
-# Run Locust (headless mode for CLI output)
-cd ..
-locust -f locustfile.py --host=http://localhost:3080 --headless \
-  -u 10 -r 2 -t 60s --csv=loadtest
+kubectl exec -i $(kubectl get pod -l app=redis -o name) -- redis-cli FLUSHDB
 ```
 
-This simulates 10 users with a ramp-up of 2 users/sec for 60 seconds.
-
-Then increase load to find the breaking point:
+After each Job finishes:
 
 ```bash
-locust -f locustfile.py --host=http://localhost:3080 --headless \
-  -u 50 -r 5 -t 60s --csv=loadtest_50
-
-locust -f locustfile.py --host=http://localhost:3080 --headless \
-  -u 100 -r 10 -t 60s --csv=loadtest_100
+kubectl logs job/load-10 | tail -40
 ```
 
-At which user count does:
-- p99 latency exceed 500ms (latency SLO)?
-- Error rate exceed 0.5% (availability SLO)?
+Fill in the table:
 
-### 10.2: Calculate DORA metrics
+| Users | Ramp | RPS | p50 | p95 | p99 | 5xx error rate | 409 (inventory) |
+|------:|-----:|----:|----:|----:|----:|---------------:|----------------:|
+| 10    | 2/s  | ?   | ?   | ?   | ?   | ?              | ?               |
+| 50    | 5/s  | ?   | ?   | ?   | ?   | ?              | ?               |
+| 100   | 10/s | ?   | ?   | ?   | ?   | ?              | ?               |
 
-From your Git and CI history, calculate:
+> 💡 **Distinguish 409 from 5xx.** 409 Conflict on `/reserve` = inventory exhausted (expected product behavior when many clients race for limited tickets). 5xx = real system failure. Your SLO is about 5xx, not 409.
+
+### 10.2: Find the breaking point
+
+Keep increasing user count until **5xx error rate exceeds 0.5%** OR **p99 latency exceeds 500ms**. Note both the user count and the RPS at that point — that's your capacity ceiling.
+
+Try 200u if 100u looked healthy:
 
 ```bash
-# Deployment Frequency: how many deployments (commits to main) in the course?
+# same Job YAML but -u 200 -r 20
+```
+
+### 10.3: Calculate DORA metrics
+
+From your Git history and Argo Rollouts state:
+
+```bash
+# Deployment Frequency — count distinct rollouts / set-image operations
+kubectl get rs -l app=gateway -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | wc -l
 git log --oneline main | wc -l
 
-# Lead Time for Changes: average time from commit to deploy
-# (approximate: time between commit and ArgoCD sync)
+# Lead Time — commit to ArgoCD sync
+# approximate: your CI build time + 3-minute ArgoCD poll interval
 
-# Change Failure Rate: how many deployments caused issues?
-# (count: bad deploys from Lab 5 rollback, Lab 7 abort, Lab 8 chaos)
+# Change Failure Rate — count AnalysisRun failures + rolloutAborted
+kubectl get analysisrun -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' | sort | uniq -c
 
-# Recovery Time: how long from failure to recovery?
-# (from your Lab 6 postmortem timeline and Lab 5 rollback timing)
+# Recovery Time — argo rollouts abort → stable (~seconds)
+#                 OR git revert → ArgoCD sync (~3 min)
 ```
 
-### 10.3: Identify toil
+### 10.4: Identify 3 pieces of toil
 
-List 3 repetitive manual tasks you did during the course. For each:
-- What was the task?
-- How often did you do it?
-- How would you automate it?
+Look at your submissions from Labs 1-9. For each, list tasks you did manually **more than 3 times**. Good candidates:
 
-### 10.4: Write the reliability review
+- Running `kubectl exec ... psql -U quickticket -d quickticket < seed.sql` (every Postgres restart before you added the PVC).
+- Re-creating port-forwards after pod restarts.
+- Manually watching a canary rollout (`kubectl argo rollouts get rollout --watch`) instead of relying on the AnalysisTemplate.
 
-Create `submissions/lab10.md` with:
+For each: **how often**, **how to automate**, **what you'd save**.
+
+### 10.5: Write the reliability review
+
+Create `submissions/lab10.md`. Use this structure (fill in with YOUR data):
 
 ```markdown
 # QuickTicket Reliability Review
 
 ## 1. SLO Compliance
-- Availability SLO: 99.5% — [met/not met] based on [evidence]
-- Latency SLO: 95% < 500ms — [met/not met] based on [evidence]
-- Error budget status: [how much consumed]
+| SLO | Target | Observed | Status |
+| ... | ...    | ...      | ...    |
 
 ## 2. Load Test Results
-- Breaking point: [X users / Y RPS]
-- At 10 users: p99 = [X]ms, error rate = [Y]%
-- At 50 users: p99 = [X]ms, error rate = [Y]%
-- At 100 users: p99 = [X]ms, error rate = [Y]%
+[table from 10.1 + 10.2]
 
 ## 3. DORA Metrics
-- Deployment Frequency: [X deploys over the course]
-- Lead Time: [approximate]
-- Change Failure Rate: [X out of Y deploys caused issues]
-- Recovery Time: [from postmortem data]
+[table from 10.3]
 
 ## 4. Top 3 Reliability Risks
 1. [Risk — why it matters — what would fix it]
-2. [Risk — why it matters — what would fix it]
-3. [Risk — why it matters — what would fix it]
+2. ...
+3. ...
 
 ## 5. Toil Identification
-| Toil | Frequency | Automation Proposal |
-|------|-----------|-------------------|
-| [task] | [how often] | [how to automate] |
+[table from 10.4]
 
 ## 6. Monitoring Gaps
-- What are we NOT monitoring that we should?
+- What you wished you had been monitoring during Lab 8 chaos experiments.
+- What alert would have caught the thing that actually broke?
 
 ## 7. Capacity Plan
-- Current breaking point: [X RPS]
-- To handle 2x load: [what changes needed]
+- Current ceiling: [X RPS]
+- For 2x traffic, scale: [numbers]
+- Rough cost estimate.
 ```
+
+### 10.6: Proof of work
+
+**Commit `locustfile.py` to your fork** (with the reserve-across-events-3-and-5 pattern so inventory doesn't dominate).
+
+**Paste into `submissions/lab10.md`:**
+
+1. Your load-test table across 10/50/100 (and the breaking-point level).
+2. Your DORA metrics table.
+3. Your top 3 risks + fixes.
+4. Your toil table.
+5. Your monitoring-gap list.
+6. Your 2× capacity plan.
 
 <details>
 <summary>💡 Hints</summary>
 
-- Locust `--csv` flag generates CSV files with statistics — useful for comparison
-- For DORA, approximate is fine — you don't need precise timestamps for every deploy
-- Monitoring gaps: think about what surprised you in chaos experiments (Lab 8) — was there something you wish you had been monitoring?
-- Capacity: think about replicas, resource limits, connection pools, caching
+- In the starter `locustfile.py`, the `reserve` task hits events 3 and 5. Event 3 has 500 tickets, event 5 has 80. Under 50u+ load you'll saturate event 5 within seconds — that generates the 409s. Distinguishing those from 5xx is an important habit.
+- Locust `--only-summary` suppresses per-second output so you just get the final table. Remove it if you want to see rate evolution during the run.
+- If you're stuck finding monitoring gaps, go back to your Lab 6 alert rules. Did you alert on **latency** or only on error rate? If only on error rate, a slow-but-successful dependency won't page anyone.
+- DORA elite targets (2023 report): deploy on-demand, lead time <1 day, change failure rate 0-15%, recovery <1 hour. Don't be discouraged if you don't hit elite — you're a solo student, not a 20-person platform team.
 
 </details>
 
 ---
 
-## Task 2 — DORA Dashboard & Capacity Plan (4 pts)
+## Task 2 — Capacity Plan with Numbers (4 pts)
 
-> ⏭️ This task is optional. Skipping it will not affect future labs.
+> ⏭️ This task is optional. Skipping it will not affect your course grade.
 
-**Objective:** Build a DORA metrics visualization and a concrete capacity plan.
+**Objective:** Turn the reliability-review capacity plan into concrete numbers.
 
-### 10.5: DORA in Grafana
+### 10.7: Measure per-pod headroom
 
-Create a simple text panel or table in Grafana showing your calculated DORA metrics. Or use a stat panel with manual values.
+At your breaking-point load level (where 5xx started appearing), sample per-pod CPU:
 
-### 10.6: Capacity plan
+```bash
+kubectl top pods -l app=gateway
+kubectl top pods -l app=events
+kubectl top pods -l app=payments
+```
 
-Based on load test results, answer:
-- How many replicas of each service for 2x current traffic?
-- What resource limits would you set?
-- Would you add Redis caching? Connection pooling changes?
-- Rough cost estimate: if each pod costs ~$5/month on a cloud provider, what's the monthly cost for 2x capacity?
+Which service is the CPU-constrained one? Which is idle? That tells you what to scale.
 
-**Add to `submissions/lab10.md`:**
-- DORA dashboard evidence (or manual calculation with source data)
-- Detailed capacity plan with numbers
+### 10.8: For 2× traffic, answer
+
+- How many replicas of each service?
+- What resource requests/limits?
+- Redis — still single-pod OK, or do you need a replicated setup?
+- DB connections — is the single-pooler-to-single-Postgres path a bottleneck?
+- Rough cost estimate ($5/pod/mo is a reasonable small-cloud assumption).
+
+**Paste into `submissions/lab10.md`:**
+
+- Per-pod CPU at breaking point.
+- Detailed capacity plan with replica counts, resource limits, cost.
 
 ---
 
-## Bonus Task — Demo Video or SRE Handbook (2.5 pts)
+## Bonus Task — 5-minute Walkthrough (2.5 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
+Produce ONE of the following:
+
 **Option A: 5-minute demo video**
 
-Record a screen recording walking through your QuickTicket SRE setup:
-1. Show the architecture (docker-compose or k8s)
-2. Show the monitoring dashboard (golden signals)
-3. Inject a failure → show alert firing → show runbook → resolve
-4. Show canary deployment (promote or abort)
-5. Explain one SRE principle you learned
+Screen-record yourself walking through your QuickTicket setup:
 
-**Option B: SRE Handbook**
+1. Show the cluster (`kubectl get pods,svc,rollouts`).
+2. Open the golden-signals metrics in Prometheus UI.
+3. Trigger a failure and show how your monitoring catches it (you can re-use a Lab 8 experiment).
+4. Trigger a canary rollout and show AnalysisRun deciding.
+5. Explain one SRE principle you actually felt during the course.
 
-Write a 2-page "QuickTicket SRE Handbook" that a new team member could use:
-- Architecture overview
-- How to deploy (GitOps flow)
-- Monitoring: what dashboards to check, what alerts exist
-- Incident response: runbooks, escalation
-- Backup/restore procedure
+Upload to YouTube (unlisted), paste the link in `submissions/lab10.md`.
 
-**Add to `submissions/lab10.md`** (for handbook) or link to video.
+**Option B: 2-page SRE handbook**
+
+Write `submissions/runbooks/quickticket-handbook.md`:
+
+- **Architecture** — 1 diagram + bullets (<½ page).
+- **How to deploy** — the exact GitOps flow a new team member would follow.
+- **Monitoring** — which dashboards/queries to check for what.
+- **Incident response** — a distilled runbook (from Lab 6) + escalation.
+- **Backup/restore** — the Lab 9 procedure, condensed.
 
 ---
 
@@ -229,15 +299,17 @@ Write a 2-page "QuickTicket SRE Handbook" that a new team member could use:
 ```bash
 git switch -c feature/lab10
 git add locustfile.py submissions/lab10.md
+# plus submissions/runbooks/ if you did Bonus Option B
 git commit -m "feat(lab10): add load tests and reliability review"
 git push -u origin feature/lab10
 ```
 
 PR checklist:
+
 ```text
-- [x] Task 1 done — load tests, DORA metrics, toil, reliability review
-- [ ] Task 2 done — DORA dashboard + capacity plan
-- [ ] Bonus Task done — demo video or SRE handbook
+- [x] Task 1 done — load tests, DORA, toil, reliability review (all 7 sections)
+- [ ] Task 2 done — detailed capacity plan with numbers
+- [ ] Bonus Task done — demo video OR SRE handbook
 ```
 
 ---
@@ -245,17 +317,18 @@ PR checklist:
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
-- ✅ Locust load tests at 3+ load levels with results
-- ✅ DORA metrics calculated from project history
-- ✅ 3 toil items identified with automation proposals
-- ✅ Reliability review covering all 7 sections
+- ✅ Load-test table covering at least 10u / 50u / 100u (+ breaking point).
+- ✅ Locust running in-cluster (not through port-forward — there's a reason).
+- ✅ DORA metrics calculated from actual project history, with source data.
+- ✅ 3 toil items identified with concrete automation proposals.
+- ✅ All 7 reliability-review sections present and filled in.
 
 ### Task 2 (4 pts)
-- ✅ DORA visualization or detailed calculation
-- ✅ Capacity plan with concrete numbers
+- ✅ `kubectl top pods` output at breaking-point load.
+- ✅ Replica + resource + cost plan for 2× capacity.
 
 ### Bonus Task (2.5 pts)
-- ✅ 5-min demo video OR 2-page SRE handbook
+- ✅ Demo video link OR completed 2-page handbook.
 
 ---
 
@@ -263,9 +336,9 @@ PR checklist:
 
 | Task | Points | Criteria |
 |------|-------:|----------|
-| **Task 1** — Load tests + reliability review | **6** | Load tests, DORA, toil, comprehensive review |
-| **Task 2** — DORA dashboard + capacity plan | **4** | Visualization, concrete capacity numbers |
-| **Bonus Task** — Demo video or handbook | **2.5** | Comprehensive, clear, useful |
+| **Task 1** — Load tests + reliability review | **6** | All 7 review sections; real load-test data; DORA with source data |
+| **Task 2** — Capacity plan | **4** | Real CPU numbers + concrete 2× plan + cost |
+| **Bonus Task** — Demo video or handbook | **2.5** | Clear, useful, covers all listed items |
 | **Total** | **12.5** | 10 main + 2.5 bonus |
 
 ---
@@ -276,7 +349,21 @@ PR checklist:
 <summary>📚 Documentation</summary>
 
 - [Locust Documentation](https://docs.locust.io/)
-- [DORA Metrics](https://dora.dev/research/)
+- [Locust Kubernetes distributed mode](https://docs.locust.io/en/stable/running-in-docker.html) (for later, when you need more than one load-gen pod)
+- [DORA Metrics](https://dora.dev/research/) — the research behind the Accelerate book
 - [Google SRE Book — full index](https://sre.google/sre-book/table-of-contents/)
+- [Google SRE Workbook, Ch. 4 — Service Level Objectives](https://sre.google/workbook/implementing-slos/)
+
+</details>
+
+<details>
+<summary>⚠️ Common Pitfalls</summary>
+
+- **Port-forward ≠ load-balancing.** `kubectl port-forward svc/gateway` targets one pod. Load-test from in-cluster (the provided Job pattern) or you'll wrongly blame the system.
+- **Stale Redis holds dominate your "failures".** Always `FLUSHDB` between runs — otherwise you're measuring inventory contention, not system capacity.
+- **409 is not 5xx.** An SLO cares about the system failing (5xx), not about a ticket being sold out (409). Counting them together ruins your report.
+- **Locust `--only-summary` hides progress.** Drop it when debugging a run; keep it for clean final outputs.
+- **`kubectl top pods` returns nothing.** metrics-server needs ~60s after cluster start to populate; k3d ships it preinstalled.
+- **`kubectl get rs` shows many replicasets.** Argo Rollouts keeps history — current stable is the one whose Deployment controller has replicas > 0.
 
 </details>
