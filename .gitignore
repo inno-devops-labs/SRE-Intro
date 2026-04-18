@@ -1,0 +1,27 @@
+# Student-produced artifacts — NOT part of the course repo.
+# These live in a student's fork of the course, not upstream.
+
+# Lab submissions (instructor keeps a local reference, don't commit)
+submissions/
+
+# K8s manifests (students write them in lab 4 per-service)
+k8s/
+
+# Database migrations (students run `alembic init` in lab 9)
+migrations/
+alembic.ini
+
+# CI workflow (students add this in lab 5 to their fork)
+.github/
+
+# Load generator locustfile is copied from labs/lab10/locustfile.py
+# into repo root in lab 10. Student commits it to THEIR fork.
+/locustfile.py
+
+# Dry-run / local tooling
+.venv/
+__pycache__/
+*.pyc
+
+# Lab 3 Prometheus config — students write their own
+monitoring/prometheus/
