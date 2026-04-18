@@ -1,6 +1,6 @@
 services:
   prometheus:
-    image: prom/prometheus:v3.4.0
+    image: prom/prometheus:v3.11.2
     ports:
       - "9090:9090"
     volumes:
@@ -10,7 +10,7 @@ services:
       - "--storage.tsdb.retention.time=7d"
 
   grafana:
-    image: grafana/grafana:11.6.0
+    image: grafana/grafana:13.0.1
     ports:
       - "3000:3000"
     environment:

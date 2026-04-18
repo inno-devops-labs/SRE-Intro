@@ -41,7 +41,7 @@ services:
       - PAYMENT_LATENCY_MS=${PAYMENT_LATENCY_MS:-0}
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     environment:
       - POSTGRES_DB=quickticket
       - POSTGRES_USER=quickticket
