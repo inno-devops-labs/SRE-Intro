@@ -1,45 +1,56 @@
-# In-cluster Locust runner for Lab 10 load testing.
+# Locust load-test plumbing for Lab 10.
 #
-# Why in-cluster: `kubectl port-forward svc/gateway` only targets ONE pod
-# (it's session-sticky to the first endpoint it picks). To load-test all
-# 5 gateway replicas through kube-proxy, the load generator itself has to
-# live inside the cluster and hit the Service DNS name.
+# Why in-cluster: `kubectl port-forward svc/gateway` targets ONE pod for
+# the whole session. To load-test all 5 gateway replicas through
+# kube-proxy, the load generator itself must run inside the cluster.
 #
-# Usage:
-#   # 1. Apply this file (creates the ConfigMap with locustfile.py + the Job shell)
+# The ConfigMap that feeds locustfile.py to the Locust pod is NOT declared
+# inline here — you build it from `labs/lab10/locustfile.py` so the actual
+# Python file stays syntax-highlighted and editable in your fork:
+#
+#   cp labs/lab10/locustfile.py locustfile.py          # commit it to your fork
+#   kubectl create configmap locustfile \
+#     --from-file=locustfile.py=locustfile.py \
+#     --dry-run=client -o yaml | kubectl apply -f -    # re-run after every edit
+#
+# This file contains only the Job template. You instantiate one per load
+# level (load-10, load-50, load-100, load-200) by copying, renaming, and
+# editing the -u / -r / -t args.
+#
+# Apply the template to verify nothing is syntactically broken:
 #   kubectl apply -f labs/lab10/locust-runner.yaml
-#
-#   # 2. For each run, override the user count / duration with a patch:
-#   kubectl create job --from=job/locust-template  load-10 --dry-run=client -o yaml \
-#     | sed 's/USERS/10/; s/RATE/2/; s/TIME/60s/' \
-#     | kubectl apply -f -
-#
-# Easier: just edit the env values below and `kubectl apply` for each level.
 
-apiVersion: v1
-kind: ConfigMap
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: locustfile
-data:
-  locustfile.py: |
-    from locust import HttpUser, task, between
-
-    class QuickTicketUser(HttpUser):
-        wait_time = between(0.5, 2.0)
-
-        @task(7)
-        def list_events(self):
-            self.client.get("/events")
-
-        @task(2)
-        def reserve(self):
-            # event 3 has 500 tickets — enough headroom for a minute of load
-            self.client.post(
-                "/events/3/reserve",
-                json={"quantity": 1},
-                headers={"Content-Type": "application/json"},
-            )
-
-        @task(1)
-        def health(self):
-            self.client.get("/health")
+  # TEMPLATE — rename per run (load-10, load-50, …). K8s requires lowercase.
+  name: load-template
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: locust
+          image: locustio/locust:2.43.4
+          command: ["locust"]
+          args:
+            - "-f"
+            - "/mnt/locust/locustfile.py"
+            - "--host=http://gateway:8080"
+            - "--headless"
+            - "-u"
+            - "10"                         # ← users
+            - "-r"
+            - "2"                          # ← ramp-up per second
+            - "-t"
+            - "60s"                        # ← duration
+            - "--only-summary"
+          volumeMounts:
+            - name: locustfile
+              mountPath: /mnt/locust
+      volumes:
+        - name: locustfile
+          configMap:
+            name: locustfile

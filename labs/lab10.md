@@ -42,22 +42,21 @@ In this lab you will:
 
 > ⚠️ **Do NOT load-test through `kubectl port-forward svc/gateway`.** That command picks one endpoint and stays there — you'll only exercise 1 of your 5 gateway pods and wrongly conclude the system can only handle a fraction of its real capacity. The load generator has to live **inside** the cluster so traffic goes through kube-proxy and is distributed across all replicas.
 
-Apply the provided Locust runner — a ConfigMap holding a starter `locustfile.py`:
+The provided files are:
+
+- [`labs/lab10/locustfile.py`](./lab10/locustfile.py) — the Locust scenario (read/reserve/health task mix, split across events 3 and 5).
+- [`labs/lab10/locust-runner.yaml`](./lab10/locust-runner.yaml) — the Kubernetes Job template that runs Locust against `http://gateway:8080` from inside the cluster.
+
+Copy the scenario to your repo root (so it's committed as part of your portfolio) and load it into a ConfigMap the Job will mount:
 
 ```bash
-kubectl apply -f labs/lab10/locust-runner.yaml
-```
+cp labs/lab10/locustfile.py locustfile.py
 
-Sanity-check it:
+kubectl create configmap locustfile \
+  --from-file=locustfile.py=locustfile.py \
+  --dry-run=client -o yaml | kubectl apply -f -
 
-```bash
-kubectl get configmap locustfile
-```
-
-Copy the locustfile from the ConfigMap into your repo (to commit with your PR):
-
-```bash
-kubectl get configmap locustfile -o jsonpath='{.data.locustfile\.py}' > locustfile.py
+# Re-run the `kubectl create configmap …` line any time you edit locustfile.py
 ```
 
 Before you start load testing, **flush Redis** so stale reservation-holds from Labs 7-9 don't pollute inventory:
