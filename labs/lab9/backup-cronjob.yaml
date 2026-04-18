@@ -1,0 +1,90 @@
+# Automated periodic pg_dump backup with rotation.
+#
+# Each run:
+#   - pg_dumps the `quickticket` DB to /backups/quickticket_<timestamp>.dump
+#   - deletes older backups, keeping only the most recent 5
+#
+# Apply with:  kubectl apply -f labs/lab9/backup-cronjob.yaml
+# Trigger manually: kubectl create job --from=cronjob/postgres-backup manual-backup-1
+# Inspect backups: kubectl exec deployment/backup-inspector -- ls -la /backups
+#
+# NOTE: this uses an emptyDir for /backups for simplicity. In a real
+# production setup you'd attach a PersistentVolumeClaim with offsite
+# replication (3-2-1-1-0 rule). emptyDir disappears if the NODE reboots.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-backups
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Helper deployment so you can `kubectl exec` and inspect backups.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-inspector
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: backup-inspector } }
+  template:
+    metadata: { labels: { app: backup-inspector } }
+    spec:
+      containers:
+        - name: inspector
+          image: alpine:3.20
+          command: ["sleep", "infinity"]
+          volumeMounts:
+            - { name: backups, mountPath: /backups }
+      volumes:
+        - name: backups
+          persistentVolumeClaim:
+            claimName: postgres-backups
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  # Every 5 minutes for lab demo purposes. Adjust to your RPO target.
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-backup
+              image: postgres:17-alpine
+              env:
+                - { name: PGHOST, value: postgres }
+                - { name: PGUSER, value: quickticket }
+                - { name: PGDATABASE, value: quickticket }
+                - { name: PGPASSWORD, value: quickticket }
+                - { name: KEEP_N, value: "5" }
+              command: ["sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  TS=$(date -u +%Y%m%d_%H%M%S)
+                  OUT=/backups/quickticket_${TS}.dump
+                  echo "[${TS}] backing up to ${OUT}"
+                  pg_dump -Fc -f "${OUT}"
+                  echo "[${TS}] wrote $(du -h "${OUT}" | cut -f1)"
+                  # Retention: keep newest KEEP_N
+                  cd /backups
+                  ls -1t quickticket_*.dump 2>/dev/null | tail -n +$((KEEP_N + 1)) | xargs -r rm -v
+                  echo "[${TS}] retained:"
+                  ls -1t quickticket_*.dump
+              volumeMounts:
+                - { name: backups, mountPath: /backups }
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
