@@ -80,7 +80,7 @@ For the databases, use existing Docker images directly. Create a file `k8s/postg
 ```yaml
 # YOUR TASK: Write a Deployment + Service for PostgreSQL
 # Requirements:
-# - Deployment: 1 replica, image: postgres:16-alpine
+# - Deployment: 1 replica, image: postgres:17-alpine
 # - Environment variables: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD (all "quickticket")
 # - Container port: 5432
 # - Service: ClusterIP, port 5432
@@ -94,7 +94,7 @@ Create `k8s/redis.yaml` similarly:
 
 ```yaml
 # YOUR TASK: Write a Deployment + Service for Redis
-# - Image: redis:7-alpine
+# - Image: redis:7-alpine (or newer: redis:8-alpine)
 # - Port: 6379
 # - No environment variables needed
 ```

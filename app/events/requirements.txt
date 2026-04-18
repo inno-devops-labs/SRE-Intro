@@ -1,5 +1,5 @@
-fastapi==0.115.0
-uvicorn==0.32.0
-psycopg2-binary==2.9.10
-redis==5.2.0
-prometheus-client==0.21.0
+fastapi==0.136.0
+uvicorn==0.44.0
+psycopg2-binary==2.9.11
+redis==7.4.0
+prometheus-client==0.25.0
