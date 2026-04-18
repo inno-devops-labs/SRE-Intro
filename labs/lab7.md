@@ -50,14 +50,24 @@ kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/rele
 kubectl wait --for=condition=Available deployment/argo-rollouts -n argo-rollouts --timeout=60s
 ```
 
-Install the kubectl plugin:
+Install the kubectl plugin. If you don't want to use `sudo`, install to `~/.local/bin` instead:
+
 ```bash
+# Option A: system-wide (requires sudo)
 curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
 chmod +x kubectl-argo-rollouts-linux-amd64
 sudo mv kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+
+# Option B: per-user (no sudo)
+mkdir -p ~/.local/bin
+curl -fsSL -o ~/.local/bin/kubectl-argo-rollouts \
+  https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
+chmod +x ~/.local/bin/kubectl-argo-rollouts
+echo 'export PATH=~/.local/bin:$PATH' >> ~/.bashrc   # or ~/.zshrc
+export PATH=~/.local/bin:$PATH
 ```
 
-Verify: `kubectl argo rollouts version`
+Verify: `kubectl argo rollouts version` (expect `v1.9.0` or later).
 
 ### 7.2: Convert gateway Deployment to Rollout
 
@@ -127,18 +137,24 @@ You should see:
 
 ### 7.4: Verify traffic split
 
-While the canary is paused at 20%, test that both versions serve traffic:
+While the canary is paused at 20%, test that both versions serve traffic.
+
+> ⚠️ **Gotcha:** `kubectl port-forward svc/gateway` does NOT load-balance. It picks ONE pod at the start of the session and sticks to it. You'll see 100% of your requests go to a single pod and think the canary isn't working. To see the real traffic split, run curl **from inside the cluster** so the request goes through `kube-proxy`:
 
 ```bash
-kubectl port-forward svc/gateway 3080:8080 &
+# Run a one-shot curl pod inside the cluster (goes through Service → kube-proxy)
+kubectl run curltest --image=curlimages/curl:latest --rm -i --restart=Never --command -- \
+  sh -c 'for i in $(seq 1 50); do curl -s http://gateway:8080/events -o /dev/null; done; echo done'
 
-# Hit the endpoint multiple times — ~20% should come from canary
-for i in $(seq 1 20); do
-  curl -s http://localhost:3080/health | python3 -c "import sys,json; print(json.load(sys.stdin)['status'])"
+# Count requests per pod (subtract any pre-existing count first)
+for pod in $(kubectl get pods -l app=gateway -o name); do
+  count=$(kubectl logs $pod 2>/dev/null | grep -c 'GET /events')
+  img=$(kubectl get $pod -o jsonpath='{.spec.containers[0].image}')
+  echo "$pod image=$img events_requests=$count"
 done
-
-kill %1 2>/dev/null
 ```
+
+You should see roughly 1-in-5 requests going to the canary pod (±variance for a 50-sample). That matches `setWeight: 20`.
 
 ### 7.5: Promote the canary
 
@@ -229,12 +245,23 @@ strategy:
       - setWeight: 100
 ```
 
-### 7.9: Observe on Grafana
+### 7.9: Observe on Grafana (or Argo Rollouts CLI)
 
-Start the monitoring stack alongside your cluster. Generate traffic with the load generator. Trigger a rollout and watch the golden signals dashboard:
+> ⚠️ **Note:** The docker-compose Prometheus from Lab 3 **cannot scrape pods inside your k3d cluster** — they have private IPs in the k3d bridge network that the host can't reach. Two options:
+> 1. **Easier:** use `kubectl argo rollouts get rollout gateway --watch` for real-time step + weight + replica observation. It's purpose-built for this.
+> 2. **Harder (required for the bonus):** deploy a minimal in-cluster Prometheus. See Bonus Task prerequisite.
 
-- Does request rate change during canary steps?
-- Does latency change as canary percentage increases?
+Generate traffic (in-cluster so kube-proxy load-balances):
+
+```bash
+kubectl create deployment loadgen --image=curlimages/curl:latest -- sh -c \
+  'while true; do curl -s http://gateway:8080/events > /dev/null; sleep 0.2; done'
+```
+
+Trigger a rollout (change `APP_VERSION` or the image tag) and observe:
+
+- Does request rate stay steady across canary steps?
+- Does p99 latency change as canary percentage increases?
 - At which step would you abort if you saw elevated errors?
 
 **Paste into `submissions/lab7.md`:**
@@ -251,6 +278,97 @@ Start the monitoring stack alongside your cluster. Generate traffic with the loa
 
 **Objective:** Create an AnalysisTemplate that queries Prometheus during canary, auto-promoting good versions and auto-aborting bad ones.
 
+### B.0: Prerequisite — in-cluster Prometheus
+
+You need a Prometheus that can scrape your gateway pods from **inside** the cluster (docker-compose Prometheus from Lab 3 can't — different network). Create a minimal one in a `monitoring` namespace with pod service discovery:
+
+```yaml
+# prometheus-minimal.yaml — apply with: kubectl apply -f prometheus-minimal.yaml
+apiVersion: v1
+kind: Namespace
+metadata: { name: monitoring }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: prometheus, namespace: monitoring }
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: { name: prometheus }
+rules:
+  - apiGroups: [""]
+    resources: [pods, services, endpoints]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: { name: prometheus }
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: prometheus }
+subjects: [{ kind: ServiceAccount, name: prometheus, namespace: monitoring }]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: prometheus-config, namespace: monitoring }
+data:
+  prometheus.yml: |
+    global: { scrape_interval: 5s, evaluation_interval: 5s }
+    scrape_configs:
+      - job_name: gateway
+        kubernetes_sd_configs: [{ role: pod, namespaces: { names: [default] } }]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: gateway
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_ip]
+            regex: (.+)
+            target_label: __address__
+            replacement: ${1}:8080
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          # CRITICAL: copy the rollouts-pod-template-hash label so the
+          # AnalysisTemplate can filter canary vs stable.
+          - source_labels: [__meta_kubernetes_pod_label_rollouts_pod_template_hash]
+            target_label: rs_hash
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: prometheus, namespace: monitoring }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: prometheus } }
+  template:
+    metadata: { labels: { app: prometheus } }
+    spec:
+      serviceAccountName: prometheus
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v3.11.2
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --web.listen-address=:9090
+          ports: [{ containerPort: 9090 }]
+          volumeMounts: [{ name: config, mountPath: /etc/prometheus }]
+      volumes: [{ name: config, configMap: { name: prometheus-config } }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: prometheus, namespace: monitoring }
+spec:
+  selector: { app: prometheus }
+  ports: [{ port: 9090, targetPort: 9090 }]
+```
+
+Verify Prometheus sees all gateway pods (including canary when one exists) with their `rs_hash` label:
+
+```bash
+kubectl port-forward -n monitoring svc/prometheus 9091:9090 &
+curl -s 'http://localhost:9091/api/v1/targets?state=active' | python3 -c "
+import sys,json;
+for t in json.load(sys.stdin)['data']['activeTargets']:
+    print(t['labels'].get('pod'), 'rs=', t['labels'].get('rs_hash'), t['health'])"
+```
+
 ### B.1: Create AnalysisTemplate
 
 Create `k8s/analysis-template.yaml`:
@@ -261,54 +379,97 @@ kind: AnalysisTemplate
 metadata:
   name: gateway-error-rate
 spec:
+  args:
+    - name: canary-hash
   metrics:
     - name: error-rate
-      interval: 30s
+      # initialDelay gives Prometheus time to discover + scrape the new canary
+      # pod (K8s SD interval ≈ 10s, scrape_interval 5s, [60s] rate window below).
+      # Without this, the first 2-3 measurements return empty → consecutiveErrors
+      # > limit → false abort. This is non-obvious and costs students 30+ min.
+      initialDelay: 60s
+      interval: 20s
       count: 3
       successCondition: result[0] < 0.05
       failureLimit: 1
       provider:
         prometheus:
-          address: http://prometheus:9090
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          # IMPORTANT — handling "no matching series":
+          #
+          #   NUMERATOR uses `or on() vector(0)` because "zero 5xx responses"
+          #   is a real answer. Without the fallback, if the canary has no
+          #   errors yet, the query returns an empty vector and Argo Rollouts
+          #   panics: "reflect: slice index out of range".
+          #
+          #   DENOMINATOR is left STRICT (no fallback). If the canary gets
+          #   zero traffic at all, the division returns empty → analysis
+          #   errors → rollout aborts. This is fail-safe: a canary you can't
+          #   measure is a canary you can't trust. Do NOT add `or vector(0)`
+          #   here or you'll silently mask "no traffic" as "zero errors".
           query: |
-            sum(rate(gateway_requests_total{status=~"5.."}[1m]))
-            / sum(rate(gateway_requests_total[1m]))
+            (
+              sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+              or on() vector(0)
+            )
+            /
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
 ```
 
-Apply it: `kubectl apply -f k8s/analysis-template.yaml`
+Apply it: `kubectl apply -f k8s/analysis-template.yaml`.
 
 ### B.2: Add analysis to Rollout
 
-Update `k8s/gateway.yaml` strategy:
+Update `k8s/gateway.yaml` strategy. Note the `args` block — it passes the current canary's pod-template-hash into the template:
 
 ```yaml
 strategy:
   canary:
     steps:
       - setWeight: 20
-      - pause: {duration: 30s}
+      - pause: {duration: 20s}
       - analysis:
           templates:
             - templateName: gateway-error-rate
+          args:
+            - name: canary-hash
+              valueFrom:
+                podTemplateHashValue: Latest
       - setWeight: 50
-      - pause: {duration: 30s}
+      - pause: {duration: 20s}
       - setWeight: 100
+```
+
+You also need **continuous traffic** during the analysis so Prometheus has something to measure. Keep a loadgen pod running:
+
+```bash
+kubectl create deployment loadgen --image=curlimages/curl:latest -- sh -c \
+  'while true; do curl -s http://gateway:8080/events > /dev/null; sleep 0.2; done'
 ```
 
 ### B.3: Test with good and bad versions
 
-1. Deploy a good version → watch AnalysisRun succeed → auto-promote to 100%
-2. Deploy a bad version (inject `PAYMENT_FAILURE_RATE=0.5`) → watch AnalysisRun fail → auto-abort
+1. **Good version:** deploy a fresh image tag → AnalysisRun runs 3 measurements → all `value=[0]` → auto-promotes to 100%.
+2. **Bad version:** set an env var that breaks the canary — e.g. point the canary's `EVENTS_URL` to a non-existent DNS name so all `/events` requests 504 with `GATEWAY_TIMEOUT_MS`:
+   ```yaml
+   env:
+     - name: EVENTS_URL
+       value: "http://broken-on-purpose:8081"    # canary only; stable keeps the real URL
+     - name: GATEWAY_TIMEOUT_MS
+       value: "2000"
+   ```
+   AnalysisRun will see `value=[1]` (100% error rate on canary) → `failed (2) > failureLimit (1)` → auto-abort.
 
 ```bash
 kubectl argo rollouts get rollout gateway --watch
-# Should show: AnalysisRun: Running → Successful (good) or Failed (bad)
+kubectl get analysisrun
+kubectl get analysisrun <name> -o yaml   # to inspect measurements
 ```
 
 **Paste into `submissions/lab7.md`:**
-- Your AnalysisTemplate YAML
-- `kubectl argo rollouts get rollout gateway` output showing automated promotion (good version)
-- `kubectl argo rollouts get rollout gateway` output showing automated abort (bad version)
+- Your AnalysisTemplate YAML (including the comments explaining `or on() vector(0)` / strict denominator / `initialDelay`)
+- Output showing AnalysisRun **Successful** for a good canary (with measurement values)
+- Output showing AnalysisRun **Failed** for a bad canary (with measurement values) + rollout in `Degraded` state
 - Answer: "What metric would you add beyond error rate for a more complete canary analysis?"
 
 ---
@@ -379,10 +540,16 @@ PR checklist:
 <details>
 <summary>⚠️ Common Pitfalls</summary>
 
-- **"Rollout not found"** — check CRD installed: `kubectl get crd rollouts.argoproj.io`
-- **Only 1 replica** — canary needs multiple replicas to split traffic. Use `replicas: 5`
-- **After abort, status is "Degraded"** — this is normal. Run `kubectl argo rollouts retry rollout gateway` to reset
-- **AnalysisTemplate can't reach Prometheus** — check the address matches your Prometheus service name and port
-- **Canary pods not receiving traffic** — ensure the Service selector matches both stable and canary pod labels
+- **`kubectl port-forward svc/X` does NOT load-balance.** It picks one pod at the start and sticks to it — you'll see 100% of requests going to a single pod and think the canary is broken. Use an in-cluster curl pod instead (see 7.4).
+- **"Rollout not found"** — check CRD installed: `kubectl get crd rollouts.argoproj.io`.
+- **Only 1 replica** — canary needs multiple replicas to split traffic. Use `replicas: 5`.
+- **After abort, status is "Degraded"** — this is normal. Set the image back to the good tag, then run `kubectl argo rollouts retry rollout gateway`. Just `retry` alone will re-attempt the bad image.
+- **AnalysisTemplate → `reflect: slice index out of range`** — the canary has no 5xx series yet, so the numerator returns empty. Fix: add `or on() vector(0)` on the numerator (see B.1 comments). Do NOT put it on the denominator too.
+- **AnalysisRun errors out with `consecutiveErrors (5) > consecutiveErrorLimit (4)`** — Prometheus hasn't scraped the canary pod yet. Add `initialDelay: 60s` to the metric (see B.1).
+- **AnalysisTemplate can't reach Prometheus** — use the fully-qualified Service DNS: `http://prometheus.monitoring.svc.cluster.local:9090`, not `http://prometheus:9090` (that only works if caller + Prometheus are in the same namespace).
+- **Canary pods not in Prometheus** — the relabel `__meta_kubernetes_pod_label_rollouts_pod_template_hash` → `rs_hash` is required for the AnalysisTemplate query to filter canary vs stable. Missing this = "no series" → analysis errors forever.
+- **`podTemplateHashValue: Latest`** passes the current canary's RS hash into the template args. If you skip it, your query has an unresolved `{{args.canary-hash}}` placeholder and matches nothing.
+- **k3s image tag 404** — `rancher/k3s:v1.33.11-k3s1` doesn't exist as a stable tag (only `-rc1` / `-rc2`). Use `rancher/k3s:v1.33.10-k3s1` (or match your kubectl client minor version).
+- **Canary pods not receiving traffic** — ensure the Service selector matches both stable and canary pod labels (use just `app: gateway`, not a pod-template-hash).
 
 </details>
