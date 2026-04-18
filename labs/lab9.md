@@ -356,32 +356,58 @@ kubectl exec -i $(kubectl get pod -l app=postgres -o name) -- \
 
 Now repeat the disaster test from 9.8 — this time the new pod should find its data on the PV, and the RTO drops from "minute of pg_restore" to "pod restart time (~10s)".
 
-### B.2: Automated backup CronJob
+### B.2: Automated backup CronJob (you write this one)
 
-A ready-made manifest is provided at [`labs/lab9/backup-cronjob.yaml`](./lab9/backup-cronjob.yaml). It creates:
-
-- A `postgres-backups` PVC (1Gi) for dumps
-- A `backup-inspector` Deployment so you can `kubectl exec` to inspect backups
-- A `postgres-backup` CronJob running every 5 minutes, keeping the 5 newest dumps
-
-Read the file first, then apply:
+The *storage* for backups is plumbing — apply the provided file:
 
 ```bash
-kubectl apply -f labs/lab9/backup-cronjob.yaml
+kubectl apply -f labs/lab9/backup-storage.yaml
+kubectl rollout status deployment/backup-inspector --timeout=30s
+kubectl get pvc postgres-backups
 ```
 
-Trigger a manual run without waiting for the schedule:
+That gives you a `postgres-backups` PVC and a `backup-inspector` pod you can `kubectl exec` into.
+
+The *skill* is the CronJob itself — **you write it**. Create `k8s/backup-cronjob.yaml`:
+
+```yaml
+# YOUR TASK: Write a CronJob that backs up the quickticket DB on a schedule.
+#
+# Requirements:
+#   - Runs every 5 minutes (schedule: "*/5 * * * *")
+#   - concurrencyPolicy: Forbid   (don't stack jobs if one runs long)
+#   - Image: postgres:17-alpine   (has pg_dump)
+#   - Env: PGHOST=postgres, PGUSER=quickticket, PGDATABASE=quickticket,
+#          PGPASSWORD=quickticket  (Kubernetes Service DNS gives postgres its hostname)
+#   - Writes dumps to /backups/quickticket_<UTC-timestamp>.dump  (-Fc format)
+#   - Retention: keep only the 5 newest dumps, delete older ones
+#   - Mounts the postgres-backups PVC from backup-storage.yaml on /backups
+#   - successfulJobsHistoryLimit: 3, failedJobsHistoryLimit: 3  (don't fill etcd)
+#
+# Hints:
+#   - Lecture 9 shows the CronJob structure; the `batch/v1` API has schedule +
+#     jobTemplate, which wraps a PodSpec like a normal Deployment.
+#   - The idiomatic retention one-liner inside the container's `command`:
+#       ls -1t quickticket_*.dump | tail -n +6 | xargs -r rm
+#     (tail -n +6 emits everything from line 6 onward — i.e. beyond the 5 newest)
+#   - Remember `restartPolicy: OnFailure` on the Job template (Jobs require it).
+#   - Test pg_dump works first — kubectl exec into backup-inspector and run
+#     `apk add postgresql17-client && pg_dump -h postgres ...` to iterate fast.
+```
+
+Apply your manifest and trigger a run manually (don't wait 5 minutes for the schedule):
 
 ```bash
+kubectl apply -f k8s/backup-cronjob.yaml
 kubectl create job --from=cronjob/postgres-backup manual-1
 kubectl wait --for=condition=Complete job/manual-1 --timeout=60s
 kubectl logs job/manual-1
 ```
 
-Verify retention by running 7 backups and confirming only 5 remain:
+Verify retention by running 7 backups and confirming only the 5 newest remain:
 
 ```bash
-for i in 2 3 4 5 6 7 8; do
+for i in 2 3 4 5 6 7; do
   kubectl create job --from=cronjob/postgres-backup manual-$i
   kubectl wait --for=condition=Complete job/manual-$i --timeout=30s
 done
@@ -391,12 +417,15 @@ kubectl exec deployment/backup-inspector -- ls -la /backups
 
 ### B.3: Proof of work
 
+**Commit your `k8s/backup-cronjob.yaml` and updated `k8s/postgres.yaml`** to your fork.
+
 **Paste into `submissions/lab9.md`:**
 
 - Diff of `k8s/postgres.yaml` (PVC added).
 - Re-run timestamps from 9.8 showing the new RTO with PVC (pod-restart-only, no `pg_restore` needed).
-- Output of `kubectl exec deployment/backup-inspector -- ls -la /backups` showing exactly 5 backups after running 7 jobs.
-- Logs from the 7th manual job showing the rotation (`removed '…_143353.dump'`).
+- Your `k8s/backup-cronjob.yaml` contents.
+- Logs from `manual-7` showing the rotation kicked in (`removed '…_…dump'`).
+- Output of `kubectl exec deployment/backup-inspector -- ls -la /backups` showing exactly 5 files after 7 runs.
 
 ---
 
@@ -404,7 +433,8 @@ kubectl exec deployment/backup-inspector -- ls -la /backups
 
 ```bash
 kubectl delete -f labs/lab8/mixedload.yaml
-kubectl delete -f labs/lab9/backup-cronjob.yaml   # if you applied it
+kubectl delete -f k8s/backup-cronjob.yaml        # your CronJob
+kubectl delete -f labs/lab9/backup-storage.yaml  # PVC + inspector
 pkill -f "port-forward.*5432" || true
 ```
 
@@ -447,7 +477,8 @@ PR checklist:
 ### Bonus Task (2.5 pts)
 - ✅ PVC added to Postgres, data survives pod restart.
 - ✅ Re-measured RTO is noticeably faster (no restore step needed).
-- ✅ CronJob + inspector applied; 7 manual runs; exactly 5 backups retained.
+- ✅ Student-written CronJob (`k8s/backup-cronjob.yaml`) runs pg_dump on schedule.
+- ✅ Retention works: 7 runs → exactly 5 files remain; retention log visible.
 
 ---
 
@@ -457,7 +488,7 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Migrations + backup/restore | **6** | Alembic setup, migration under load, backup/restore cycle verified |
 | **Task 2** — Disaster recovery | **4** | RTO/RPO measured with timestamps + no-PVC observation |
-| **Bonus Task** — PVC + automated backup | **2.5** | PVC added, RTO improved, CronJob rotation verified |
+| **Bonus Task** — PVC + automated backup | **2.5** | PVC added, RTO improved, student-written CronJob with rotation verified |
 | **Total** | **12.5** | 10 main + 2.5 bonus |
 
 ---

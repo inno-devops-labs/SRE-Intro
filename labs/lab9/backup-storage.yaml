@@ -1,0 +1,47 @@
+# Backup storage + inspector for Lab 9 Bonus B.2.
+#
+# This is the *plumbing* — a PVC to hold dump files and a helper Deployment
+# you can `kubectl exec` into to inspect them. Apply these first, then YOU
+# write the CronJob that performs the actual backup + retention (that's the
+# skill you're learning in the bonus).
+#
+# Apply with:  kubectl apply -f labs/lab9/backup-storage.yaml
+# Inspect dumps: kubectl exec deployment/backup-inspector -- ls -la /backups
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-backups
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Long-running pod with /backups mounted, so you can list / cat / delete
+# dumps via `kubectl exec` without having to run ephemeral pods each time.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-inspector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backup-inspector
+  template:
+    metadata:
+      labels:
+        app: backup-inspector
+    spec:
+      containers:
+        - name: inspector
+          image: alpine:3.20
+          command: ["sleep", "infinity"]
+          volumeMounts:
+            - name: backups
+              mountPath: /backups
+      volumes:
+        - name: backups
+          persistentVolumeClaim:
+            claimName: postgres-backups
