@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-beginner-success)
 ![topic](https://img.shields.io/badge/topic-SRE%20Fundamentals-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-Docker%20Compose-informational)
 
 > **Goal:** Deploy the QuickTicket system, systematically break it, and map how failures propagate across services.
@@ -239,7 +239,7 @@ A "GitHub Community" section with 1-2 sentences explaining:
 
 ---
 
-## Bonus Task — Resource Usage Under Load (2.5 pts)
+## Bonus Task — Resource Usage Under Load (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -336,7 +336,7 @@ PAYMENT_FAILURE_RATE=0.0 PAYMENT_LATENCY_MS=0 docker compose up -d payments
 - ✅ Following professor, TAs, and 3+ classmates
 - ✅ GitHub Community section in submission
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ Stats tables for all 3 scenarios (idle, load, chaos)
 - ✅ Analysis of which service uses most memory/CPU and why
 - ✅ Observation on how fault injection affects gateway resources
@@ -350,8 +350,8 @@ PAYMENT_FAILURE_RATE=0.0 PAYMENT_LATENCY_MS=0 docker compose up -d payments
 | **Task 1** — Deploy & failure exploration | **6** | All 5 services running, complete failure table with all 4 components tested, load generator output, dependency map |
 | **Task 2** — Graceful degradation | **3** | Gateway returns clear 503 for payments, reserve still works, clean code diff |
 | **Task 3** — GitHub community engagement | **1** | Stars, follows, and written explanation |
-| **Bonus Task** — Resource usage under load | **2.5** | Stats tables for 3 scenarios, analysis of memory/CPU patterns, fault injection impact |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Resource usage under load | **2** | Stats tables for 3 scenarios, analysis of memory/CPU patterns, fault injection impact |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

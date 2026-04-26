@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-Chaos%20Engineering-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-kubectl%20%2B%20env%20vars-informational)
 
 > **Goal:** Design and execute chaos experiments with hypotheses, observe system behavior, and document findings.
@@ -251,7 +251,7 @@ kubectl scale deployment/mixedload --replicas=2
 
 ---
 
-## Bonus Task — Resilience Improvement (2.5 pts)
+## Bonus Task — Resilience Improvement (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -330,7 +330,7 @@ PR checklist:
 - ✅ Observations with timestamps.
 - ✅ Weakest link identified with explanation.
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ Weakness chosen from experiments.
 - ✅ Fix implemented (config or code diff).
 - ✅ Before-vs-after comparison with evidence.
@@ -343,8 +343,8 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — 3 chaos experiments | **6** | Hypotheses + execution + observations + comparison for each |
 | **Task 2** — Combined failure scenario | **4** | Multi-failure design, observations, weakest link analysis |
-| **Bonus Task** — Resilience improvement | **2.5** | Fix implemented, before/after evidence |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Resilience improvement | **2** | Fix implemented, before/after evidence |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

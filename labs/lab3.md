@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-Observability%20%26%20SLOs-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-Prometheus%20%2B%20Grafana-informational)
 
 > **Goal:** Configure Prometheus, deploy the monitoring stack, build a golden signals dashboard, and define SLOs with recording rules.
@@ -267,7 +267,7 @@ Kill payments for 1 minute — watch the gauge drop.
 
 ---
 
-## Bonus Task — Correlate Failure Across Metrics & Logs (2.5 pts)
+## Bonus Task — Correlate Failure Across Metrics & Logs (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -319,7 +319,7 @@ PR checklist:
 - ✅ Recording rules loaded in Prometheus
 - ✅ SLO gauge showing drop during failure
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ Timestamped failure timeline
 - ✅ Log excerpts correlating with metrics
 - ✅ Root cause explanation
@@ -332,8 +332,8 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Monitoring + dashboard | **6** | prometheus.yml written, stack running, 2 panels built, failure observed |
 | **Task 2** — SLOs + recording rules | **4** | SLI/SLO definitions, rules loaded, SLO gauge |
-| **Bonus Task** — Failure correlation | **2.5** | Timeline, logs, root cause |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Failure correlation | **2** | Timeline, logs, root cause |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

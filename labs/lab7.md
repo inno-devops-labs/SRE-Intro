@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-Canary%20Deployments-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-Argo%20Rollouts-informational)
 
 > **Goal:** Install Argo Rollouts, convert the gateway Deployment to a canary Rollout, deploy good and bad versions, and experience manual promotion and abort.
@@ -278,7 +278,7 @@ Clean up: `kubectl delete -f labs/lab7/loadgen.yaml`.
 
 ---
 
-## Bonus Task — Automated Canary Analysis (2.5 pts)
+## Bonus Task — Automated Canary Analysis (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -436,7 +436,7 @@ PR checklist:
 - ✅ Steps observed via `--watch`
 - ✅ Dashboard observation during rollout
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ AnalysisTemplate created with Prometheus query
 - ✅ Auto-promote on good version
 - ✅ Auto-abort on bad version
@@ -449,8 +449,8 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Manual canary | **6** | Argo Rollouts installed, Rollout created, promote + abort demonstrated |
 | **Task 2** — Multi-step with observation | **4** | Multi-step strategy, Grafana observation, analysis of abort threshold |
-| **Bonus Task** — Automated analysis | **2.5** | AnalysisTemplate, auto-promote + auto-abort demonstrated |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Automated analysis | **2** | AnalysisTemplate, auto-promote + auto-abort demonstrated |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 
