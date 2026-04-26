@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-SRE%20Portfolio-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-Locust%20%2B%20DORA-informational)
 
 > **Goal:** Run Locust load tests to find QuickTicket's breaking point, calculate DORA metrics, identify toil, and write a reliability review — your capstone document.
@@ -263,7 +263,7 @@ Which service is the CPU-constrained one? Which is idle? That tells you what to 
 
 ---
 
-## Bonus Task — 5-minute Walkthrough (2.5 pts)
+## Bonus Task — 5-minute Walkthrough (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -326,7 +326,7 @@ PR checklist:
 - ✅ `kubectl top pods` output at breaking-point load.
 - ✅ Replica + resource + cost plan for 2× capacity.
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ Demo video link OR completed 2-page handbook.
 
 ---
@@ -337,8 +337,8 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Load tests + reliability review | **6** | All 7 review sections; real load-test data; DORA with source data |
 | **Task 2** — Capacity plan | **4** | Real CPU numbers + concrete 2× plan + cost |
-| **Bonus Task** — Demo video or handbook | **2.5** | Clear, useful, covers all listed items |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Demo video or handbook | **2** | Clear, useful, covers all listed items |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

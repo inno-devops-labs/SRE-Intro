@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-advanced-red)
 ![topic](https://img.shields.io/badge/topic-Microservice%20Patterns-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10-orange)
 ![tech](https://img.shields.io/badge/tech-Python%20%2B%20httpx-informational)
 
 > **Goal:** Add a 4th service to QuickTicket, implement inter-service resilience patterns (retries, timeouts, circuit breaker, rate limiter), and test them under real failure injection.
@@ -315,21 +315,6 @@ Also sustained load below the limit should see zero 429s (`for i in 1..30; do cu
 
 ---
 
-## Bonus Task — Service Mesh Analysis (2.5 pts)
-
-> 🌟 Research, no implementation required.
-
-Write 1-2 pages answering:
-
-1. **What is a service mesh?** (Istio, Linkerd, AWS App Mesh — pick one and describe concretely what the sidecar does.)
-2. **How would a mesh change what you wrote in this lab?** Which patterns would move from `gateway/main.py` to a CRD/YAML somewhere?
-3. **Tradeoffs** — list at least 4, with concrete numbers or examples (latency, memory, ops debt, language portability, debuggability).
-4. **For QuickTicket's scale, is a mesh overkill?** If yes, at what organizational / service-count / compliance threshold does it start to pay for itself?
-
-Keep it opinionated — an SRE reliability review isn't neutral.
-
----
-
 ## How to Submit
 
 ```bash
@@ -344,8 +329,9 @@ PR checklist:
 ```text
 - [x] Task 1 done — notifications service, fire-and-forget wiring, retry with backoff
 - [ ] Task 2 done — circuit breaker + rate limiter, tested under failure
-- [ ] Bonus Task done — service mesh analysis
 ```
+
+> 📝 **No "Bonus Task" in this lab.** Lab 11 is itself a bonus lab — Task 1 + Task 2 *are* the challenge. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
 
 ---
 
@@ -363,9 +349,6 @@ PR checklist:
 - ✅ Evidence of CLOSED after cooldown + recovery (200s resume).
 - ✅ Rate limiter middleware; burst returns 429s; sustained below-limit load doesn't.
 
-### Bonus Task (2.5 pts)
-- ✅ 1-2 page analysis with concrete tradeoffs and a scale threshold.
-
 ---
 
 ## Rubric
@@ -374,8 +357,7 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Notifications + retries | **6** | Service written, fire-and-forget wired, retry correctly implemented and tested |
 | **Task 2** — Circuit breaker + rate limiter | **4** | Both patterns work; Prometheus metrics; real failure-injection evidence |
-| **Bonus Task** — Service mesh analysis | **2.5** | Thoughtful comparison with numbers and a threshold |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Total** | **10** | Task 1 + Task 2 |
 
 ---
 

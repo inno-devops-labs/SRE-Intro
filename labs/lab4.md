@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-Kubernetes-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-k3d%20%2B%20kubectl-informational)
 
 > **Goal:** Write Kubernetes manifests from scratch, deploy QuickTicket to k3d, and debug using kubectl.
@@ -314,7 +314,7 @@ kubectl describe node $(kubectl get nodes -o name | head -1) | grep -A 10 "Alloc
 
 ---
 
-## Bonus Task — Helm Chart (2.5 pts)
+## Bonus Task — Helm Chart (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -436,7 +436,7 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 - ✅ Resource limits set, node allocation shown
 - ✅ Written answer on liveness vs readiness for DB checks
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ Helm chart with Chart.yaml, values.yaml, templates
 - ✅ `helm list` showing installed release
 - ✅ Pods running after Helm install
@@ -449,8 +449,8 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 |------|-------:|----------|
 | **Task 1** — K8s manifests + deployment | **6** | All manifests written from scratch, deployed, verified, self-healing demonstrated |
 | **Task 2** — Probes + resource limits | **4** | Probes added and tested, readiness failure observed, resource limits set |
-| **Bonus Task** — Helm chart | **2.5** | Chart created, installed, working, monitoring optional |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Helm chart | **2** | Chart created, installed, working, monitoring optional |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

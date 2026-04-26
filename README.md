@@ -1,7 +1,8 @@
 # SRE Intro — Site Reliability Engineering Fundamentals
 
-![labs](https://img.shields.io/badge/Labs-80%25-blue)
-![exam](https://img.shields.io/badge/Exam-20%25-green)
+![labs](https://img.shields.io/badge/Main_Labs-70%25-blue)
+![bonus](https://img.shields.io/badge/Bonuses_+_Bonus_Labs-44%25-yellow)
+![exam](https://img.shields.io/badge/Exam-30%25-green)
 ![focus](https://img.shields.io/badge/Focus-Hands--On-orange)
 ![duration](https://img.shields.io/badge/Duration-10%20Weeks-informational)
 
@@ -158,18 +159,20 @@ The [`.gitignore`](.gitignore) enforces the split so student artifacts don't acc
 
 ---
 
-## Lab Structure & Grading
+## Lab Structure
 
-Each lab caps at 12.5 pts = 10 main + 2.5 bonus.
+Each lab in weeks 1-10 caps at **12 pts = 10 main + 2 bonus**.
 
 | Task | Points | Description | Required? |
-|------|--------|-------------|-----------|
+|------|-------:|-------------|-----------|
 | **Task 1** | 6 pts | Core step that advances the project. Future labs depend on it. | Yes |
 | **Task 2** | 4 pts (3 in Lab 1) | Deeper dive into the week's topic. Skippable — won't affect future labs. | No |
 | **Task 3** | 1 pt | *Lab 1 only* — GitHub community engagement. | Lab 1 |
-| **Bonus Task** | 2.5 pts | Challenging extension for motivated students. | No |
+| **Bonus Task** | 2 pts | Extension for motivated students. | No |
 
 A student who only completes **Task 1 across all 10 labs** still ends up with a fully working SRE portfolio project.
+
+**Bonus labs (11 + 12)** are different — they have only Task 1 + Task 2 (10 pts each, no Bonus row). The labs themselves *are* the bonus. They count toward a separate 30% of the final grade (see below).
 
 ### Submission Workflow
 
@@ -193,29 +196,65 @@ Submissions are **CLI output + brief analysis**, not source code. Paste the comm
 
 ## Grading
 
-| Component | Points | Details |
-|-----------|--------|---------|
-| Required Labs (1-10) | 80 pts | 10 labs, up to 12.5 pts each, scaled to 8 pts per lab |
-| Final Exam | 20 pts | Comprehensive, OR replaced by bonus labs |
-| Bonus Labs (11-12) | +20 pts max | Can replace the exam |
-| **Total** | **100 pts** | 60 to pass |
+The final grade is composed from five components. Their max contributions add up to **149%** but the grade is **capped at 100%** — meaning multiple paths to A exist, no single path is required, and no point ever goes to waste.
 
-### Performance Tiers
+| Component | Raw Points | Weight | What it rewards |
+|-----------|-----------:|-------:|-----------------|
+| **Main labs 1-10** (Task 1 + Task 2 + Task 3-where-applicable) | 100 | **70%** | Diligent project work — the floor for any serious student |
+| **Bonus tasks 1-10** (10 × 2 pts each, flat) | 20 | **14%** | Going above and beyond on weekly topics |
+| **Quiz leaderboards** (5 rolling per-2-labs leaderboards, top-10 share 1% pool each) | — | **up to 5%** | Engagement + excellence; rewards late-joining students too |
+| **Bonus labs 11 + 12** (Task 1 + Task 2 only — 10 pts each) | 20 | **30%** | Mastering advanced microservice + K8s resilience patterns |
+| **Final exam** | — | **30%** | Optional path — written, comprehensive |
+| **Sum (capped at 100%)** | | **149%** | |
 
-| Grade | Range | Description |
-|-------|-------|-------------|
-| **A** | 90-100 | Exceptional — strong portfolio, thorough analysis |
-| **B** | 75-89 | Good — main + extra tasks consistently completed |
-| **C** | 60-74 | Satisfactory — main tasks completed |
+### What this produces in practice
+
+Two real paths to A (≥90%):
+
+- **Practice path:** all main labs + bonuses + at least one bonus lab → ≥90%. No exam required.
+- **Exam path:** all main labs + bonuses + decent exam → ≥90%. No bonus labs required.
+- Doing **both** caps at 100% with a comfortable buffer for missed points elsewhere.
+
+Sample scores:
+
+| Profile | Main | L-bonus | Bonus labs | Exam | Quiz | Total |
+|---------|-----:|--------:|-----------:|-----:|-----:|------:|
+| All Task 1 only, nothing else | 42% | 0% | 0% | 0% | 0% | **42%** |
+| All Task 1+2, no bonuses, no exam | 70% | 0% | 0% | 0% | 0% | **70%** |
+| Add all weekly bonuses | 70% | 14% | 0% | 0% | 0% | **84%** |
+| + good quiz | 70% | 14% | 0% | 0% | 5% | **89%** ← *just short of A* |
+| + finish at least one bonus lab | 70% | 14% | 15% | 0% | 5% | **100%** (capped) |
+| Or take the exam instead | 70% | 14% | 0% | 25% | 5% | **100%** (capped) |
+| Coast (Task 1 only + lucky quiz)  | 42% | 0% | 0% | 0% | 5% | **47%** |
+
+**The deliberate design:** `Main + lab-bonuses + quiz` alone tops out at **89% → just short of A**. To earn A you must do at least one bonus lab OR the exam. That stops the "easy A from quiz padding" pattern.
+
+### Quiz leaderboards (the 5%)
+
+Five rolling windows, one per pair of labs:
+
+| Window | Labs covered |
+|--------|--------------|
+| 1 | labs 1-2 |
+| 2 | labs 3-4 |
+| 3 | labs 5-6 |
+| 4 | labs 7-8 |
+| 5 | labs 9-10 |
+
+Each window allocates a **1% pool** to its top 10 students. Rough split: #1 = 0.30%, #2 = 0.20%, #3-5 = 0.10% each, #6-10 = 0.04% each. Maxing all 5 leaderboards at #1 = 1.5% — practically capped around 1-2% for top performers, who are unlikely to win every window. Late-joining students can still rank in later windows without being structurally disadvantaged.
+
+### Performance tiers
+
+| Grade | Range | Required to reach |
+|-------|-------|-------------------|
+| **A** | 90-100 | All main labs + at least one of: bonus labs / exam (multiple paths) |
+| **B** | 75-89 | Main labs + most bonuses, no extension work |
+| **C** | 60-74 | Main lab Task 1 across most labs |
 | **D** | 0-59 | Below expectations |
 
-### Exam Exemption
+### Late submissions
 
-Complete **both** bonus labs (11 AND 12) with passing scores → their combined points replace the exam. Or do the bonus labs AND the exam; best combination wins, capped at 100%.
-
-### Late Submissions
-
-Max 6/12.5 if submitted within 1 week of deadline. No credit after 1 week.
+Max 6/12 per lab if submitted within 1 week of deadline. No credit after 1 week.
 
 ---
 

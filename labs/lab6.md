@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-Alerting%20%26%20Incidents-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-Grafana%20Alerting-informational)
 
 > **Goal:** Create SLO-based alerts in Grafana, simulate an incident, follow your own runbook, and write a blameless postmortem.
@@ -243,7 +243,7 @@ all payment requests. This burned 5% of the weekly error budget in 10 minutes."]
 
 ---
 
-## Bonus Task — Cross-Test Runbooks (2.5 pts)
+## Bonus Task — Cross-Test Runbooks (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -306,7 +306,7 @@ PR checklist:
 - ✅ Focus on systems, not blame
 - ✅ Action items are specific and assigned
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ Second runbook for a different failure mode
 - ✅ Classmate tested it
 - ✅ Runbook updated based on feedback
@@ -319,8 +319,8 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Alerts + runbook + incident | **6** | Both alerts configured, runbook written, failure detected + resolved, timestamps documented |
 | **Task 2** — Blameless postmortem | **4** | Full postmortem, blameless tone, concrete action items |
-| **Bonus Task** — Cross-tested runbook | **2.5** | Second runbook, peer-tested, updated from feedback |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Cross-tested runbook | **2** | Second runbook, peer-tested, updated from feedback |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

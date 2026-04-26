@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-CI%2FCD%20%26%20GitOps-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-GitHub%20Actions%20%2B%20ArgoCD-informational)
 
 > **Goal:** Write a CI pipeline that builds and pushes container images, deploy ArgoCD, and set up GitOps deployment from Git to Kubernetes.
@@ -304,7 +304,7 @@ kubectl get pods
 
 ---
 
-## Bonus Task — Automated Image Tag Update (2.5 pts)
+## Bonus Task — Automated Image Tag Update (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -387,7 +387,7 @@ PR checklist:
 - ✅ Git log showing deploy + revert
 - ✅ Recovery time measured
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ CI auto-updates image tags in manifests
 - ✅ No infinite loop (skip CI-triggered commits)
 - ✅ ArgoCD syncs auto-updated tag
@@ -400,8 +400,8 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — CI + ArgoCD + GitOps | **6** | Workflow written, images pushed, ArgoCD deployed, GitOps loop verified |
 | **Task 2** — Rollback via Git | **4** | Bad deploy → git revert → recovery, timing measured |
-| **Bonus Task** — Auto tag update | **2.5** | Full automated loop: push → build → update tag → ArgoCD sync |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Auto tag update | **2** | Full automated loop: push → build → update tag → ArgoCD sync |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

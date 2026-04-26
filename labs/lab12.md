@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-advanced-red)
 ![topic](https://img.shields.io/badge/topic-K8s%20Resilience-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10-orange)
 ![tech](https://img.shields.io/badge/tech-Kubernetes-informational)
 
 > **Goal:** Make QuickTicket resilient to node maintenance and rolling-deploy events using PodDisruptionBudgets, graceful shutdown, and zero-downtime migrations.
@@ -316,52 +316,6 @@ diff /tmp/5xx.before /tmp/5xx.after   # should show no change
 
 ---
 
-## Bonus Task — Production Readiness Checklist (2.5 pts)
-
-> 🌟 For those who want extra challenge.
-
-**Objective:** Write a production readiness checklist for QuickTicket — the one-page document an SRE reviewer would go through with you before signing off on "launch".
-
-Use this skeleton and mark each item ✅ / ⚠️ / ❌ based on **your actual lab artifacts**:
-
-```markdown
-## Reliability
-- [ ] All services have 2+ replicas
-- [ ] PodDisruptionBudgets configured
-- [ ] Liveness + readiness probes on all services
-- [ ] Resource requests and limits set
-- [ ] Graceful shutdown (preStop hooks)
-
-## Observability
-- [ ] Golden signals dashboard (latency, traffic, errors, saturation)
-- [ ] SLOs defined with recording rules
-- [ ] SLO-based alerting configured
-- [ ] Runbooks for each alert
-- [ ] Structured logging across all services
-
-## Deployment
-- [ ] CI/CD pipeline with automated tests
-- [ ] GitOps — no manual kubectl
-- [ ] Canary deployment strategy
-- [ ] Rollback tested and documented
-
-## Data
-- [ ] Automated backups with tested restore
-- [ ] PersistentVolumeClaim for stateful services
-- [ ] Migration strategy (expand-and-contract; CONCURRENTLY for indexes)
-- [ ] RTO and RPO defined
-
-## Incident Response
-- [ ] Incident response process documented
-- [ ] On-call rotation defined
-- [ ] Postmortem template and process
-- [ ] Contact escalation path
-```
-
-For each ⚠️ or ❌: write ONE sentence about what it would take to close the gap. The goal is to produce an artifact you could hand to an interviewer to illustrate your SRE maturity for this project.
-
----
-
 ## How to Submit
 
 ```bash
@@ -376,8 +330,9 @@ PR checklist:
 ```text
 - [x] Task 1 done — multi-replica failover + 4 PDBs + real eviction block
 - [ ] Task 2 done — preStop + zero-error rolling restart + CONCURRENTLY migration
-- [ ] Bonus Task done — production readiness checklist with gap analysis
 ```
+
+> 📝 **No "Bonus Task" in this lab.** Lab 12 is itself a bonus lab — Task 1 + Task 2 *are* the challenge. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
 
 ---
 
@@ -396,10 +351,6 @@ PR checklist:
 - ✅ Zero 5xx during migration.
 - ✅ New index visible in `\d events`.
 
-### Bonus Task (2.5 pts)
-- ✅ Full checklist with ✅/⚠️/❌ on every item.
-- ✅ One-sentence gap-closure plan for each ⚠️/❌.
-
 ---
 
 ## Rubric
@@ -408,8 +359,7 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Multi-replica + PDB | **6** | Pods scaled, zero errors on kill, PDBs configured, real API-level rejection captured |
 | **Task 2** — Graceful shutdown + migration | **4** | preStop + probes wired, zero-error rolling restart, CONCURRENTLY migration under load |
-| **Bonus Task** — Production readiness checklist | **2.5** | Full matrix with gap analysis |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Total** | **10** | Task 1 + Task 2 |
 
 ---
 

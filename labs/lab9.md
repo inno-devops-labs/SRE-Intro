@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-intermediate-yellow)
 ![topic](https://img.shields.io/badge/topic-DB%20Reliability-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-Alembic%20%2B%20pg__dump-informational)
 
 > **Goal:** Run database migrations with Alembic under load, perform `pg_dump` backup + `pg_restore` recovery, measure RTO/RPO, and automate periodic backups with a Kubernetes CronJob.
@@ -302,7 +302,7 @@ Quantify what was lost: before disaster you had N orders. After restore you have
 
 ---
 
-## Bonus Task — Persistent Storage + Automated Backup CronJob (2.5 pts)
+## Bonus Task — Persistent Storage + Automated Backup CronJob (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -474,7 +474,7 @@ PR checklist:
 - ✅ Actual RTO in seconds and RPO gap in rows.
 - ✅ Written observation that the new Postgres pod is empty (no PVC).
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ PVC added to Postgres, data survives pod restart.
 - ✅ Re-measured RTO is noticeably faster (no restore step needed).
 - ✅ Student-written CronJob (`k8s/backup-cronjob.yaml`) runs pg_dump on schedule.
@@ -488,8 +488,8 @@ PR checklist:
 |------|-------:|----------|
 | **Task 1** — Migrations + backup/restore | **6** | Alembic setup, migration under load, backup/restore cycle verified |
 | **Task 2** — Disaster recovery | **4** | RTO/RPO measured with timestamps + no-PVC observation |
-| **Bonus Task** — PVC + automated backup | **2.5** | PVC added, RTO improved, student-written CronJob with rotation verified |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — PVC + automated backup | **2** | PVC added, RTO improved, student-written CronJob with rotation verified |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 

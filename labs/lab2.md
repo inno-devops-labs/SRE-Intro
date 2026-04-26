@@ -2,7 +2,7 @@
 
 ![difficulty](https://img.shields.io/badge/difficulty-beginner-success)
 ![topic](https://img.shields.io/badge/topic-Containers-blue)
-![points](https://img.shields.io/badge/points-10%2B2.5-orange)
+![points](https://img.shields.io/badge/points-10%2B2-orange)
 ![tech](https://img.shields.io/badge/tech-Docker-informational)
 
 > **Goal:** Understand how QuickTicket containers work under the hood — images, layers, networking, operational commands — and optimize them.
@@ -219,7 +219,7 @@ docker exec app-gateway-1 whoami
 
 ---
 
-## Bonus Task — Trace a Request Across Services (2.5 pts)
+## Bonus Task — Trace a Request Across Services (2 pts)
 
 > 🌟 For those who want extra challenge and experience.
 
@@ -287,7 +287,7 @@ docker exec app-gateway-1 whoami
 - ✅ Non-root user added, `whoami` proves it
 - ✅ `git diff` of Dockerfile changes
 
-### Bonus Task (2.5 pts)
+### Bonus Task (2 pts)
 - ✅ Full timestamped logs showing one purchase request across all 3 services
 - ✅ Annotated with service name, action, and timing between hops
 - ✅ End-to-end time calculated
@@ -300,8 +300,8 @@ docker exec app-gateway-1 whoami
 |------|-------:|----------|
 | **Task 1** — Docker inspection & operations | **6** | All operational commands run, outputs documented, DNS discovery explained |
 | **Task 2** — Dockerfile optimization | **4** | .dockerignore added, non-root user working, size comparison documented |
-| **Bonus Task** — Request tracing | **2.5** | Full request traced across 3 services with timestamps and analysis |
-| **Total** | **12.5** | 10 main + 2.5 bonus |
+| **Bonus Task** — Request tracing | **2** | Full request traced across 3 services with timestamps and analysis |
+| **Total** | **12** | 10 main + 2 bonus |
 
 ---
 
