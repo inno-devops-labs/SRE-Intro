@@ -18,8 +18,11 @@ In this lab you:
 
 - Scale events + payments + notifications to 2 replicas (gateway is already a 5-replica Rollout from Lab 7).
 - Write `k8s/pdb.yaml` — PodDisruptionBudgets that survive maintenance evictions.
+- Add `topologySpreadConstraints` to the gateway Rollout so its replicas spread across nodes (single-node k3d note included).
 - Add `preStop` hook + `readinessProbe` to the gateway Rollout so rolling restarts drop zero requests.
 - Write an Alembic migration using `CREATE INDEX CONCURRENTLY` and run it under live load.
+- Sketch (no code) the **expand-and-contract** pattern for a zero-downtime column rename — the general shape of all production schema changes.
+- *(Optional)* a quick HPA observation for completeness.
 
 ---
 
@@ -31,6 +34,8 @@ In this lab you:
 - In-cluster Prometheus (Lab 7 Bonus).
 - `labs/lab8/mixedload.yaml` generating checkout traffic throughout the lab.
 - An Alembic setup already initialized in Lab 9 (keep the venv + port-forward).
+
+> **If you skipped Lab 9** (it was an optional task), Task 12.7 needs Alembic. Bootstrap in 5 minutes: `python3 -m venv .venv && source .venv/bin/activate && pip install alembic==1.18.4 psycopg2-binary==2.9.11 sqlalchemy==2.0.49 && alembic init migrations && alembic stamp head`. Edit `alembic.ini` `sqlalchemy.url` to `postgresql://quickticket:quickticket@localhost:5432/quickticket` and start `kubectl port-forward svc/postgres 5432:5432 &`.
 
 ---
 
@@ -122,8 +127,12 @@ Expected: 5xx stays at 0. Replacement pods come up within seconds; Service endpo
 #       matchLabels:
 #         app: <service-name>
 #
-# Why different values:
-#   - gateway is on the critical path → high minAvailable
+# Why these values:
+#   - gateway: 5 replicas, gateway IS the critical path. minAvailable: 2 means we
+#     can lose 3 simultaneously during a node drain. Why not minAvailable: 4?
+#     Because the cluster autoscaler / drain would block forever — we want to be
+#     able to actually replace nodes. 2 keeps enough capacity for ~half of normal
+#     RPS while a rolling drain reschedules the rest.
 #   - events/payments must have 1 live at all times → minAvailable: 1
 #   - notifications is best-effort → maxUnavailable: 1 is a softer bar
 #
@@ -142,48 +151,102 @@ kubectl get pdb
 # notifications-pdb   N/A             1                 1
 ```
 
-### 12.4: Prove a PDB actually blocks eviction
+### 12.4: Add topology spread (single-node note)
 
-The `kubectl drain --dry-run=server` output *lists* all pods as candidates (that's expected — drain evaluates each pod against PDBs in sequence, not upfront). To see a real PDB rejection, tighten the budget until it's impossible to satisfy and fire a single eviction:
+Production K8s clusters have multiple nodes; if all your gateway pods land on the same node, you've thrown away the whole point of multi-replica resilience. The standard tool is `topologySpreadConstraints`. Add one to the gateway Rollout pod template:
+
+```yaml
+# k8s/gateway.yaml — YOUR TASK (add to spec.template.spec)
+#
+# topologySpreadConstraints:
+#   - maxSkew: 1
+#     topologyKey: kubernetes.io/hostname
+#     whenUnsatisfiable: ScheduleAnyway     # don't block scheduling on single-node
+#     labelSelector:
+#       matchLabels:
+#         app: gateway
+#
+# What this says: across hostnames (= nodes in k3d), the difference in
+# gateway-pod count between the most-loaded and least-loaded node should
+# never exceed 1. So with 5 pods over 3 nodes the placement would be
+# 2/2/1, never 4/1/0 or 5/0/0.
+#
+# whenUnsatisfiable: ScheduleAnyway is the right choice for "preferred but
+# not mandatory" — the alternative DoNotSchedule would leave pods Pending
+# on a single-node cluster.
+```
+
+Apply and observe. **On single-node k3d the constraint has no observable effect** — every pod still lands on the only node:
+
+```bash
+kubectl apply -f k8s/gateway.yaml
+kubectl argo rollouts status gateway --timeout=240s
+kubectl get pod -l app=gateway -o wide
+# All 5 pods on the same NODE — that's expected here. The lesson is that
+# the YAML is *correct* and ready for a real multi-node cluster. Verify
+# the field is in the live spec:
+kubectl get rollout gateway -o jsonpath='{.spec.template.spec.topologySpreadConstraints}' | python3 -m json.tool
+```
+
+For the same reason `kubectl drain` won't actually demonstrate eviction on this cluster — there's nowhere to reschedule pods. We work around that in 12.5 below.
+
+### 12.5: Prove a PDB actually blocks eviction
+
+`kubectl drain --dry-run=server` *lists* all pods as candidates — that's expected; drain evaluates each pod against its PDB sequentially, not upfront. To see a real PDB rejection you need to (a) tighten a PDB so even one eviction violates it and (b) issue a single eviction via the API.
+
+Try this yourself first. The eviction API lives at `POST /api/v1/namespaces/<ns>/pods/<name>/eviction` with body `{apiVersion: policy/v1, kind: Eviction, metadata: {name, namespace}}`. `kubectl` doesn't have a direct subcommand — you reach it via `kubectl proxy` + `curl`, or via your own client.
+
+If you get stuck:
+
+<details>
+<summary>💡 Reference solution</summary>
 
 ```bash
 # Make events-pdb impossible to satisfy (minAvailable=2 with 2 replicas = zero tolerance)
 kubectl patch pdb events-pdb --type=merge -p '{"spec":{"minAvailable":2}}'
 kubectl get pdb events-pdb                         # ALLOWED DISRUPTIONS should be 0
 
-# Issue an Eviction via the API (kubectl doesn't have a direct eviction subcommand)
-POD=$(kubectl get pod -l app=events -o jsonpath='{.items[0].metadata.name}')
-kubectl proxy --port=8901 &
+# Open a kubectl proxy in the background, remember its PID for clean teardown
+kubectl proxy --port=8901 >/tmp/proxy.log 2>&1 &
+PROXY_PID=$!
+trap 'kill $PROXY_PID 2>/dev/null' EXIT
 sleep 2
-curl -X POST -H 'Content-Type: application/json' \
+
+# Fire one eviction
+POD=$(kubectl get pod -l app=events -o jsonpath='{.items[0].metadata.name}')
+curl -s -X POST -H 'Content-Type: application/json' \
   -d "{\"apiVersion\":\"policy/v1\",\"kind\":\"Eviction\",
        \"metadata\":{\"name\":\"$POD\",\"namespace\":\"default\"}}" \
-  http://localhost:8901/api/v1/namespaces/default/pods/$POD/eviction
-# Expect: HTTP 429 TooManyRequests with "reason":"DisruptionBudget" and
+  http://localhost:8901/api/v1/namespaces/default/pods/$POD/eviction \
+  | python3 -m json.tool
+# Expect: HTTP 429 with "reason":"DisruptionBudget" and
 # "message":"... needs 2 healthy pods and has 2 currently"
 
-# Restore the PDB
+# Restore
 kubectl patch pdb events-pdb --type=merge -p '{"spec":{"minAvailable":1}}'
-kill %1 2>/dev/null      # stop the kubectl proxy
 ```
+
+</details>
 
 ### Proof of work (Task 1)
 
-**Commit `k8s/pdb.yaml` and the updated `k8s/{events,payments,notifications}.yaml` to your fork.**
+**Commit `k8s/pdb.yaml`, the updated `k8s/{events,payments,notifications}.yaml`, and the updated `k8s/gateway.yaml` (topology-spread constraint) to your fork.**
 
 **Paste into `submissions/lab12.md`:**
 
 1. `kubectl get deploy,rollout` showing all services at their target replica counts.
 2. The before/after 5xx count from Prometheus around the pod-kill test (should both be 0).
 3. `kubectl get pdb` output.
-4. The HTTP 429 JSON body from the tightened-PDB eviction test (proves PDB enforcement).
-5. Answer: "With 3 gateway replicas and minAvailable: 1, what's the maximum number of pods that can be evicted simultaneously? Why is your `gateway-pdb` set to `minAvailable: 2` with 5 replicas?"
+4. `kubectl get rollout gateway -o jsonpath='{.spec.template.spec.topologySpreadConstraints}'` output showing the constraint is in the live spec, plus `kubectl get pod -l app=gateway -o wide` showing the actual placement.
+5. The HTTP 429 JSON body from the tightened-PDB eviction test (proves PDB enforcement).
+6. Answer: "With 3 gateway replicas and minAvailable: 1, what's the maximum number of pods that can be evicted simultaneously? Why is your `gateway-pdb` set to `minAvailable: 2` with 5 replicas?"
+7. Answer: "Your topology-spread constraint has no observable effect on single-node k3d. In a 3-node cluster, what placement would `maxSkew: 1` produce for 5 gateway pods? What about for 7?"
 
 <details>
 <summary>💡 Hints</summary>
 
 - `kubectl delete pod <name>` — do NOT prefix with `pod/` when the resource is already `pod` by position; newer kubectl prints a confusing "no need to specify a resource type as a separate argument" warning but the delete still works. Use `--wait=false` to avoid blocking on grace period.
-- `kubectl drain --dry-run=server` on a single-node k3d cluster shows all pods as eviction candidates. That's NOT a PDB failure — drain serializes evictions and respects the PDB one pod at a time. To see a PDB actually reject something, tighten the PDB (as 12.4) so even one eviction would violate it.
+- `kubectl drain --dry-run=server` on a single-node k3d cluster shows all pods as eviction candidates. That's NOT a PDB failure — drain serializes evictions and respects the PDB one pod at a time. To see a PDB actually reject something, tighten the PDB (as in 12.5) so even one eviction would violate it.
 - The eviction API is at `POST /api/v1/namespaces/<ns>/pods/<name>/eviction` with a body of `{apiVersion: policy/v1, kind: Eviction, metadata: {name, namespace}}`. `kubectl eviction` / `kubectl eviction-request` do NOT exist.
 
 </details>
@@ -194,7 +257,7 @@ kill %1 2>/dev/null      # stop the kubectl proxy
 
 > ⏭️ Optional.
 
-### 12.5: preStop hook + readinessProbe
+### 12.6: preStop hook + readinessProbe
 
 Edit `k8s/gateway.yaml` (it's an Argo Rollouts `Rollout`, not a `Deployment`). Add under `spec.template.spec`:
 
@@ -249,7 +312,7 @@ Expected: both queries return 0. If the restart produced 5xx, either the `preSto
 
 > ⚠️ **Gotcha:** `kubectl rollout restart deployment/gateway` fails with *"deployment.apps gateway not found"* — gateway is `rollout.argoproj.io`, not `deployment.apps`. Use `kubectl argo rollouts restart gateway`.
 
-### 12.6: `CREATE INDEX CONCURRENTLY` migration
+### 12.7: `CREATE INDEX CONCURRENTLY` migration
 
 Create a new Alembic migration (you already have Alembic set up from Lab 9):
 
@@ -303,6 +366,67 @@ kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
 diff /tmp/5xx.before /tmp/5xx.after   # should show no change
 ```
 
+> 💡 **Why the migration finishes in milliseconds.** The `events` table has 5 rows. `CREATE INDEX` (with or without CONCURRENTLY) is essentially instant. The point of CONCURRENTLY is invisible at this scale — but in a production system on a 10M-row table, the non-concurrent version takes an `ACCESS EXCLUSIVE` lock for **minutes** (every query blocks), while CONCURRENTLY takes a milder `SHARE UPDATE EXCLUSIVE` lock that doesn't block reads or writes. You're learning the *right syntax* now so you don't need to learn it during an outage.
+
+### 12.8: Sketch an expand-and-contract rename (design only)
+
+`CREATE INDEX CONCURRENTLY` is one specific zero-downtime DDL. The general pattern for changing a schema without downtime is **expand-and-contract**: deploy a sequence of small, individually-reversible changes such that the application is never broken at any intermediate state.
+
+**Your task:** sketch the migrations + code deploys to rename `events.event_date` → `events.scheduled_at` with zero downtime. Don't implement — just write down the steps in `submissions/lab12.md`. The right answer is **3 migrations + 2 code deploys**, interleaved.
+
+Useful frame:
+
+```
+At every intermediate point, BOTH the old code and the new code must work.
+That means a brief overlap where the column has BOTH names.
+```
+
+Hints:
+
+- Migration 1: add new column `scheduled_at` (nullable). What's the SQL?
+- Code deploy A: write to BOTH columns; read from `scheduled_at` if non-NULL else fall back to `event_date`.
+- Migration 2: backfill — `UPDATE events SET scheduled_at = event_date WHERE scheduled_at IS NULL`. Why is this safe even with live traffic?
+- Code deploy B: write only to `scheduled_at`; read only from `scheduled_at`.
+- Migration 3: drop `event_date`. Why must this come AFTER deploy B is fully rolled out, never before?
+
+> 💡 The same pattern applies to renaming columns in tables you don't own (Stripe API fields, third-party DB schemas) — anywhere you can't atomically swap a name across all clients. Memorize the shape: **add → dual-write → backfill → switch read → drop old**.
+
+### 12.9: Optional — quick HPA observation
+
+Reading 12 covers HPA + Karpenter; we haven't applied either in this course because k3d is single-node. As a quick demonstration only, write a `HorizontalPodAutoscaler` for the gateway Rollout (HPA works on any scalable resource):
+
+```yaml
+# k8s/gateway-hpa.yaml — YOUR TASK
+#
+# Requirements:
+#   apiVersion: autoscaling/v2
+#   kind: HorizontalPodAutoscaler
+#   spec:
+#     scaleTargetRef: { apiVersion: argoproj.io/v1alpha1, kind: Rollout, name: gateway }
+#     minReplicas: 5    (don't drop below the Lab 7 base)
+#     maxReplicas: 12
+#     metrics:
+#       - type: Resource
+#         resource:
+#           name: cpu
+#           target: { type: Utilization, averageUtilization: 70 }
+```
+
+Apply, then drive CPU up with a Lab 10 Locust Job at high concurrency:
+
+```bash
+kubectl apply -f k8s/gateway-hpa.yaml
+
+# Re-use the Locust runner from Lab 10 (you have labs/lab10/locust-runner.yaml).
+# Edit the Job to -u 200 -r 20 -t 120s (or copy the manifest and rename to load-hpa).
+# In a separate terminal:
+kubectl get hpa gateway -w
+```
+
+Watch the `TARGETS` column climb past 70%, and `REPLICAS` step up toward `maxReplicas`. On single-node k3d the new pods schedule on the same node so it's not real elasticity — but you'll see the HPA controller making decisions, which is the point. Resource requests must be set on the gateway container for HPA to compute utilization (lab 4 added them already; double-check `kubectl get rollout gateway -o jsonpath='{.spec.template.spec.containers[0].resources}'`).
+
+Skip this section if you're short on time — it's a small extra observation, not a graded component.
+
 ### Proof of work (Task 2)
 
 **Paste into `submissions/lab12.md`:**
@@ -312,7 +436,10 @@ diff /tmp/5xx.before /tmp/5xx.after   # should show no change
 - Your migration code (the autocommit_block wrapper is the key detail).
 - 5xx count before / after the migration (both should be 0).
 - `\d events` output showing the new `idx_events_event_date` index.
+- The 3-migration + 2-deploy expand-and-contract sketch from 12.8 (write it as a numbered list, no code required).
+- (Optional, if you did 12.9) Your HPA YAML and a screenshot of `kubectl get hpa` showing CPU utilization climbing under load.
 - Answer: "Why does `CREATE INDEX CONCURRENTLY` matter? What happens if you omit it on a table with 10M rows?"
+- Answer (from 12.8): "In your expand-and-contract sketch, why MUST migration 3 (drop old column) come after deploy B has fully rolled out? What goes wrong if it runs before?"
 
 ---
 
@@ -328,8 +455,9 @@ git push -u origin feature/lab12
 PR checklist:
 
 ```text
-- [x] Task 1 done — multi-replica failover + 4 PDBs + real eviction block
-- [ ] Task 2 done — preStop + zero-error rolling restart + CONCURRENTLY migration
+- [x] Task 1 done — multi-replica failover + 4 PDBs + topology spread + real eviction-API block
+- [ ] Task 2 done — preStop + zero-error rolling restart + CONCURRENTLY migration + expand-and-contract sketch
+- [ ] (Optional) 12.9 HPA observation
 ```
 
 > 📝 **No "Bonus Task" in this lab.** Lab 12 is itself a bonus lab — Task 1 + Task 2 *are* the challenge. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
@@ -342,6 +470,7 @@ PR checklist:
 - ✅ events / payments / notifications scaled to 2 replicas; manifests updated.
 - ✅ Zero 5xx from Prometheus during coordinated pod-kill under mixedload.
 - ✅ `k8s/pdb.yaml` with 4 PDBs; `kubectl get pdb` shows correct `ALLOWED DISRUPTIONS`.
+- ✅ `topologySpreadConstraints` added to gateway Rollout (effect not visible on single-node k3d, but YAML correct and live in spec).
 - ✅ HTTP 429 eviction rejection captured with `reason: DisruptionBudget`.
 
 ### Task 2 (4 pts)
@@ -350,6 +479,7 @@ PR checklist:
 - ✅ Migration uses `CONCURRENTLY` with the `autocommit_block` wrapper.
 - ✅ Zero 5xx during migration.
 - ✅ New index visible in `\d events`.
+- ✅ Expand-and-contract sketch in submissions/lab12.md (3 migrations + 2 code deploys, with rationale for the ordering).
 
 ---
 
@@ -357,8 +487,8 @@ PR checklist:
 
 | Task | Points | Criteria |
 |------|-------:|----------|
-| **Task 1** — Multi-replica + PDB | **6** | Pods scaled, zero errors on kill, PDBs configured, real API-level rejection captured |
-| **Task 2** — Graceful shutdown + migration | **4** | preStop + probes wired, zero-error rolling restart, CONCURRENTLY migration under load |
+| **Task 1** — Multi-replica + PDB + topology spread | **6** | Pods scaled, zero errors on kill, PDBs configured + topologySpreadConstraints in spec, real API-level eviction rejection captured |
+| **Task 2** — Graceful shutdown + zero-downtime migration | **4** | preStop + probes wired, zero-error rolling restart, CONCURRENTLY migration under load, expand-and-contract sketch |
 | **Total** | **10** | Task 1 + Task 2 |
 
 ---
@@ -386,7 +516,8 @@ PR checklist:
 - **`CREATE INDEX CONCURRENTLY cannot run inside a transaction block`** — Alembic wraps migrations in a transaction by default. Fix: `with op.get_context().autocommit_block():` around the DDL call.
 - **preStop alone is not enough** — need BOTH preStop (blocks SIGTERM→SIGKILL window) AND a `readinessProbe` that fails quickly (kube-proxy removes the endpoint within ~2s). Without the probe, preStop sleep is wasted because the pod is still in endpoints.
 - **`terminationGracePeriodSeconds` must cover preStop + in-flight request drain** — we use 40s (10s preStop + up to 30s uvicorn drain). A 30s grace period is NOT enough if preStop is already 10s.
-- **Single-node k3d can't drain** — there's nowhere to reschedule the evicted pods. Drain dry-runs work; real drains hang. This is an artifact of the lab environment, not a lesson — in real clusters `kubectl drain` is the standard way to take a node out of service.
+- **Single-node k3d can't drain or spread** — there's nowhere to reschedule evicted pods (drain dry-runs work; real drains hang) and `topologySpreadConstraints` has no observable effect (every pod lands on the only node). Both are artifacts of the lab environment. In a real multi-node cluster `kubectl drain` is the standard way to take a node out of service, and topology spread is what makes that drain safe.
+- **`kubectl proxy` cleanup** — `kill %1` depends on the proxy being shell job 1, which breaks if you have other backgrounded commands. Use `PROXY_PID=$!` and `trap 'kill $PROXY_PID' EXIT` in scripts (see the 12.5 reference solution).
 - **`--wait=false` on delete** — without it, `kubectl delete pod` blocks until the `terminationGracePeriodSeconds` expires (could be 40s per pod). With multiple deletes in a test script, this adds up fast.
 
 </details>
