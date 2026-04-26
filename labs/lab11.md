@@ -22,7 +22,7 @@ In this lab you:
 - Add a simple **per-endpoint rate limiter** to the gateway.
 - Test each pattern by injecting real faults on your k3d cluster.
 
-This is a bonus lab, so the scaffolding is lighter than earlier weeks — you're expected to write most of the code yourself. Requirements, hints, and a Python skeleton are provided; the actual implementations are yours.
+This is a bonus lab, so the scaffolding is lighter than earlier weeks — you're expected to write most of the code yourself. Each task block lists explicit requirements and behavior contracts; the actual implementations are yours.
 
 ---
 
@@ -40,6 +40,30 @@ This is a bonus lab, so the scaffolding is lighter than earlier weeks — you're
 - A beefed-up `app/gateway/main.py` with retry + CB + rate limiter.
 - `k8s/notifications.yaml` — Deployment + Service for the new pod.
 - Extra env vars on `k8s/gateway.yaml` to tune the patterns without rebuilding.
+
+> 📚 **Reading-vs-lab scope.** Reading 11 covers seven resilience patterns (retry, timeout, circuit breaker, fallback, rate-limit, **bulkhead, load-shedding**). This lab implements the first five. Bulkhead and load-shedding are concept-only — see Reading 11 §6-§7 for when you'd reach for them.
+
+---
+
+## Build & Deploy Workflow (read this once)
+
+After every code change to `app/notifications/` or `app/gateway/`, you need to rebuild + import the image into k3d, then re-apply the manifest:
+
+```bash
+# Rebuild affected images
+docker build -t quickticket-notifications:v1 ./app/notifications
+docker build -t quickticket-gateway:v1 ./app/gateway       # rebuild whenever you edit gateway
+
+# Import into the k3d cluster
+k3d image import -c quickticket quickticket-notifications:v1 quickticket-gateway:v1
+
+# Roll the pods so they pick up the new image
+kubectl apply -f k8s/notifications.yaml
+kubectl argo rollouts set image gateway gateway=quickticket-gateway:v1   # gateway is a Rollout
+kubectl argo rollouts status gateway --timeout=240s
+```
+
+Skip this and your `kubectl apply` will succeed but the pods will run stale code (or `ErrImageNeverPull` for first-time deploys). Mentioning it once here so the lab text below doesn't repeat it.
 
 ---
 
@@ -70,7 +94,34 @@ Follow the payments template as your reference (`app/payments/main.py`). Your no
 
 Also write `app/notifications/Dockerfile` (copy from `app/payments/`, change the port to 8083) and `app/notifications/requirements.txt` (identical to payments — no DB, no Redis).
 
-### 11.2: Wire into the gateway (don't block user flow)
+### 11.2: Write `k8s/notifications.yaml`
+
+Following the lab-4 pattern, write a Deployment + Service in a single file:
+
+```yaml
+# k8s/notifications.yaml — YOUR TASK
+#
+# Write a Deployment + Service for the notifications pod.
+#
+# Requirements (Deployment):
+#   - 1 replica (we'll scale in lab 12)
+#   - image: quickticket-notifications:v1
+#   - imagePullPolicy: Never           (locally-imported image)
+#   - container port 8083
+#   - env vars (with sane defaults — your gateway tunes them via kubectl set env):
+#       NOTIFY_FAILURE_RATE = "0.0"
+#       NOTIFY_LATENCY_MS   = "0"
+#   - selector + labels: app=notifications
+#
+# Requirements (Service):
+#   - ClusterIP (default)
+#   - port 8083 → targetPort 8083
+#   - selector app=notifications
+#
+# Hint: copy k8s/payments.yaml and edit the names + port. Lecture 4 slide 7-8.
+```
+
+### 11.3: Wire into the gateway (don't block user flow)
 
 In `app/gateway/main.py`, after a successful `pay_reservation`:
 
@@ -93,52 +144,47 @@ In `app/gateway/main.py`, after a successful `pay_reservation`:
           log.warning(f"notify failed (non-critical) order={reservation_id} err={e}")
   ```
 
-Why fire-and-forget: see answer in 11.4 below — but in short, if the user's payment succeeded and their reservation is confirmed, a failed SMS shouldn't make them see a 500.
+Why fire-and-forget: you'll answer this fully in your submission (Q7) — but in short, if the user's payment succeeded and their reservation is confirmed, a failed SMS shouldn't make them see a 500.
 
 > 💡 **Gotcha:** Your gateway `/health` handler previously gated "healthy" on `events AND payments`. Don't add notifications to that gate — a broken notifier shouldn't flip the system to degraded from the operator's POV.
 
-### 11.3: Add retry with backoff + jitter
+### 11.4: Add retry with backoff + jitter
 
-Implement `call_with_retry(func, target, max_retries)` in the gateway:
+Implement `call_with_retry(func, target, max_retries)` in the gateway and wire it into the `/reserve/{id}/pay` handler's payments call.
 
 ```python
 # app/gateway/main.py — YOUR TASK
 #
-# Requirements:
-#   - Exponential backoff: base_delay * 2^attempt
-#   - Add jitter: random.uniform(0, base_delay) to avoid thundering herd
-#   - Retry ONLY on transient errors (httpx.TimeoutException, ConnectError,
-#     5xx HTTPStatusError, plus 408/429 which are retryable 4xx)
-#   - Do NOT retry other 4xx — they won't fix themselves
-#   - Emit Prometheus metrics for observability:
-#       gateway_retry_total{target, result}  — result ∈ {retried, succeeded_after_retry, exhausted, non_retryable}
-#   - Make attempts (RETRY_MAX) and base delay (RETRY_BASE_DELAY_MS) env-configurable
+# Function signature:
+#     async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX): ...
 #
-# Wire it into the /reserve/{id}/pay handler's payments call.
+# Behaviour:
+#   • Loop up to max_retries; each iteration, await func()
+#   • On success: if attempt > 0, increment `gateway_retry_total{target, result="succeeded_after_retry"}`. Return.
+#   • On exception:
+#       - retryable transient errors:  TimeoutException, ConnectError,
+#         HTTPStatusError where status is 5xx OR exactly 408/429
+#       - non-retryable: any other 4xx (404, 422, …) — increment
+#         `gateway_retry_total{result="non_retryable"}` and re-raise immediately.
+#   • Final iteration: increment `result="exhausted"`, re-raise the last exception.
+#   • Otherwise: compute delay = base_delay * (2 ** attempt) + uniform(0, base_delay).
+#     Increment `result="retried"`. Sleep delay. Continue.
+#
+# Tunables (env vars):
+#   RETRY_MAX             default 3
+#   RETRY_BASE_DELAY_MS   default 100
+#
+# Wire-in:
+#     pay_resp = await call_with_retry(_charge, target="payments")
+#   where _charge() does the actual httpx.AsyncClient.post(...).raise_for_status()
+#
+# (Task 2 will wrap call_with_retry in a circuit breaker — design call_with_retry
+#  to compose cleanly with that.)
 ```
 
-Hint structure (you can copy and flesh out):
+> 🤔 **Design prompt.** In Task 2 you'll wrap this in a circuit breaker as `cb.call(lambda: call_with_retry(_charge, "payments"))`. Why is `cb.call(retry(...))` correct, and `retry(lambda: cb.call(...))` would be wrong? (Answer this in your submission alongside the implementation.)
 
-```python
-async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
-    base = RETRY_BASE_DELAY_MS / 1000
-    last_exc = None
-    for attempt in range(max_retries):
-        try:
-            # TODO: call func(), return result (bump success-after-retry metric if attempt > 0)
-            ...
-        except (httpx.TimeoutException, httpx.ConnectError, httpx.HTTPStatusError) as exc:
-            # TODO:
-            #   - save last_exc
-            #   - if it's a 4xx (not 408/429): bump non_retryable, raise
-            #   - if this is the final attempt: bump exhausted, raise
-            #   - compute delay = base * 2^attempt + jitter
-            #   - bump retried, await asyncio.sleep(delay)
-            ...
-    raise last_exc  # unreachable
-```
-
-### 11.4: Test under failure
+### 11.5: Test #1 — fire-and-forget under notify failure
 
 Make sure the Lab 8 mixedload is running (provides checkout traffic):
 
@@ -154,10 +200,49 @@ kubectl set env deployment/notifications NOTIFY_FAILURE_RATE=0.3 NOTIFY_LATENCY_
 kubectl rollout status deployment/notifications --timeout=30s
 ```
 
-Fire off a batch of checkout chains from inside the cluster and count how many user-level checkouts succeed:
+Fire 30 checkout chains from inside the cluster and count user-level outcomes:
 
 ```bash
 kubectl run checkout-burst --image=curlimages/curl:latest --rm -i --restart=Never --quiet --command -- sh -c '
+ok=0; fail=0
+for i in $(seq 1 30); do
+  RES=$(curl -s -X POST http://gateway:8080/events/3/reserve -H "Content-Type: application/json" -d "{\"quantity\":1}")
+  RID=$(echo "$RES" | sed -n "s/.*reservation_id\":\"\\([^\"]*\\).*/\\1/p")
+  if [ -z "$RID" ]; then echo "[$i] reserve failed"; fail=$((fail+1)); continue; fi
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://gateway:8080/reserve/$RID/pay)
+  if [ "$CODE" = "200" ]; then ok=$((ok+1)); else echo "[$i] pay failed: $CODE"; fail=$((fail+1)); fi
+  sleep 0.1
+done
+echo "result: ok=$ok fail=$fail"
+'
+```
+
+Expect `ok=30 fail=0`. Also confirm gateway `/pay` p99 latency is NOT inflated by the injected 300ms:
+
+```bash
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=histogram_quantile(0.99,+sum+by+(le,path)+(rate(gateway_request_duration_seconds_bucket%5B2m%5D)))'
+```
+
+That proves the fire-and-forget is genuinely non-blocking. Restore notifications when done:
+
+```bash
+kubectl set env deployment/notifications NOTIFY_FAILURE_RATE=0.0 NOTIFY_LATENCY_MS=0
+```
+
+### 11.6: Test #2 — retries fire under transient payment failure
+
+This is the test that proves your `call_with_retry` works. Inject 30% payment failures (transient — retries should mostly recover):
+
+```bash
+kubectl set env deployment/payments PAYMENT_FAILURE_RATE=0.3
+kubectl rollout status deployment/payments --timeout=30s
+```
+
+Run another checkout burst:
+
+```bash
+kubectl run retry-test --image=curlimages/curl:latest --rm -i --restart=Never --quiet --command -- sh -c '
 ok=0; fail=0
 for i in $(seq 1 30); do
   RES=$(curl -s -X POST http://gateway:8080/events/3/reserve -H "Content-Type: application/json" -d "{\"quantity\":1}")
@@ -167,15 +252,21 @@ for i in $(seq 1 30); do
   [ "$CODE" = "200" ] && ok=$((ok+1)) || fail=$((fail+1))
   sleep 0.1
 done
-echo "ok=$ok fail=$fail"
+echo "result: ok=$ok fail=$fail"
 '
 ```
 
-Also check gateway `/pay` p99 latency should **not** be inflated by the injected 300ms (fire-and-forget works):
+With 30% upstream failure × 3 retry attempts, *first-try* fails are 30%, *all-three-fail* is `0.3³ ≈ 2.7%`. Expect `ok ≈ 29-30, fail ≈ 0-1`. Now check that retries actually fired:
 
 ```bash
 kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
-  'http://localhost:9090/api/v1/query?query=histogram_quantile(0.99,+sum+by+(le,path)+(rate(gateway_request_duration_seconds_bucket%5B2m%5D)))'
+  'http://localhost:9090/api/v1/query?query=sum+by+(target,result)+(gateway_retry_total)'
+```
+
+Expect non-zero values for `result="retried"` and `result="succeeded_after_retry"`. If both are zero, your retry isn't wired in — go back to 11.4. Restore:
+
+```bash
+kubectl set env deployment/payments PAYMENT_FAILURE_RATE=0.0
 ```
 
 ### Proof of work
@@ -183,11 +274,13 @@ kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
 **Paste into `submissions/lab11.md`:**
 
 1. Your `app/notifications/main.py` (the key bits) and `requirements.txt`.
-2. Your `call_with_retry()` implementation.
-3. The `ok=N fail=0` result from the checkout-burst under `NOTIFY_FAILURE_RATE=0.3`.
-4. Gateway `/pay` p99 latency during the test (should NOT include the 300ms notify delay).
-5. Real failure rate seen on the notifications side (`notifications_notify_total{result}` from `/metrics` on the notifications pod).
-6. Answer: "Why should notifications be non-blocking (fire-and-forget)? What would happen if the gateway waited for a notification response before returning to the user?"
+2. Your `k8s/notifications.yaml`.
+3. Your `call_with_retry()` implementation.
+4. **Test #1** — `ok=30 fail=0` result + `/pay` p99 < 100ms during the notify-failure injection (proves fire-and-forget).
+5. **Test #2** — `ok≈30 fail<2` result + `gateway_retry_total{result="retried"}` and `result="succeeded_after_retry"` both non-zero (proves retries actually fire).
+6. Real notify failure rate from the notifications pod's `/metrics` (`notifications_notify_total{result}`).
+7. Answer: "Why should notifications be non-blocking (fire-and-forget)?"
+8. Answer (Design Prompt from 11.4): "Why is `cb.call(retry(...))` the correct composition for Task 2, not `retry(lambda: cb.call(...))`?"
 
 ---
 
@@ -195,7 +288,7 @@ kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
 
 > ⏭️ This task is optional.
 
-### 11.5: Circuit breaker for the payments call
+### 11.7: Circuit breaker for the payments call
 
 ```python
 # app/gateway/main.py — YOUR TASK
@@ -265,7 +358,7 @@ Expect: mostly 200s after the cooldown, Prometheus shows `gateway_circuit_breake
 
 > 💡 **Gotcha — real observation:** you have 5 gateway pods, each with its own per-process circuit breaker instance. With only 20 test requests, each pod sees ~4 failures and never hits the threshold of 5. You need at least ~40-80 requests before every pod's circuit opens. Metric counters aggregated across pods will show multiple OPEN transitions (one per pod). This is a legitimate limitation of in-process circuit breakers; production systems use Redis-backed state or a service mesh to aggregate.
 
-### 11.6: Per-endpoint rate limiter
+### 11.8: Per-endpoint rate limiter
 
 ```python
 # app/gateway/main.py — YOUR TASK
@@ -288,6 +381,9 @@ Expect: mostly 200s after the cooldown, Prometheus shows `gateway_circuit_breake
 
 ```bash
 # 100 rapid requests — with 5 pods × RATE_LIMIT_RPS=10, expect ~50 succeed, ~50 429
+# (Cluster-wide ceiling = per-pod RPS × replicas, because each pod keeps its own
+#  sliding-window counter. There's no shared state across pods. For real DDoS
+#  protection you'd put the limiter at the ingress instead.)
 kubectl run rl-burst --image=curlimages/curl:latest --rm -i --restart=Never --quiet --command -- sh -c '
 OK=0; LIMITED=0
 for i in $(seq 1 100); do
@@ -301,7 +397,25 @@ echo "200=$OK 429=$LIMITED"
 '
 ```
 
-Also sustained load below the limit should see zero 429s (`for i in 1..30; do curl … ; sleep 0.2; done`).
+Verify the 429 response includes a `Retry-After` header (clients use it to back off):
+
+```bash
+kubectl run rl-headers --image=curlimages/curl:latest --rm -i --restart=Never --quiet --command -- sh -c '
+# warm up the limiter with rapid hits
+for i in $(seq 1 50); do curl -s -o /dev/null http://gateway:8080/events; done
+# next request should 429 — capture headers
+curl -s -D - -o /dev/null http://gateway:8080/events | grep -iE "^(HTTP|retry-after)"
+'
+```
+
+Expect `HTTP/1.1 429 Too Many Requests` and `retry-after: 1`. Also confirm the rejection counter is incrementing:
+
+```bash
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum+by+(path)+(gateway_rate_limit_rejections_total)'
+```
+
+Sustained load below the limit should see **zero** 429s (`for i in 1..30; do curl … ; sleep 0.2; done`).
 
 ### Proof of work
 
@@ -311,7 +425,8 @@ Also sustained load below the limit should see zero 429s (`for i in 1..30; do cu
 - 500s/503s breakdown from the CB test under 100% payment failure.
 - 200s after recovery showing the circuit closed.
 - 200/429 split from the rate-limit burst test.
-- `gateway_circuit_breaker_transitions_total` and `gateway_rate_limit_rejections_total` from Prometheus.
+- The `Retry-After: 1` header observed on a 429 response.
+- `gateway_circuit_breaker_transitions_total{to}` and `gateway_rate_limit_rejections_total{path}` from Prometheus.
 
 ---
 
@@ -327,7 +442,7 @@ git push -u origin feature/lab11
 PR checklist:
 
 ```text
-- [x] Task 1 done — notifications service, fire-and-forget wiring, retry with backoff
+- [x] Task 1 done — notifications service, k8s manifest, fire-and-forget wiring, retry with backoff (Tests #1 + #2)
 - [ ] Task 2 done — circuit breaker + rate limiter, tested under failure
 ```
 
@@ -338,10 +453,13 @@ PR checklist:
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
-- ✅ `app/notifications/` service runs and emits Prometheus metrics.
+- ✅ `app/notifications/` service runs and emits the three Prometheus metrics.
+- ✅ `k8s/notifications.yaml` Deployment + Service committed; pod 1/1 Ready.
 - ✅ `/pay` calls notifications in fire-and-forget mode (no latency hit, failures invisible).
 - ✅ `call_with_retry()` with exponential backoff + jitter, retryable/non-retryable branch, metrics.
-- ✅ Test evidence: checkout succeeds at 100% under NOTIFY_FAILURE_RATE=0.3.
+- ✅ Test #1 evidence: checkout succeeds 30/30 under `NOTIFY_FAILURE_RATE=0.3`; `/pay` p99 unchanged.
+- ✅ Test #2 evidence: checkout still succeeds ~30/30 under `PAYMENT_FAILURE_RATE=0.3` AND `gateway_retry_total{result="retried"}` is non-zero (retries actually fired).
+- ✅ Submission answers the design prompt about CB-vs-retry composition.
 
 ### Task 2 (4 pts)
 - ✅ Circuit breaker class implemented, wired into the `/pay` path.
@@ -355,7 +473,7 @@ PR checklist:
 
 | Task | Points | Criteria |
 |------|-------:|----------|
-| **Task 1** — Notifications + retries | **6** | Service written, fire-and-forget wired, retry correctly implemented and tested |
+| **Task 1** — Notifications + retries | **6** | Service + manifest written, fire-and-forget wired, retry correctly implemented, both tests passing including Prometheus retry-counter evidence |
 | **Task 2** — Circuit breaker + rate limiter | **4** | Both patterns work; Prometheus metrics; real failure-injection evidence |
 | **Total** | **10** | Task 1 + Task 2 |
 
