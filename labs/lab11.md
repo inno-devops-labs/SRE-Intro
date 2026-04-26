@@ -16,13 +16,29 @@
 
 In this lab you:
 
-- Write a **notifications** service (4th microservice), following the payments template.
-- Add **retry with exponential backoff + jitter** to the gateway's critical-path calls.
-- Add a **circuit breaker** in front of payments.
-- Add a simple **per-endpoint rate limiter** to the gateway.
+- Write a **notifications** service (4th microservice), copying the payments template.
+- Implement three resilience-pattern bodies inside `app/gateway/main.py`:
+  - **retry with exponential backoff + jitter** (`call_with_retry`)
+  - a **circuit breaker** in front of payments (`CircuitBreaker.call`)
+  - a **per-endpoint rate limiter** for incoming requests (`RateLimiter.allow`)
 - Test each pattern by injecting real faults on your k3d cluster.
 
-This is a bonus lab, so the scaffolding is lighter than earlier weeks — you're expected to write most of the code yourself. Each task block lists explicit requirements and behavior contracts; the actual implementations are yours.
+### Where do the patterns live?
+
+```
+                ┌──[ retry + circuit breaker ]──▶  payments         (you implement)
+   client ──▶  Gateway
+                └──[ fire-and-forget ]──────────▶  notifications    (no patterns — destination service)
+   (rate limiter on incoming requests, before any of the above)
+```
+
+The **notifications service is just a destination** — copy its shape from `app/payments/main.py`. The retry, circuit breaker, and rate limiter all live **inside the gateway**. There's no template to copy them from; you implement them from a behavior contract.
+
+### What's pre-wired vs what you implement
+
+The gateway code already has the **wiring** done — Prometheus counters, middleware hookup, `cb.call(retry(_charge))` composition in `/pay`, fire-and-forget `_notify_order_confirmed` helper. Each of the three pattern primitives in `app/gateway/main.py` is a stub with a `# TODO (Lab 11): ...` block and a no-op default body, so the gateway behaves like lab 10 if you do nothing. **Your job is to replace those three TODO bodies with real implementations.** The wiring picks them up automatically.
+
+This is an elective bonus lab — the scaffolding gives you a clear surface to focus on the algorithms, not on Python plumbing.
 
 ---
 
@@ -121,68 +137,60 @@ Following the lab-4 pattern, write a Deployment + Service in a single file:
 # Hint: copy k8s/payments.yaml and edit the names + port. Lecture 4 slide 7-8.
 ```
 
-### 11.3: Wire into the gateway (don't block user flow)
+### 11.3: Configure the gateway to call notifications
 
-In `app/gateway/main.py`, after a successful `pay_reservation`:
+The gateway already has `NOTIFICATIONS_URL` as a config var (default empty), an `_notify_order_confirmed` helper, and an `asyncio.create_task` call in `/pay` — all pre-wired. You just need to **set the env var** on the running pod so it points at your new service.
 
-- Add `NOTIFICATIONS_URL` to the config section.
-- After the payment + confirmation succeed, kick off a **fire-and-forget** notify call:
+Add to `k8s/gateway.yaml` under `spec.template.spec.containers[0].env`:
 
-  ```python
-  asyncio.create_task(_notify_order_confirmed(reservation_id))
-  ```
-
-  The helper itself logs warnings but **must not** raise, must not add latency to the user path:
-
-  ```python
-  async def _notify_order_confirmed(reservation_id: str):
-      try:
-          await client.post(f"{NOTIFICATIONS_URL}/notify",
-                            json={"event": "order_confirmed", "order_id": reservation_id},
-                            timeout=2.0)
-      except Exception as e:
-          log.warning(f"notify failed (non-critical) order={reservation_id} err={e}")
-  ```
-
-Why fire-and-forget: you'll answer this fully in your submission (Q7) — but in short, if the user's payment succeeded and their reservation is confirmed, a failed SMS shouldn't make them see a 500.
-
-> 💡 **Gotcha:** Your gateway `/health` handler previously gated "healthy" on `events AND payments`. Don't add notifications to that gate — a broken notifier shouldn't flip the system to degraded from the operator's POV.
-
-### 11.4: Add retry with backoff + jitter
-
-Implement `call_with_retry(func, target, max_retries)` in the gateway and wire it into the `/reserve/{id}/pay` handler's payments call.
-
-```python
-# app/gateway/main.py — YOUR TASK
-#
-# Function signature:
-#     async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX): ...
-#
-# Behaviour:
-#   • Loop up to max_retries; each iteration, await func()
-#   • On success: if attempt > 0, increment `gateway_retry_total{target, result="succeeded_after_retry"}`. Return.
-#   • On exception:
-#       - retryable transient errors:  TimeoutException, ConnectError,
-#         HTTPStatusError where status is 5xx OR exactly 408/429
-#       - non-retryable: any other 4xx (404, 422, …) — increment
-#         `gateway_retry_total{result="non_retryable"}` and re-raise immediately.
-#   • Final iteration: increment `result="exhausted"`, re-raise the last exception.
-#   • Otherwise: compute delay = base_delay * (2 ** attempt) + uniform(0, base_delay).
-#     Increment `result="retried"`. Sleep delay. Continue.
-#
-# Tunables (env vars):
-#   RETRY_MAX             default 3
-#   RETRY_BASE_DELAY_MS   default 100
-#
-# Wire-in:
-#     pay_resp = await call_with_retry(_charge, target="payments")
-#   where _charge() does the actual httpx.AsyncClient.post(...).raise_for_status()
-#
-# (Task 2 will wrap call_with_retry in a circuit breaker — design call_with_retry
-#  to compose cleanly with that.)
+```yaml
+- name: NOTIFICATIONS_URL
+  value: "http://notifications:8083"
 ```
 
-> 🤔 **Design prompt.** In Task 2 you'll wrap this in a circuit breaker as `cb.call(lambda: call_with_retry(_charge, "payments"))`. Why is `cb.call(retry(...))` correct, and `retry(lambda: cb.call(...))` would be wrong? (Answer this in your submission alongside the implementation.)
+Apply + roll the gateway. Once the env var is set, the helper makes real HTTP calls. While it's empty, the helper short-circuits to a no-op (so labs 1-10 stay quiet).
+
+Read the existing helper in `app/gateway/main.py` so you understand what's happening:
+
+```python
+async def _notify_order_confirmed(reservation_id: str):
+    if not NOTIFICATIONS_URL:
+        return                       # labs 1-10: no-op
+    try:
+        await client.post(f"{NOTIFICATIONS_URL}/notify",
+                          json={"event": "order_confirmed", "order_id": reservation_id},
+                          timeout=2.0)
+    except Exception as e:
+        log.warning(f"notify failed (non-critical) order={reservation_id} err={e}")
+```
+
+It's `await client.post(...)` (not in a `create_task`!) — but the `/pay` handler wraps the *call* to this helper in `asyncio.create_task(_notify_order_confirmed(...))` so the user request returns immediately.
+
+> 💡 **Gotcha:** The gateway `/health` handler is already careful to NOT gate "healthy" on notifications — it reports notifications status but only `events + payments` decide the system's critical_ok verdict. Don't change that.
+
+### 11.4: Implement `call_with_retry`
+
+Open `app/gateway/main.py` — the function already exists with a no-op body:
+
+```python
+async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
+    # TODO (Lab 11): implement exponential backoff + jitter here.
+    return await func()
+```
+
+**Replace the body** to satisfy this behavior contract:
+
+- Loop up to `max_retries`; each iteration, `await func()`.
+- On success: if `attempt > 0`, increment `gateway_retry_total{target, result="succeeded_after_retry"}`. Return.
+- On exception:
+  - **Retryable transient errors:** `httpx.TimeoutException`, `httpx.ConnectError`, and `httpx.HTTPStatusError` where status is 5xx OR exactly 408/429.
+  - **Non-retryable:** any other 4xx (404, 422, …) → increment `result="non_retryable"` and re-raise immediately.
+- Final iteration before giving up: increment `result="exhausted"`, re-raise the last exception.
+- Otherwise (retryable, not the last attempt): compute `delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)`. Increment `result="retried"`. Sleep `delay`. Continue.
+
+Tunables already in the gateway's config block: `RETRY_MAX` (default 3), `RETRY_BASE_DELAY_MS` (default 100).
+
+> 🤔 **Design prompt.** Look at `pay_reservation` in `app/gateway/main.py`. The composition is `payments_cb.call(lambda: call_with_retry(_charge, "payments"))` — i.e. *retry inside CB*. **Why is the reverse (`retry(lambda: cb.call(_charge))`) wrong?** (Answer in your submission.)
 
 ### 11.5: Test #1 — fire-and-forget under notify failure
 
@@ -288,31 +296,28 @@ kubectl set env deployment/payments PAYMENT_FAILURE_RATE=0.0
 
 > ⏭️ This task is optional.
 
-### 11.7: Circuit breaker for the payments call
+### 11.7: Implement `CircuitBreaker.call`
+
+Open `app/gateway/main.py` — the class is defined with `__init__` and `_transition()` already complete. Only the `.call()` method body is a no-op:
 
 ```python
-# app/gateway/main.py — YOUR TASK
-#
-# class CircuitBreaker:
-#   states: CLOSED → OPEN → HALF_OPEN → CLOSED|OPEN
-#   Constructor: threshold (default 5), cooldown_s (default 30), name (for logs+metrics)
-#
-#   .call(func):
-#     if OPEN and cooldown elapsed → transition to HALF_OPEN, proceed
-#     if OPEN and cooldown not elapsed → raise CircuitOpenError (fast-fail)
-#     try func():
-#       on success → failures = 0, state = CLOSED, return
-#       on failure → failures += 1; if in HALF_OPEN OR failures >= threshold: OPEN; raise
-#
-# Metrics:
-#   gateway_circuit_breaker_transitions_total{to} — increment on state change
-#
-# Wire into /pay:
-#   pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
-#
-# Make threshold (CB_FAILURE_THRESHOLD) and cooldown (CB_COOLDOWN_S) env-configurable.
-# Return 503 to the user on CircuitOpenError — NOT 500. It's a different cause.
+async def call(self, func):
+    # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
+    return await func()
 ```
+
+**Replace the body** with the state machine:
+
+- If `self.state == OPEN`:
+  - If `time.time() - self.opened_at >= self.cooldown` → transition to `HALF_OPEN` and proceed.
+  - Otherwise → raise `CircuitOpenError(f"circuit[{self.name}] OPEN")` immediately (fast-fail).
+- Try `await func()`:
+  - On success → `self.failures = 0`, `_transition(CLOSED)`, return result.
+  - On exception → `self.failures += 1`, `self.opened_at = time.time()`. If `self.state == HALF_OPEN` OR `self.failures >= self.threshold` → `_transition(OPEN)`. Re-raise.
+
+The wiring in `/pay` already maps `CircuitOpenError` to a 503 response (different cause from a 5xx) — see `pay_reservation`.
+
+Tunables: `CB_FAILURE_THRESHOLD` (default 5), `CB_COOLDOWN_S` (default 30). Already in config.
 
 **Test that circuits OPEN under 100% failure:**
 
@@ -358,24 +363,28 @@ Expect: mostly 200s after the cooldown, Prometheus shows `gateway_circuit_breake
 
 > 💡 **Gotcha — real observation:** you have 5 gateway pods, each with its own per-process circuit breaker instance. With only 20 test requests, each pod sees ~4 failures and never hits the threshold of 5. You need at least ~40-80 requests before every pod's circuit opens. Metric counters aggregated across pods will show multiple OPEN transitions (one per pod). This is a legitimate limitation of in-process circuit breakers; production systems use Redis-backed state or a service mesh to aggregate.
 
-### 11.8: Per-endpoint rate limiter
+### 11.8: Implement `RateLimiter.allow`
+
+Open `app/gateway/main.py` — the class and its `__init__` are defined; `self.hits` is a `defaultdict(deque)` keyed by path. Only `.allow()` is a no-op:
 
 ```python
-# app/gateway/main.py — YOUR TASK
-#
-# class RateLimiter:
-#   sliding-window, keyed by path, configurable RPS (RATE_LIMIT_RPS env)
-#   .allow(key) → bool
-#
-# Implement as a second @app.middleware("http"):
-#   - normalize the path (reuse the _normalize_path helper)
-#   - exempt /metrics and /health from rate limiting
-#   - if .allow(path) returns False:
-#       increment gateway_rate_limit_rejections_total{path}
-#       return JSONResponse(429, {"error":"rate_limited","path":...,"limit_rps":...},
-#                            headers={"Retry-After": "1"})
-#   - else: proceed to call_next(request)
+def allow(self, key: str) -> bool:
+    # TODO (Lab 11): implement sliding-window check here.
+    return True
 ```
+
+**Replace the body** with a 1-second sliding-window check:
+
+- `now = time.time()`
+- `q = self.hits[key]`
+- `cutoff = now - self.window_s`
+- Drop expired entries: `while q and q[0] < cutoff: q.popleft()`
+- If `len(q) >= self.rps` → return `False` (over the limit).
+- Otherwise → `q.append(now)`, return `True`.
+
+The `rate_limit_middleware` is already wired around every request (except `/metrics` and `/health`), and already returns `429` with `Retry-After: 1` and increments `gateway_rate_limit_rejections_total{path}` when `.allow()` returns False.
+
+Tunable: `RATE_LIMIT_RPS` (default 10). Already in config.
 
 **Test under burst:**
 
