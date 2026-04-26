@@ -252,16 +252,19 @@ If a `high-priority` pod can't schedule, K8s evicts lower-priority pods to make 
 
 **Problem:** You need to add a NOT NULL column. This requires a table rewrite (locks the table). During the lock, all queries block.
 
-**Solution:** The expand-and-contract pattern from Lecture 9, executed carefully with your rolling K8s deploy:
+**Solution:** The expand-and-contract pattern, executed in a precise sequence of 3 migrations + 2 code deploys:
 
 ```
-Step 1: ADD COLUMN email TEXT              ← nullable, no lock, safe
-Step 2: Deploy code that WRITES email too   ← backwards-compatible
-Step 3: Batched backfill (UPDATE)           ← no long locks
-Step 4: ALTER TABLE SET NOT NULL            ← brief lock (rows already filled)
-Step 5: Deploy code that REQUIRES email
-Step 6: Optionally drop old column later
+1. Migration 1: ADD COLUMN email TEXT (nullable)
+2. Code deploy A: write BOTH columns; read COALESCE(new, old)
+3. Migration 2: backfill with UPDATE
+4. Code deploy B: write+read NEW column only
+5. Migration 3: DROP COLUMN old
 ```
+
+**The critical rule: Deploy B must be fully rolled out before migration 3.** If any old code is still running when you drop the old column, those pods start getting "column does not exist" errors. The whole point of expand-and-contract is that both code versions must work at every schema version.
+
+In practice, wait an extra 5 minutes or check your APM after deploy B completes to ensure zero references to the old column before the drop.
 
 ### Batched backfill
 
@@ -275,7 +278,15 @@ WHERE id IN (SELECT id FROM events WHERE email IS NULL LIMIT 1000);
 -- Repeat until affected rows = 0
 ```
 
-For Alembic, use custom migration code or a one-off script. For MySQL at scale, consider `gh-ost` or `pt-online-schema-change`.
+For Alembic on PostgreSQL, wrap `CREATE INDEX CONCURRENTLY` in `with op.get_context().autocommit_block():` so the DDL runs outside a transaction. For MySQL at scale, consider `gh-ost` or `pt-online-schema-change`.
+
+### CREATE INDEX CONCURRENTLY on PostgreSQL
+
+The classic gotcha: `CREATE INDEX` on a big table takes an `ACCESS EXCLUSIVE` lock, blocking reads and writes for *minutes*. On a 5-row test table it doesn't matter, but on 10M rows it's a production outage.
+
+The fix: `postgresql_concurrently=True` in Alembic + the autocommit_block wrapper above. This swaps the lock to `SHARE UPDATE EXCLUSIVE`, which doesn't block reads or writes. Trade-off: it costs more disk I/O and takes longer to run, but users never notice.
+
+Always use CONCURRENTLY in production migrations. The test table is too small to show its value, but the syntax is load-bearing.
 
 > ⚠️ **The killer detail:** each app version must be forward-compatible with both the old and new schema during the migration window. Version N-1 must tolerate the new column; Version N+1 must not require the old one until after contract.
 
@@ -296,6 +307,19 @@ kubectl get pods -l app=gateway \
 ```
 
 **Readiness probes** (from Lab 4) are essential here — they prevent K8s from sending traffic to pods that aren't ready yet. Without them, rolling updates can briefly serve 502s.
+
+### Timing expectations: Deployments vs Argo Rollouts
+
+A plain `kubectl rollout restart deployment/gateway` on a Deployment takes ~10 seconds: 1 canary pod up, rest follow. But if you're using **Argo Rollouts** (as in Lab 7), the restart is deliberately slower — it runs your canary analysis steps (which might include a 30 s pause or external validation) *before* promoting. This can take 45+ seconds. Both are correct; the difference is your trade-off between speed and safety.
+
+If your `kubectl argo rollouts status` shows `Paused - CanaryPauseStep` that's expected — that's Argo's analysis gate. It will either auto-promote (if your metrics pass) or hang until you manually approve. Check the analysis results:
+
+```bash
+kubectl argo rollouts get rollout gateway
+kubectl logs deployment/gateway -f  # see if /health is passing
+```
+
+Don't force-delete pods thinking the rollout is hung — you'll destroy the analysis and defeat the whole point of Argo.
 
 ---
 
@@ -327,6 +351,12 @@ Kubernetes evicts pods for several reasons. Each has different implications:
 | Soft taint eviction | node tainted with `NoExecute` | Tolerations |
 
 > ⚠️ **Key takeaway:** PDBs only protect voluntary disruptions. You still need multi-replica + anti-affinity/spread for hard failures.
+
+### Confirming PDB enforcement
+
+To check that a PDB is actually working, tighten it to an impossible constraint (e.g. `minAvailable == replicas`) and try to evict one pod via the API. You should get HTTP 429 with `reason: DisruptionBudget`. This is how Lab 12 verifies the PDB isn't just sitting there silently.
+
+If you do a `kubectl drain --dry-run=server`, you'll see every pod listed as an eviction candidate — that's normal. Drain evaluates each pod *sequentially* against its PDB; the dry-run just lists who *could* be a candidate if PDBs weren't checked. The real enforcement happens when you fire a single eviction via `POST /api/v1/namespaces/<ns>/pods/<name>/eviction`.
 
 ---
 

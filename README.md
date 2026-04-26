@@ -78,7 +78,7 @@ All services expose Prometheus metrics (`*_requests_total`, `*_request_duration_
 
 ## Lectures
 
-Each lecture is 17-25 slides, 340-520 lines of Markdown. Readings 11-12 are self-study (no slide format, pure prose).
+Each lecture is 17-25 slides, 340-520 lines of Markdown. Readings 11-12 are self-study (no slide format, pure prose: 400-500 lines each).
 
 | # | Title | Slides | File |
 |--:|-------|-------:|------|
@@ -92,8 +92,8 @@ Each lecture is 17-25 slides, 340-520 lines of Markdown. Readings 11-12 are self
 | 8 | Chaos Engineering: Break Things on Purpose | 18 | [lec8.md](lectures/lec8.md) |
 | 9 | Stateful Services & DB Reliability | 20 | [lec9.md](lectures/lec9.md) |
 | 10 | SRE Portfolio: Pulling It All Together | 19 | [lec10.md](lectures/lec10.md) |
-| R11 | Reading — Advanced Microservice Patterns | — | [reading11.md](lectures/reading11.md) |
-| R12 | Reading — Advanced Kubernetes Resilience | — | [reading12.md](lectures/reading12.md) |
+| R11 | Reading — Advanced Microservice Patterns | 473 | [reading11.md](lectures/reading11.md) |
+| R12 | Reading — Advanced Kubernetes Resilience | 408 | [reading12.md](lectures/reading12.md) |
 
 ---
 
@@ -168,11 +168,11 @@ Each lab in weeks 1-10 caps at **12 pts = 10 main + 2 bonus**.
 | **Task 1** | 6 pts | Core step that advances the project. Future labs depend on it. | Yes |
 | **Task 2** | 4 pts (3 in Lab 1) | Deeper dive into the week's topic. Skippable — won't affect future labs. | No |
 | **Task 3** | 1 pt | *Lab 1 only* — GitHub community engagement. | Lab 1 |
-| **Bonus Task** | 2 pts | Extension for motivated students. | No |
+| **Bonus Task** | 2 pts | Extension for motivated students (flat 2 pts each, no difficulty weighting). | No |
 
 A student who only completes **Task 1 across all 10 labs** still ends up with a fully working SRE portfolio project.
 
-**Bonus labs (11 + 12)** are different — they have only Task 1 + Task 2 (10 pts each, no Bonus row). The labs themselves *are* the bonus. They count toward a separate 30% of the final grade (see below).
+**Bonus labs (11 + 12)** are different — they have only Task 1 + Task 2 (10 pts each, **no separate Bonus Task row**). The labs themselves *are* the bonus extension work. They count toward a separate 30% of the final grade (see below).
 
 ### Submission Workflow
 
@@ -201,7 +201,7 @@ The final grade is composed from five components. Their max contributions add up
 | Component | Raw Points | Weight | What it rewards |
 |-----------|-----------:|-------:|-----------------|
 | **Main labs 1-10** (Task 1 + Task 2 + Task 3-where-applicable) | 100 | **70%** | Diligent project work — the floor for any serious student |
-| **Bonus tasks 1-10** (10 × 2 pts each, flat) | 20 | **14%** | Going above and beyond on weekly topics |
+| **Bonus tasks 1-10** (2 pts each, flat — no difficulty weighting) | 20 | **14%** | Going above and beyond on weekly topics |
 | **Quiz leaderboards** (5 rolling per-2-labs leaderboards, top-10 share 1% pool each) | — | **up to 5%** | Engagement + excellence; rewards late-joining students too |
 | **Bonus labs 11 + 12** (Task 1 + Task 2 only — 10 pts each) | 20 | **30%** | Mastering advanced microservice + K8s resilience patterns |
 | **Final exam** | — | **30%** | Optional path — written, comprehensive |

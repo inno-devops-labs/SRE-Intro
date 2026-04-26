@@ -1,8 +1,13 @@
 # Student-produced artifacts — NOT part of the course repo.
 # These live in a student's fork of the course, not upstream.
 
-# Lab submissions (instructor keeps a local reference, don't commit)
+# Student submission directory (students submit via Moodle/link, not git)
+# DO NOT write to this directory during labs — it's for manual grading/inspection only.
 submissions/
+
+# Instructor-only reference submissions (dry-run results, not student deliverables)
+# These show what "correct" looks like; students don't see them.
+refs/
 
 # K8s manifests (students write them in lab 4 per-service)
 k8s/
