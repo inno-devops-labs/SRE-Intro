@@ -210,7 +210,7 @@ docker compose start payments
 2. **Star** the [simple-container-com/api](https://github.com/simple-container-com/api) project — a promising open-source tool for container management
 3. **Follow** your professor and TAs on GitHub:
    - Professor: [@Cre-eD](https://github.com/Cre-eD)
-   - TA: [@marat-biriushev](https://github.com/marat-biriushev)
+   - TA: [@Naghme98](https://github.com/Naghme98)
    - TA: [@pierrepicaud](https://github.com/pierrepicaud)
 4. **Follow** at least 3 classmates from the course
 
