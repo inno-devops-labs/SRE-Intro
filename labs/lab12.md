@@ -58,7 +58,7 @@ kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
 
 ---
 
-## Task 1 — Multi-Replica Failover + PDBs (6 pts)
+## Task 1 — Multi-Replica Failover + PDBs (4 pts)
 
 ### 12.1: Scale services to 2 replicas
 
@@ -443,11 +443,230 @@ Skip this section if you're short on time — it's a small extra observation, no
 
 ---
 
+## Bonus Task — Execute the Expand-and-Contract Rename (2 pts)
+
+> ⏭️ Optional. Turns your 12.8 design sketch into the real thing — running on your live cluster, under mixedload, with zero 5xx through all 5 transitions.
+
+12.8 ended at the design. This bonus is *execution*: actually rename `events.event_date` → `events.scheduled_at` while mixedload keeps hitting the gateway. You'll touch 3 Alembic migrations, 2 code deploys of the `events` service, and the seed schema — and you need every intermediate state to be both schemas live AND every request returning 2xx.
+
+This is the most senior-level skill in the course: doing irreversible schema work without users noticing.
+
+### 12.10: Setup — baseline + traffic
+
+Keep mixedload running. Reset the 5xx clock so you can read each transition cleanly:
+
+```bash
+kubectl apply -f labs/lab8/mixedload.yaml
+kubectl rollout status deployment/mixedload --timeout=30s
+
+# Snapshot starting counter — every transition below uses the delta from this
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(gateway_requests_total%7Bstatus%3D~%225..%22%7D)' \
+  | tee /tmp/5xx.baseline
+```
+
+### 12.11: Migration 1 — expand (add new column)
+
+```bash
+source .venv/bin/activate
+alembic revision -m "add events.scheduled_at column"
+```
+
+In the generated file:
+
+```python
+# YOUR TASK
+# upgrade():
+#   op.add_column('events',
+#                 sa.Column('scheduled_at', sa.TIMESTAMP(timezone=True), nullable=True))
+# downgrade():
+#   op.drop_column('events', 'scheduled_at')
+#
+# WHY nullable=True: a NOT NULL column with no default would fail to add to a
+# table with existing rows. Even with a default, on a multi-million-row table
+# the column rewrite takes an ACCESS EXCLUSIVE lock. nullable=True is instant.
+```
+
+Apply, then snapshot 5xx delta from baseline — should be zero:
+
+```bash
+alembic upgrade head
+sleep 5
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(gateway_requests_total%7Bstatus%3D~%225..%22%7D)'
+# Compare to /tmp/5xx.baseline — delta should be 0.
+```
+
+### 12.12: Code deploy A — dual-write, fallback-read
+
+Edit `app/events/main.py`. Three call sites use `event_date` (find them with `grep -n event_date app/events/main.py`). Replace **read paths** so they prefer `scheduled_at` and fall back to `event_date`; replace **write paths** so they write to *both* columns:
+
+```python
+# YOUR TASK — Code Deploy A
+#
+# Reads (3 spots: two SELECTs + one ORDER BY):
+#   SELECT ..., COALESCE(scheduled_at, event_date) AS event_date, ...
+#   ORDER BY COALESCE(scheduled_at, event_date)
+#
+#   (Alias as event_date to keep response shape backward-compatible. The
+#    gateway and any client consuming /events shouldn't notice anything yet.)
+#
+# Writes (if your events service exposes a write path for `event_date` —
+# QuickTicket today only writes via seed.sql at startup, so for the bonus
+# you may not have a runtime INSERT. If you don't: SKIP the write change;
+# the dual-write is a no-op because the only insertion is the seed, which
+# you'll update in 12.13 below. Note this in submissions/lab12.md.)
+#
+# Why COALESCE? While scheduled_at is still nullable + un-backfilled, every
+# existing row has scheduled_at=NULL and event_date=<set>. The COALESCE keeps
+# /events working through the migration window.
+```
+
+Rebuild + reload (events runs as a normal Deployment, not a Rollout, so `kubectl rollout restart deployment/events` is the right command):
+
+```bash
+docker build -t quickticket-events:v1 ./app/events
+k3d image import -c quickticket quickticket-events:v1
+kubectl rollout restart deployment/events
+kubectl rollout status deployment/events --timeout=120s
+
+# Check 5xx delta — still 0
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(gateway_requests_total%7Bstatus%3D~%225..%22%7D)'
+```
+
+### 12.13: Migration 2 — backfill
+
+```bash
+alembic revision -m "backfill events.scheduled_at"
+```
+
+```python
+# YOUR TASK
+# upgrade():
+#   op.execute("UPDATE events SET scheduled_at = event_date WHERE scheduled_at IS NULL")
+#
+# Then make it NOT NULL — but only AFTER the backfill in the same migration:
+#   op.alter_column('events', 'scheduled_at', nullable=False)
+#
+# downgrade():
+#   op.alter_column('events', 'scheduled_at', nullable=True)
+#   (No need to UPDATE back — event_date still has the data.)
+#
+# WHY safe under live traffic: at this point Deploy A is reading via COALESCE,
+# so it tolerates both NULL and non-NULL scheduled_at. Backfill is idempotent
+# (WHERE scheduled_at IS NULL) — re-running it is a no-op.
+#
+# For QuickTicket's tiny seed, this finishes instantly. In production on a
+# 10M-row table you'd batch: UPDATE ... WHERE id BETWEEN X AND Y, in chunks
+# of 10k, with a sleep between batches — to avoid long-running transaction
+# locks. Mention this in submissions.
+```
+
+```bash
+alembic upgrade head
+sleep 5
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(gateway_requests_total%7Bstatus%3D~%225..%22%7D)'
+# Still zero delta from baseline.
+
+# Verify backfill landed
+kubectl exec -i $(kubectl get pod -l app=postgres -o name) -- \
+  psql -U quickticket -d quickticket -c \
+  'SELECT id, event_date, scheduled_at FROM events ORDER BY id LIMIT 5;'
+# Expect every row to have scheduled_at NOT NULL and scheduled_at == event_date.
+```
+
+### 12.14: Code deploy B — switch to new column only
+
+```python
+# YOUR TASK — Code Deploy B
+#
+# Reads: replace COALESCE(scheduled_at, event_date) with just scheduled_at.
+# ORDER BY scheduled_at.
+# Alias as event_date in the SELECT for as long as you want the response
+# shape preserved, or do a clean rename in the response model — your call.
+# Document which choice in submissions/lab12.md.
+#
+# Writes: if you added any, now write only to scheduled_at.
+```
+
+Rebuild + roll. Update `app/seed.sql` too — the column name in INSERTs should now be `scheduled_at` (the bonus also exercises whether you remember to update the boot-time seed; if you skip this, a freshly-recreated cluster will fail at startup).
+
+```bash
+docker build -t quickticket-events:v1 ./app/events
+k3d image import -c quickticket quickticket-events:v1
+kubectl rollout restart deployment/events
+kubectl rollout status deployment/events --timeout=120s
+
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(gateway_requests_total%7Bstatus%3D~%225..%22%7D)'
+# Still zero delta.
+```
+
+### 12.15: Migration 3 — contract (drop old column)
+
+```bash
+alembic revision -m "drop events.event_date"
+```
+
+```python
+# YOUR TASK
+# upgrade():
+#   op.drop_column('events', 'event_date')
+#
+# downgrade():
+#   op.add_column('events', sa.Column('event_date', sa.TIMESTAMP(timezone=True), nullable=True))
+#   op.execute("UPDATE events SET event_date = scheduled_at")
+#   op.alter_column('events', 'event_date', nullable=False)
+#
+# WHY safe NOW (not earlier): Deploy B is fully rolled out and no longer reads
+# OR writes event_date. Any pod still on Deploy A is gone (kubectl rollout
+# status finished above). If a stray Deploy-A pod existed when this ran,
+# it would 500 on every /events request because the COALESCE would reference
+# a missing column.
+```
+
+```bash
+alembic upgrade head
+sleep 5
+
+# Final 5xx check — total delta from baseline across all 5 transitions
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(gateway_requests_total%7Bstatus%3D~%225..%22%7D)' \
+  | tee /tmp/5xx.final
+
+# Compare:
+diff /tmp/5xx.baseline /tmp/5xx.final
+# Identical means zero 5xx for the entire migration sequence.
+
+# Confirm the schema:
+kubectl exec -i $(kubectl get pod -l app=postgres -o name) -- \
+  psql -U quickticket -d quickticket -c '\d events'
+# Expect: NO event_date column, scheduled_at TIMESTAMPTZ NOT NULL.
+```
+
+### Proof of work (Bonus)
+
+**Paste into `submissions/lab12.md`:**
+
+1. The three migration files (versions/`*_add_events_scheduled_at`, `*_backfill`, `*_drop_event_date`) — upgrade() bodies only.
+2. The diff of `app/events/main.py` between Deploy A and Deploy B (the COALESCE block, then the clean switch).
+3. The `\d events` output **before** migration 1 and **after** migration 3 (proves the column moved).
+4. The 5xx baseline + final values + `diff /tmp/5xx.baseline /tmp/5xx.final` showing **zero delta**.
+5. Answer: **"You ran 5 transitions (M1, Deploy A, M2, Deploy B, M3) under live traffic. Which single step would have caused 5xx if you'd reordered it earlier?"** (Hint: think about each step in isolation — what does it remove?)
+6. Answer: **"Production scale: the same backfill on a 10M-row table would lock writes for minutes if done as a single UPDATE. Write the batching pattern (in 5-10 lines of pseudocode) that keeps each transaction small."**
+7. Answer: **"Your downgrade from migration 3 re-adds `event_date` and backfills it. Why is that *not* sufficient for true rollback safety once Deploy B is live in production? What would have to be true for the rollback to be safe?"**
+
+> 💡 **Why this is the senior-level skill in the course.** Every other lab can be re-run from scratch if something breaks. Schema migrations on a live database are the one place where "rerun it" doesn't exist — once you've dropped a column with traffic still reading it, users see errors and the rollback path itself takes new traffic. Doing this drill *now* on QuickTicket means you've earned the right to do it later on a production table with millions of rows. Real-world equivalents: GitHub did `repos.private_visibility → repos.visibility` this way; Stripe migrates field names in their public API the same way. There is no other way.
+
+---
+
 ## How to Submit
 
 ```bash
 git switch -c feature/lab12
-git add k8s/pdb.yaml k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml k8s/notifications.yaml migrations/ submissions/lab12.md
+git add k8s/pdb.yaml k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml k8s/notifications.yaml migrations/ app/events/ app/seed.sql submissions/lab12.md
 git commit -m "feat(lab12): PDBs, preStop, and zero-downtime migration"
 git push -u origin feature/lab12
 ```
@@ -457,16 +676,17 @@ PR checklist:
 ```text
 - [x] Task 1 done — multi-replica failover + 4 PDBs + topology spread + real eviction-API block
 - [ ] Task 2 done — preStop + zero-error rolling restart + CONCURRENTLY migration + expand-and-contract sketch
+- [ ] Bonus Task done — expand-and-contract executed live (3 migrations + 2 deploys, zero 5xx, `event_date` dropped)
 - [ ] (Optional) 12.9 HPA observation
 ```
 
-> 📝 **No "Bonus Task" in this lab.** Lab 12 is itself a bonus lab — Task 1 + Task 2 *are* the challenge. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
+> 📝 **About the Bonus Task.** Lab 12 is itself a bonus lab, but its internal **Bonus Task (2 pts)** is still a real extension — and the one that converts your 12.8 *design sketch* into a live, zero-downtime production playbook on your own cluster. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
 
 ---
 
 ## Acceptance Criteria
 
-### Task 1 (6 pts)
+### Task 1 (4 pts)
 - ✅ events / payments / notifications scaled to 2 replicas; manifests updated.
 - ✅ Zero 5xx from Prometheus during coordinated pod-kill under mixedload.
 - ✅ `k8s/pdb.yaml` with 4 PDBs; `kubectl get pdb` shows correct `ALLOWED DISRUPTIONS`.
@@ -481,15 +701,24 @@ PR checklist:
 - ✅ New index visible in `\d events`.
 - ✅ Expand-and-contract sketch in submissions/lab12.md (3 migrations + 2 code deploys, with rationale for the ordering).
 
+### Bonus Task (2 pts)
+- ✅ Three Alembic migrations committed (add column, backfill + NOT NULL, drop old column) — each one is the *smallest reversible step* you can make on its own.
+- ✅ Two deploys of `app/events/main.py` between the migrations: Deploy A (COALESCE-fallback read, dual-write) → Deploy B (single-mode on `scheduled_at`).
+- ✅ `app/seed.sql` updated so a fresh cluster bootstraps on the new schema.
+- ✅ Zero 5xx delta across the entire 5-step sequence under live mixedload (`diff /tmp/5xx.baseline /tmp/5xx.final` shows no change).
+- ✅ Final `\d events` shows `event_date` is gone, `scheduled_at` is `NOT NULL`.
+- ✅ Submission answers all three design prompts (ordering, batching at scale, rollback safety once Deploy B is in prod).
+
 ---
 
 ## Rubric
 
 | Task | Points | Criteria |
 |------|-------:|----------|
-| **Task 1** — Multi-replica + PDB + topology spread | **6** | Pods scaled, zero errors on kill, PDBs configured + topologySpreadConstraints in spec, real API-level eviction rejection captured |
+| **Task 1** — Multi-replica + PDB + topology spread | **4** | Pods scaled, zero errors on kill, PDBs configured + topologySpreadConstraints in spec, real API-level eviction rejection captured |
 | **Task 2** — Graceful shutdown + zero-downtime migration | **4** | preStop + probes wired, zero-error rolling restart, CONCURRENTLY migration under load, expand-and-contract sketch |
-| **Total** | **10** | Task 1 + Task 2 |
+| **Bonus Task** — Execute the expand-and-contract migration | **2** | All 3 migrations + 2 code deploys executed live; zero 5xx through all 5 transitions; `event_date` dropped at the end |
+| **Total** | **10** | Task 1 + Task 2 + Bonus |
 
 ---
 

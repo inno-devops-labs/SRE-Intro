@@ -83,7 +83,7 @@ Skip this and your `kubectl apply` will succeed but the pods will run stale code
 
 ---
 
-## Task 1 — Notifications Service + Retries (6 pts)
+## Task 1 — Notifications Service + Retries (4 pts)
 
 ### 11.1: Write `app/notifications/`
 
@@ -439,6 +439,132 @@ Sustained load below the limit should see **zero** 429s (`for i in 1..30; do cur
 
 ---
 
+## Bonus Task — Bulkhead Isolation (2 pts)
+
+> ⏭️ Optional. The hardest pattern in Reading 11 — and the only one the lab body explicitly **doesn't** make you implement.
+
+Reading 11 §6 introduces the bulkhead pattern as concept-only:
+
+> *Without bulkhead: one slow dependency blocks threads meant for other dependencies. Ship sinking via one compartment.*
+
+In the gateway, this is exactly what happens today: a single shared `httpx.AsyncClient` event loop runs every call to payments, events, and notifications. If payments goes slow (PAYMENT_LATENCY_MS=3000), every `/pay` request occupies an asyncio task for 3s. With 5 gateway pods × N concurrent /pay calls, the event loop is starved and `/events`, `/health`, even `/metrics` start queuing.
+
+Your job: **isolate each downstream into its own bounded concurrency pool** so one slow dependency can't drown the others.
+
+### 11.9: Implement `Bulkhead.acquire / release`
+
+Add a new pattern primitive to `app/gateway/main.py`. The wiring won't auto-pick this one up (it's a bonus extension, so the scaffolding doesn't pre-stub it) — you implement both the primitive **and** wire it into `/pay`.
+
+```python
+# app/gateway/main.py — YOUR TASK (bonus)
+#
+# Requirements:
+#   BULKHEAD_PAYMENTS_MAX = int(os.getenv("BULKHEAD_PAYMENTS_MAX", "10"))
+#   BULKHEAD_PAYMENTS_TIMEOUT_S = float(os.getenv("BULKHEAD_PAYMENTS_TIMEOUT_S", "0.5"))
+#
+#   class Bulkhead:
+#       def __init__(self, name: str, max_concurrent: int, acquire_timeout_s: float): ...
+#       async def call(self, func):
+#           - try to acquire a per-target asyncio.Semaphore with acquire_timeout_s
+#           - on timeout: increment gateway_bulkhead_rejections_total{target=name}, raise BulkheadFullError
+#           - on success: increment gateway_bulkhead_in_flight{target=name}.inc() / .dec()
+#                         around the await func() (use a try/finally + Gauge.inc/dec)
+#
+#   payments_bulkhead = Bulkhead("payments", BULKHEAD_PAYMENTS_MAX, BULKHEAD_PAYMENTS_TIMEOUT_S)
+#
+# Wire in pay_reservation:
+#   Replace:  payments_cb.call(lambda: call_with_retry(_charge, "payments"))
+#   With:     payments_bulkhead.call(lambda: payments_cb.call(lambda: call_with_retry(_charge, "payments")))
+#
+# Composition order (outside → inside):  bulkhead → CB → retry → call
+#   - bulkhead OUTSIDE the CB: a tripped CB still consumes a bulkhead slot for its
+#     fast-fail. That's wrong — if anything's "fast", it shouldn't take a slot.
+#   - Actually re-read: BULKHEAD must be OUTSIDE, gating ENTRY, so that retries
+#     happening INSIDE the bulkhead still count as one occupant. Otherwise 3
+#     retry attempts each grab their own slot and the bound is meaningless.
+#
+# Map BulkheadFullError to HTTP 503 in pay_reservation (same as CircuitOpenError —
+# both are fast-fail signals; both should return 503 with a clear reason).
+#
+# New metrics:
+#   gateway_bulkhead_in_flight{target}        Gauge — current occupants
+#   gateway_bulkhead_rejections_total{target} Counter — full-and-timed-out rejections
+```
+
+### 11.10: Prove the isolation works
+
+Inject 3-second payments latency (NOT failure — slowness is the bulkhead's home turf):
+
+```bash
+kubectl set env deployment/payments PAYMENT_LATENCY_MS=3000 PAYMENT_FAILURE_RATE=0.0
+kubectl rollout status deployment/payments --timeout=30s
+```
+
+Drive **30 concurrent /pay requests** AND simultaneously sample `/events` latency from a separate client. The expected behavior:
+
+- **Without bulkhead** (revert your change to confirm): `/events` p99 climbs from <50ms baseline to >2s as the event loop fills.
+- **With bulkhead at MAX=10**: after the first 10 /pay calls grab slots, the next 20 hit `BulkheadFullError → 503` within 500ms (your acquire timeout). `/events` p99 stays near its baseline because the gateway's event loop never gets clogged.
+
+```bash
+kubectl run bulkhead-probe --image=curlimages/curl:latest --rm -i --restart=Never --quiet --command -- sh -c '
+# 30 concurrent /pay calls in the background
+for i in $(seq 1 30); do
+  (
+    RES=$(curl -s -X POST http://gateway:8080/events/3/reserve -H "Content-Type: application/json" -d "{\"quantity\":1}")
+    RID=$(echo "$RES" | sed -n "s/.*reservation_id\":\"\\([^\"]*\\).*/\\1/p")
+    [ -z "$RID" ] && exit
+    CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://gateway:8080/reserve/$RID/pay)
+    echo "pay[$i] $CODE"
+  ) &
+done
+# Meanwhile, hammer /events from the same pod
+EV_SLOW=0; EV_OK=0
+for j in $(seq 1 30); do
+  T=$(curl -s -o /dev/null -w "%{time_total}" http://gateway:8080/events)
+  awk -v t="$T" "BEGIN{ if (t > 0.5) exit 1 }" && EV_OK=$((EV_OK+1)) || EV_SLOW=$((EV_SLOW+1))
+  sleep 0.1
+done
+wait
+echo "EVENTS: ok=$EV_OK slow=$EV_SLOW"
+'
+```
+
+Expected: `EVENTS: ok≈30 slow=0` (bulkhead protected events). Without bulkhead: `EVENTS: ok=0 slow=30` (event loop saturated by slow /pay calls).
+
+Check rejections + occupancy:
+
+```bash
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum+by+(target)+(gateway_bulkhead_rejections_total)'
+# Expect non-zero for target="payments" — slot pressure caused timeouts.
+
+kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=max_over_time(gateway_bulkhead_in_flight%7Btarget%3D%22payments%22%7D%5B2m%5D)'
+# Expect == BULKHEAD_PAYMENTS_MAX (10) — proves the cap binds.
+```
+
+Restore:
+
+```bash
+kubectl set env deployment/payments PAYMENT_LATENCY_MS=0
+```
+
+### Proof of work (Bonus)
+
+**Paste into `submissions/lab11.md`:**
+
+- Your `Bulkhead.call` implementation + the new wrapping line in `pay_reservation`.
+- The `EVENTS: ok=X slow=Y` result from the concurrent test (with bulkhead).
+- A second `EVENTS:` result with the bulkhead temporarily removed (to show the contrast — `git stash` works fine for a 5-minute experiment).
+- `gateway_bulkhead_rejections_total{target="payments"}` non-zero.
+- `max_over_time(gateway_bulkhead_in_flight{target="payments"}[2m])` = 10 (= MAX, so the cap actually binds).
+- Answer: **"Why does the bulkhead need to wrap the circuit breaker, not the other way around?"** (Hint: think about what holds a slot during a fast-fail vs a slow real call.)
+- Answer: **"Bulkhead vs rate limiter — both reject excess traffic. What's the difference in *what* they protect against?"** (One is about cluster-wide ceilings, the other about dependency isolation.)
+
+> 💡 **Why this is harder than the main lab patterns.** Bulkhead changes the *composition order* of the resilience chain, and getting it wrong silently undermines the cap. Reading 11 §6 ends with "concept-only" precisely because it's the trickiest pattern to wire correctly. Production examples: Netflix's Hystrix shipped bulkhead by default; gRPC's `MaxConcurrentStreams` is a bulkhead; Envoy's `circuit_breakers.max_pending_requests` is a bulkhead.
+
+---
+
 ## How to Submit
 
 ```bash
@@ -453,15 +579,16 @@ PR checklist:
 ```text
 - [x] Task 1 done — notifications service, k8s manifest, fire-and-forget wiring, retry with backoff (Tests #1 + #2)
 - [ ] Task 2 done — circuit breaker + rate limiter, tested under failure
+- [ ] Bonus Task done — bulkhead isolation, concurrent /pay vs /events test, cap proven to bind
 ```
 
-> 📝 **No "Bonus Task" in this lab.** Lab 11 is itself a bonus lab — Task 1 + Task 2 *are* the challenge. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
+> 📝 **About the Bonus Task.** Lab 11 is itself a bonus lab, but its internal **Bonus Task (2 pts)** is still a real extension — and a genuinely harder one (it's the fourth pattern Reading 11 explicitly marks "concept-only"). The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
 
 ---
 
 ## Acceptance Criteria
 
-### Task 1 (6 pts)
+### Task 1 (4 pts)
 - ✅ `app/notifications/` service runs and emits the three Prometheus metrics.
 - ✅ `k8s/notifications.yaml` Deployment + Service committed; pod 1/1 Ready.
 - ✅ `/pay` calls notifications in fire-and-forget mode (no latency hit, failures invisible).
@@ -476,15 +603,23 @@ PR checklist:
 - ✅ Evidence of CLOSED after cooldown + recovery (200s resume).
 - ✅ Rate limiter middleware; burst returns 429s; sustained below-limit load doesn't.
 
+### Bonus Task (2 pts)
+- ✅ `Bulkhead.call` implemented with per-target asyncio.Semaphore + acquire timeout.
+- ✅ Wired in pay_reservation **outside** the circuit breaker (correct composition order).
+- ✅ Concurrent /pay vs /events test shows /events stays fast under slow-payments injection (the isolation works).
+- ✅ Prometheus shows `gateway_bulkhead_rejections_total` increments AND `gateway_bulkhead_in_flight` saturates at MAX (cap actually binds).
+- ✅ Submission answers both design prompts (bulkhead vs CB ordering; bulkhead vs rate-limiter purpose).
+
 ---
 
 ## Rubric
 
 | Task | Points | Criteria |
 |------|-------:|----------|
-| **Task 1** — Notifications + retries | **6** | Service + manifest written, fire-and-forget wired, retry correctly implemented, both tests passing including Prometheus retry-counter evidence |
+| **Task 1** — Notifications + retries | **4** | Service + manifest written, fire-and-forget wired, retry correctly implemented, both tests passing including Prometheus retry-counter evidence |
 | **Task 2** — Circuit breaker + rate limiter | **4** | Both patterns work; Prometheus metrics; real failure-injection evidence |
-| **Total** | **10** | Task 1 + Task 2 |
+| **Bonus Task** — Bulkhead isolation | **2** | Per-target asyncio.Semaphore; demonstrated isolation under slow-payments injection; metrics + rejection counter |
+| **Total** | **10** | Task 1 + Task 2 + Bonus |
 
 ---
 

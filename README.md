@@ -1,7 +1,7 @@
 # SRE Intro — Site Reliability Engineering Fundamentals
 
 ![labs](https://img.shields.io/badge/Main_Labs-70%25-blue)
-![bonus](https://img.shields.io/badge/Bonuses_+_Bonus_Labs-44%25-yellow)
+![bonus](https://img.shields.io/badge/Bonuses_+_Bonus_Labs-34%25-yellow)
 ![exam](https://img.shields.io/badge/Exam-30%25-green)
 ![focus](https://img.shields.io/badge/Focus-Hands--On-orange)
 ![duration](https://img.shields.io/badge/Duration-10%20Weeks-informational)
@@ -172,7 +172,7 @@ Each lab in weeks 1-10 caps at **12 pts = 10 main + 2 bonus**.
 
 A student who only completes **Task 1 across all 10 labs** still ends up with a fully working SRE portfolio project.
 
-**Bonus labs (11 + 12)** are different — they have only Task 1 + Task 2 (10 pts each, **no separate Bonus Task row**). The labs themselves *are* the bonus extension work. They count toward a separate 30% of the final grade (see below).
+**Bonus labs (11 + 12)** have a tighter shape: **Task 1 (4 pts) + Task 2 (4 pts) + Bonus Task (2 pts) = 10 pts total** (vs main labs' 12). The labs are bonus-track in the sense that they're not on the critical path; the Bonus Task inside each lab is still the genuinely-challenging extension. Bonus labs count toward a separate 20% weight (see grading below).
 
 ### Submission Workflow
 
@@ -196,16 +196,16 @@ Submissions are **CLI output + brief analysis**, not source code. Paste the comm
 
 ## Grading
 
-The final grade is composed from five components. Their max contributions add up to **149%** but the grade is **capped at 100%** — meaning multiple paths to A exist, no single path is required, and no point ever goes to waste.
+The final grade is composed from five components. Their max contributions add up to **139%** but the grade is **capped at 100%** — meaning multiple paths to A exist, no single path is required, and no point ever goes to waste.
 
 | Component | Raw Points | Weight | What it rewards |
 |-----------|-----------:|-------:|-----------------|
 | **Main labs 1-10** (Task 1 + Task 2 + Task 3-where-applicable) | 100 | **70%** | Diligent project work — the floor for any serious student |
 | **Bonus tasks 1-10** (2 pts each, flat — no difficulty weighting) | 20 | **14%** | Going above and beyond on weekly topics |
 | **Quiz leaderboards** (5 rolling per-2-labs leaderboards, top-10 share 1% pool each) | — | **up to 5%** | Engagement + excellence; rewards late-joining students too |
-| **Bonus labs 11 + 12** (Task 1 + Task 2 only — 10 pts each) | 20 | **30%** | Mastering advanced microservice + K8s resilience patterns |
+| **Bonus labs 11 + 12** (Task 1 + Task 2 + Bonus = 10 pts each) | 20 | **20%** | Mastering advanced microservice + K8s resilience patterns |
 | **Final exam** | — | **30%** | Optional path — written, comprehensive |
-| **Sum (capped at 100%)** | | **149%** | |
+| **Sum (capped at 100%)** | | **139%** | |
 
 ### What this produces in practice
 
@@ -223,7 +223,8 @@ Sample scores:
 | All Task 1+2, no bonuses, no exam | 70% | 0% | 0% | 0% | 0% | **70%** |
 | Add all weekly bonuses | 70% | 14% | 0% | 0% | 0% | **84%** |
 | + good quiz | 70% | 14% | 0% | 0% | 5% | **89%** ← *just short of A* |
-| + finish at least one bonus lab | 70% | 14% | 15% | 0% | 5% | **100%** (capped) |
+| + finish one bonus lab | 70% | 14% | 10% | 0% | 5% | **99%** ← *A territory* |
+| + both bonus labs | 70% | 14% | 20% | 0% | 5% | **100%** (capped) |
 | Or take the exam instead | 70% | 14% | 0% | 25% | 5% | **100%** (capped) |
 | Coast (Task 1 only + lucky quiz)  | 42% | 0% | 0% | 0% | 5% | **47%** |
 
