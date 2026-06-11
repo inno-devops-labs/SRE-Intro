@@ -331,9 +331,37 @@ async def pay_reservation(reservation_id: str):
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
-        raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
+        # Graceful degradation - clear 503 with actionable message
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held — try again in a few minutes.",
+                "reservation_id": reservation_id,
+                "retry_after_seconds": 30
+            }
+        )
     except httpx.TimeoutException:
-        raise HTTPException(504, "Payment service timeout")
+        # Graceful degradation for timeout
+        return JSONResponse(
+            status_code=504,
+            content={
+                "error": "payments_timeout",
+                "message": "Payment service is slow. Please try again in a moment.",
+                "reservation_id": reservation_id
+            }
+        )
+    except httpx.ConnectError as e:
+        # This catches connection refused when payments is down
+        log.error(f"payments connection error: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held, try again in a few minutes.",
+                "reservation_id": reservation_id
+            }
+        )
     except httpx.HTTPStatusError as e:
         raise HTTPException(e.response.status_code, "Payment failed")
     except Exception as e:

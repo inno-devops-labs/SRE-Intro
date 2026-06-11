@@ -1,10 +1,6 @@
 # Student-produced artifacts — NOT part of the course repo.
 # These live in a student's fork of the course, not upstream.
 
-# Student submission directory (students submit via Moodle/link, not git)
-# DO NOT write to this directory during labs — it's for manual grading/inspection only.
-submissions/
-
 # Instructor-only reference submissions (dry-run results, not student deliverables)
 # These show what "correct" looks like; students don't see them.
 refs/
