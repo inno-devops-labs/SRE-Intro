@@ -1,32 +1,11 @@
-# Student-produced artifacts — NOT part of the course repo.
-# These live in a student's fork of the course, not upstream.
-
-# Student submission directory (students submit via Moodle/link, not git)
-# DO NOT write to this directory during labs — it's for manual grading/inspection only.
-submissions/
-
 # Instructor-only reference submissions (dry-run results, not student deliverables)
-# These show what "correct" looks like; students don't see them.
 refs/
 
-# K8s manifests (students write them in lab 4 per-service)
-k8s/
-
-# Database migrations (students run `alembic init` in lab 9)
-migrations/
-alembic.ini
-
-# CI workflow (students add this in lab 5 to their fork)
-.github/
-
-# Load generator locustfile is copied from labs/lab10/locustfile.py
-# into repo root in lab 10. Student commits it to THEIR fork.
-/locustfile.py
-
-# Dry-run / local tooling
+# Local tooling
 .venv/
 __pycache__/
 *.pyc
 
-# Lab 3 Prometheus config — students write their own
-monitoring/prometheus/
+# Student deliverables (submissions/, k8s/, migrations/, .github/, locustfile.py,
+# monitoring/prometheus/) are intentionally NOT ignored — labs require committing
+# them to your fork and opening a PR.
