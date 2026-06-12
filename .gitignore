@@ -2,8 +2,9 @@
 # These live in a student's fork of the course, not upstream.
 
 # Student submission directory (students submit via Moodle/link, not git)
-# DO NOT write to this directory during labs — it's for manual grading/inspection only.
-submissions/
+# Keep it ignored by default, but allow the current lab hand-in file.
+submissions/*
+!submissions/lab02.md
 
 # Instructor-only reference submissions (dry-run results, not student deliverables)
 # These show what "correct" looks like; students don't see them.
