@@ -211,6 +211,8 @@ index c45a68c..1976d04 100644
 +RUN chown -R app:app /app
 +USER app
  CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081"]
+```
+```diff
 diff --git a/app/gateway/Dockerfile b/app/gateway/Dockerfile
 index 68ef075..3a695dc 100644
 --- a/app/gateway/Dockerfile
@@ -223,6 +225,8 @@ index 68ef075..3a695dc 100644
 +RUN chown -R app:app /app
 +USER app
  CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+```
+```diff
 diff --git a/app/payments/Dockerfile b/app/payments/Dockerfile
 index 7f9e7c1..a2f732b 100644
 --- a/app/payments/Dockerfile
