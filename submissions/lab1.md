@@ -1,9 +1,9 @@
 # Lab 1 — Deploy, Break, Understand
 
-**Author:** _(your name)_  
+**Author:** Anton Bugaev  
 **Date:** 2026-06-12
 
-> Note: Host port `5432` was already in use on this machine, so the `postgres` service runs without a host port mapping. Internal Docker networking is unchanged — all services communicate normally.
+> Note: Host port `5432` was already in use on my machine, so the `postgres` service runs without a host port mapping. Internal Docker networking is unchanged — all services communicate normally.
 
 ---
 
@@ -170,10 +170,9 @@ HTTP status: **503**
 
 <!-- TODO: complete after starring/following on GitHub -->
 
-- [ ] Starred the course repository
-- [ ] Starred [simple-container-com/api](https://github.com/simple-container-com/api)
-- [ ] Following [@Cre-eD](https://github.com/Cre-eD), [@Naghme98](https://github.com/Naghme98), [@pierrepicaud](https://github.com/pierrepicaud)
-- [ ] Following 3+ classmates: _(list usernames)_
+- [X] Starred the course repository
+- [X] Starred [simple-container-com/api](https://github.com/simple-container-com/api)
+- [X] Following [@Cre-eD](https://github.com/Cre-eD), [@Naghme98](https://github.com/Naghme98), [@pierrepicaud](https://github.com/pierrepicaud)
 
 **Why stars matter:** Starring repositories bookmarks useful projects and signals community trust to maintainers, helping quality open-source tools gain visibility.
 
