@@ -1,0 +1,21 @@
+groups:
+  - name: slo_rules
+    interval: 30s
+    rules:
+      # SLI 1: Availability — ratio of non-5xx requests over last 5 minutes
+      - record: gateway:sli_availability:ratio_rate5m
+        expr: |
+          sum(rate(gateway_requests_total{status!~"5.."}[5m]))
+          / sum(rate(gateway_requests_total[5m]))
+
+      # SLI 2: Latency — ratio of requests completing under 500ms
+      - record: gateway:sli_latency_500ms:ratio_rate5m
+        expr: |
+          sum(rate(gateway_request_duration_seconds_bucket{le="0.5"}[5m]))
+          / sum(rate(gateway_request_duration_seconds_count[5m]))
+
+      # Burn rate — how fast we consume error budget vs sustainable pace
+      # >1 means burning faster than the SLO allows (target: 99.5%)
+      - record: gateway:error_budget_burn_rate:ratio_rate5m
+        expr: |
+          (1 - gateway:sli_availability:ratio_rate5m) / (1 - 0.995)
