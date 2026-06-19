@@ -347,7 +347,7 @@ volumes:
 Apply:
 
 ```bash
-kubectl apply -f k8s/postgres.yaml
+kubectl apply -f k8s/postgres-deployment.yaml
 kubectl rollout status deployment/postgres --timeout=60s
 # Re-seed once (fresh PV)
 kubectl exec -i $(kubectl get pod -l app=postgres -o name) -- \
@@ -444,7 +444,7 @@ pkill -f "port-forward.*5432" || true
 
 ```bash
 git switch -c feature/lab9
-git add migrations/ k8s/postgres.yaml submissions/lab9.md
+git add migrations/ k8s/postgres-deployment.yaml submissions/lab9.md
 git commit -m "feat(lab9): add Alembic migrations and DB reliability submission"
 git push -u origin feature/lab9
 ```

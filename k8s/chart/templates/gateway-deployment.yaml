@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gateway
+  labels:
+    app: gateway
 spec:
-  replicas: 1
+  replicas: {{ .Values.gateway.replicas }}
   selector:
     matchLabels:
       app: gateway
@@ -14,10 +16,8 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: quickticket-gateway:v1
+          image: {{ .Values.gateway.image }}
           imagePullPolicy: Never
-          ports:
-            - containerPort: 8080
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
@@ -25,6 +25,8 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+          ports:
+            - containerPort: 8080
           livenessProbe:
             httpGet:
               path: /health
@@ -45,14 +47,3 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: gateway
-spec:
-  selector:
-    app: gateway
-  ports:
-    - port: 8080
-      targetPort: 8080
