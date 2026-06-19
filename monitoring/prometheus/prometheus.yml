@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules.yml"
+
+scrape_configs:
+  # Prometheus scrapes each QuickTicket service on its INTERNAL container port,
+  # reaching it by Docker Compose service name (all services share the app_default
+  # network, so service-name DNS resolves to the container).
+  - job_name: gateway
+    static_configs:
+      - targets: ["gateway:8080"]
+
+  - job_name: events
+    static_configs:
+      - targets: ["events:8081"]
+
+  - job_name: payments
+    static_configs:
+      - targets: ["payments:8082"]
