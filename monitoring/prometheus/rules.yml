@@ -1,0 +1,15 @@
+groups:
+  - name: slo_rules
+    interval: 30s
+    rules:
+      # 1. Availability SLI: ratio of non-5xx requests
+      - record: gateway:sli_availability:ratio_rate5m
+        expr: sum(rate(gateway_requests_total{status!~"5.*"}[5m])) / sum(rate(gateway_requests_total[5m]))
+
+      # 2. Latency SLI: ratio of requests under 500ms (0.5s)
+      - record: gateway:sli_latency_500ms:ratio_rate5m
+        expr: sum(rate(gateway_request_duration_seconds_bucket{le="0.5"}[5m])) / sum(rate(gateway_request_duration_seconds_count[5m]))
+
+      # 3. Error Budget Burn Rate
+      - record: gateway:error_budget_burn_rate:ratio_rate5m
+        expr: (1 - gateway:sli_availability:ratio_rate5m) / (1 - 0.995)
