@@ -10,6 +10,6 @@ contactPoints:
       - uid: quickticket-webhook
         type: webhook
         settings:
-          url: https://webhook.site/REPLACE-WITH-YOUR-UNIQUE-URL
+          url: https://webhook.site/7e975950-b9ac-4ee8-8414-b55dd71069e7
           httpMethod: POST
         disableResolveMessage: false
