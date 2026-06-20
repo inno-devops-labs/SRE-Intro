@@ -4,6 +4,7 @@ metadata:
   name: gateway
   labels:
     app: gateway
+    version: "v2"
 spec:
   replicas: 1
   selector:
@@ -14,10 +15,12 @@ spec:
       labels:
         app: gateway
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: gateway
-          image: quickticket-gateway:v1
-          imagePullPolicy: Never
+          image: ghcr.io/georghegel/quickticket-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
