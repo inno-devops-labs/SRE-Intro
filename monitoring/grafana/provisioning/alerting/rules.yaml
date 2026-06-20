@@ -1,0 +1,99 @@
+apiVersion: 1
+
+# SLO-based alert rules for QuickTicket, provisioned as code.
+# Both are Grafana-managed alerts evaluated against the Prometheus datasource
+# (uid: prometheus). Each rule is the canonical 3-node form Grafana generates:
+#   A = PromQL query (instant)   B = reduce (last value)   C = threshold.
+groups:
+  - orgId: 1
+    name: quickticket-slo
+    folder: QuickTicket
+    interval: 1m
+    rules:
+      # --- Alert 1: High Error Rate (critical) ---------------------------------
+      - uid: qt-high-error-rate
+        title: QuickTicket High Error Rate
+        condition: C
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Gateway error rate is {{ $values.B.Value }}%"
+          description: "Error rate exceeded 5% for 2 minutes. Check payments service health."
+        noDataState: NoData
+        execErrState: Error
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              editorMode: code
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              expr: sum(rate(gateway_requests_total{status=~"5.."}[5m])) / sum(rate(gateway_requests_total[5m])) * 100
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              reducer: last
+              expression: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [5]
+
+      # --- Alert 2: SLO Burn Rate (warning) ------------------------------------
+      # Burn rate = (observed unavailability) / (error budget). >6x burns a
+      # 30-day budget in ~5 days. Needs ~30m of data before it evaluates cleanly.
+      - uid: qt-slo-burn-rate
+        title: QuickTicket SLO Burn Rate
+        condition: C
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SLO burn rate is {{ $values.B.Value }}x"
+          description: "Availability burn rate above 6x the 99.5% budget over 30m."
+        noDataState: NoData
+        execErrState: Error
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              editorMode: code
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              expr: (1 - (sum(rate(gateway_requests_total{status!~"5.."}[30m])) / sum(rate(gateway_requests_total[30m])))) / (1 - 0.995)
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              reducer: last
+              expression: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [6]

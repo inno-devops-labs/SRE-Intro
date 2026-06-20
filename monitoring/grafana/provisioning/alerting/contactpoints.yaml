@@ -1,0 +1,15 @@
+apiVersion: 1
+
+# Contact point for QuickTicket alerts. Type is webhook — the simplest receiver
+# that POSTs the alert JSON to a URL. Replace the address with your own free
+# receiver from https://webhook.site (or swap in a Slack/Discord integration).
+contactPoints:
+  - orgId: 1
+    name: quickticket-alerts
+    receivers:
+      - uid: quickticket-webhook
+        type: webhook
+        settings:
+          url: https://webhook.site/REPLACE-WITH-YOUR-UNIQUE-URL
+          httpMethod: POST
+        disableResolveMessage: false
