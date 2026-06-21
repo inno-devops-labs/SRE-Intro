@@ -1,0 +1,39 @@
+gateway:
+  replicas: 1
+  image: quickticket-gateway:v1
+
+events:
+  replicas: 1
+  image: quickticket-events:v1
+  db:
+    host: postgres
+    port: 5432
+    name: quickticket
+    user: quickticket
+    password: quickticket
+
+payments:
+  replicas: 1
+  image: quickticket-payments:v1
+  failureRate: "0.0"
+  latencyMs: "0"
+
+postgres:
+  replicas: 1
+  image: postgres:17-alpine
+  db:
+    name: quickticket
+    user: quickticket
+    password: quickticket
+
+redis:
+  replicas: 1
+  image: redis:7-alpine
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

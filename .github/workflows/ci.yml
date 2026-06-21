@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push gateway image
+        run: |
+          docker build -t ghcr.io/alextoday111/quickticket-gateway:${{ github.sha }} ./app/gateway
+          docker push ghcr.io/alextoday111/quickticket-gateway:${{ github.sha }}
+
+      - name: Build and push events image
+        run: |
+          docker build -t ghcr.io/alextoday111/quickticket-events:${{ github.sha }} ./app/events
+          docker push ghcr.io/alextoday111/quickticket-events:${{ github.sha }}
+
+      - name: Build and push payments image
+        run: |
+          docker build -t ghcr.io/alextoday111/quickticket-payments:${{ github.sha }} ./app/payments
+          docker push ghcr.io/alextoday111/quickticket-payments:${{ github.sha }}
+
+      - name: Update image tags in manifests
+        run: |
+          SHA=${{ github.sha }}
+          sed -i "s|image: ghcr.io/.*/quickticket-gateway:.*|image: ghcr.io/alextoday111/quickticket-gateway:${SHA}|" k8s/gateway.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-events:.*|image: ghcr.io/alextoday111/quickticket-events:${SHA}|" k8s/events.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-payments:.*|image: ghcr.io/alextoday111/quickticket-payments:${SHA}|" k8s/payments.yaml
+
+      - name: Commit and push manifest update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -f k8s/
+          git diff --cached --quiet || git commit -m "ci: update image tags to ${{ github.sha }}"
+          git push
+
