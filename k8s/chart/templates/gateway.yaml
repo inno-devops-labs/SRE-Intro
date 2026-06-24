@@ -1,0 +1,67 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+  labels:
+    version: "v3"
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 20s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+      - name: gateway
+        image: ghcr.io/kage-ops-dev/quickticket-gateway:9aabaf188cfc01efb314e2f09ddf1aaa912f445a
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: EVENTS_URL
+          value: "http://events:8081"
+        - name: PAYMENTS_URL
+          value: "http://payments:8082"
+        - name: GATEWAY_TIMEOUT_MS
+          value: "5000"
+        - name: APP_VERSION
+          value: "v4-auto-good"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: gateway
