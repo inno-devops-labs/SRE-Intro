@@ -1,0 +1,89 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: quickticket
+    folder: QuickTicket
+    interval: 1m
+    rules:
+      # Alert 1 — High Error Rate (critical)
+      - uid: quickticket-high-error-rate
+        title: QuickTicket High Error Rate
+        condition: C
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Gateway error rate is {{ $value }}%"
+          description: "Error rate exceeded 5% for 2 minutes. Check payments service health."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: sum(rate(gateway_requests_total{status=~"5.."}[5m])) / sum(rate(gateway_requests_total[5m])) * 100
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [5]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                  type: query
+
+      # Alert 2 — SLO Burn Rate (warning)
+      - uid: quickticket-slo-burn-rate
+        title: QuickTicket SLO Burn Rate
+        condition: C
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "SLO burn rate is {{ $value }}x"
+          description: "Error budget burning faster than 6x — 30-day budget exhausts in <5 days."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              editorMode: code
+              expr: (1 - (sum(rate(gateway_requests_total{status!~"5.."}[30m])) / sum(rate(gateway_requests_total[30m])))) / (1 - 0.995)
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [6]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                  type: query
