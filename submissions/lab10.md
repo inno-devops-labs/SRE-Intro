@@ -148,18 +148,3 @@ Using the industry small-cloud resource baseline projection of **$5/pod/month**:
 
 > This minor budget expansion (scaling baseline expenditures to $65/mo) guarantees total service scalability, prevents horizontal cascading failure chains, and ensures 100% SLO compliance under high concurrency load.
 
-
-## Bonus Task — Persistent Storage + Automated Backup CronJob (2 pts)
-
-### 11. Diff of k8s/postgres.yaml (PVC added).
-
-
-### 12. Re-run timestamps from 9.8 showing the new RTO with PVC (pod-restart-only, no pg_restore needed).
-
-
-### 13. Your k8s/backup-cronjob.yaml contents.
-
-### 14. Logs from manual-7 showing the rotation kicked in (removed '…_…dump').
-
-
-### 15. Output of kubectl exec deployment/backup-inspector -- ls -la /backups showing exactly 5 files after 7 runs.
