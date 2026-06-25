@@ -62,7 +62,6 @@ REQUEST_COUNT = Counter(
 REQUEST_DURATION = Histogram(
     "gateway_request_duration_seconds", "Request duration", ["method", "path"]
 )
-RETRY_TOTAL = Counter("gateway_retry_total", "Retry attempts", ["target", "result"])
 CB_STATE_TRANSITIONS = Counter(
     "gateway_circuit_breaker_transitions_total", "Circuit breaker state changes", ["to"]
 )
@@ -90,19 +89,50 @@ def _normalize_path(path: str) -> str:
 # gateway behaves identically to lab 10 if you don't change them. In lab 11,
 # you replace the `# TODO (Lab 11): ...` blocks with real implementations.
 
+gateway_retry_total = Counter(
+    "gateway_retry_total", 
+    "Total number of retries executed by the gateway", 
+    ["target", "result"]
+)
+RETRY_TOTAL = gateway_retry_total
+
 
 async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
-    """Call `func` with retry-on-transient-error.
-
-    No-op default: calls func once and returns. Lab 11 task 11.4 replaces this
-    body with exponential backoff + jitter, retryable/non-retryable branching,
-    and Prometheus counters on the `gateway_retry_total{target,result}` metric.
-
-    See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
-    will pick up your implementation automatically.
     """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    Executes a function with exponential backoff and jitter according to Lab 11 contract.
+    """
+    base_delay = RETRY_BASE_DELAY_MS / 1000.0
+    
+    for attempt in range(max_retries + 1):
+        try:
+            res = await func()
+            if attempt > 0:
+                gateway_retry_total.labels(target=target, result="succeeded_after_retry").inc()
+            return res
+        except Exception as e:
+            is_retryable = False
+            
+            if isinstance(e, (httpx.TimeoutException, httpx.ConnectError)):
+                is_retryable = True
+            elif isinstance(e, httpx.HTTPStatusError):
+                status = e.response.status_code
+                if (500 <= status < 600) or status in (408, 429):
+                    is_retryable = True
+                else:
+                    gateway_retry_total.labels(target=target, result="non_retryable").inc()
+                    raise e
+            else:
+                gateway_retry_total.labels(target=target, result="non_retryable").inc()
+                raise e
+
+            if is_retryable:
+                if attempt == max_retries:
+                    gateway_retry_total.labels(target=target, result="exhausted").inc()
+                    raise e
+                
+                delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)
+                gateway_retry_total.labels(target=target, result="retried").inc()
+                await asyncio.sleep(delay)
 
 
 class CircuitOpenError(Exception):
@@ -139,13 +169,27 @@ class CircuitBreaker:
         self.state = new_state
 
     async def call(self, func):
-        """Run func with circuit-breaker protection.
-
-        No-op default: just calls func. Lab 11 task 11.7 replaces this with
-        the state machine. Raise `CircuitOpenError` when the circuit is open.
-        """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        import time
+        
+        if self.state == "OPEN":
+            if time.time() - self.opened_at >= self.cooldown:
+                self._transition("HALF_OPEN")
+            else:
+                raise CircuitOpenError(f"circuit[{self.name}] OPEN")
+        
+        try:
+            result = await func()
+            self.failures = 0
+            self._transition("CLOSED")
+            return result
+        except Exception as e:
+            self.failures += 1
+            self.opened_at = time.time()
+            
+            if self.state == "HALF_OPEN" or self.failures >= self.threshold:
+                self._transition("OPEN")
+            
+            raise e
 
 
 class RateLimiter:
@@ -162,11 +206,20 @@ class RateLimiter:
         self.hits: dict[str, deque] = defaultdict(deque)
 
     def allow(self, key: str) -> bool:
-        """Return True if the request should be allowed.
+        import time
 
-        No-op default: always True. Lab 11 task 11.8 replaces this body.
-        """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        q = self.hits[key]
+        
+        cutoff = now - self.window_s
+        
+        while q and q[0] < cutoff:
+            q.popleft()
+            
+        if len(q) >= self.rps:
+            return False
+
+        q.append(now)
         return True
 
 
@@ -338,7 +391,14 @@ async def pay_reservation(reservation_id: str):
         raise HTTPException(e.response.status_code, "Payment failed")
     except Exception as e:
         log.error(f"payment error: {e}")
-        raise HTTPException(502, "Payment service unavailable")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held - try again in a few minutes.",
+                "reservation_id": reservation_id
+            }
+        )
 
     # 2. Confirm reservation in events.
     try:
