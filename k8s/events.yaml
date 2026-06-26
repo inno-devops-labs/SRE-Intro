@@ -15,7 +15,7 @@ spec:
       containers:
         - name: events
           image: quickticket-events:v1
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           env:
             - name: DB_HOST
               value: "postgres"

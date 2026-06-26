@@ -15,7 +15,7 @@ spec:
       containers:
         - name: payments
           image: quickticket-payments:v1
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           env:
             - name: PAYMENT_FAILURE_RATE
               value: "0.0"

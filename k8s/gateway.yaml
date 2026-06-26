@@ -15,7 +15,7 @@ spec:
       containers:
         - name: gateway
           image: quickticket-gateway:v1
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
