@@ -29,4 +29,4 @@ __pycache__/
 *.pyc
 
 # Lab 3 Prometheus config — students write their own
-monitoring/prometheus/
+# monitoring/prometheus/
