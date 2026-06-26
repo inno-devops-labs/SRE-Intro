@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: postgres
 spec:
-  replicas: 1
+  replicas: {{ .Values.postgres.replicas }}
   selector:
     matchLabels:
       app: postgres
@@ -14,23 +14,23 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:17-alpine
+          image: {{ .Values.postgres.image }}
           ports:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              value: quickticket
+              value: {{ .Values.postgres.db | quote }}
             - name: POSTGRES_USER
-              value: quickticket
+              value: {{ .Values.postgres.user | quote }}
             - name: POSTGRES_PASSWORD
-              value: quickticket
+              value: {{ .Values.postgres.password | quote }}
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
             limits:
-              cpu: 200m
-              memory: 256Mi
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
 ---
 apiVersion: v1
 kind: Service

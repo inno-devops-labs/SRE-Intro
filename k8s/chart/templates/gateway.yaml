@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: gateway
 spec:
-  replicas: 1
+  replicas: {{ .Values.gateway.replicas }}
   selector:
     matchLabels:
       app: gateway
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: quickticket-gateway:v1
+          image: {{ .Values.gateway.image }}
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
@@ -24,7 +24,7 @@ spec:
             - name: PAYMENTS_URL
               value: http://payments:8082
             - name: GATEWAY_TIMEOUT_MS
-              value: "5000"
+              value: {{ .Values.gateway.timeoutMs | quote }}
           livenessProbe:
             httpGet:
               path: /health
@@ -40,11 +40,11 @@ spec:
             failureThreshold: 2
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
             limits:
-              cpu: 200m
-              memory: 256Mi
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
 ---
 apiVersion: v1
 kind: Service

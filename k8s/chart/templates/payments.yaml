@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: payments
 spec:
-  replicas: 1
+  replicas: {{ .Values.payments.replicas }}
   selector:
     matchLabels:
       app: payments
@@ -14,15 +14,15 @@ spec:
     spec:
       containers:
         - name: payments
-          image: quickticket-payments:v1
+          image: {{ .Values.payments.image }}
           imagePullPolicy: Never
           ports:
             - containerPort: 8082
           env:
             - name: PAYMENT_FAILURE_RATE
-              value: "0.0"
+              value: {{ .Values.payments.failureRate | quote }}
             - name: PAYMENT_LATENCY_MS
-              value: "0"
+              value: {{ .Values.payments.latencyMs | quote }}
           livenessProbe:
             httpGet:
               path: /health
@@ -38,11 +38,11 @@ spec:
             failureThreshold: 2
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
             limits:
-              cpu: 200m
-              memory: 256Mi
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
 ---
 apiVersion: v1
 kind: Service
