@@ -17,7 +17,7 @@ migrations/
 alembic.ini
 
 # CI workflow (students add this in lab 5 to their fork)
-.github/
+# .github/
 
 # Load generator locustfile is copied from labs/lab10/locustfile.py
 # into repo root in lab 10. Student commits it to THEIR fork.
