@@ -1,0 +1,31 @@
+global:
+  imagePullSecrets:
+    - ghcr-secret
+
+gateway:
+  replicas: 1
+  image: ghcr.io/deldore/quickticket-gateway:f2b83a901a5c5addea3b77a2fd624bf52cf8565e
+  version: "v2"
+  timeoutMs: "5000"
+
+events:
+  replicas: 1
+  image: ghcr.io/deldore/quickticket-events:f2b83a901a5c5addea3b77a2fd624bf52cf8565e
+  db:
+    host: postgres
+    port: 5432
+    name: quickticket
+    user: quickticket
+    password: quickticket
+  redis:
+    host: redis
+    port: "6379"
+  dbMaxConns: "10"
+  redisTimeoutMs: "1000"
+  reservationTtl: "300"
+
+payments:
+  replicas: 1
+  image: ghcr.io/deldore/quickticket-payments:f2b83a901a5c5addea3b77a2fd624bf52cf8565e
+  failureRate: "0.0"
+  latencyMs: "0"

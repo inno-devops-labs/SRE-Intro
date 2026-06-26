@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Normalize repository owner
+        run: echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push gateway
+        run: |
+          docker build \
+            -t ghcr.io/${OWNER_LC}/quickticket-gateway:${GITHUB_SHA} \
+            -t ghcr.io/${OWNER_LC}/quickticket-gateway:main \
+            ./app/gateway
+          docker push ghcr.io/${OWNER_LC}/quickticket-gateway:${GITHUB_SHA}
+          docker push ghcr.io/${OWNER_LC}/quickticket-gateway:main
+
+      - name: Build and push events
+        run: |
+          docker build \
+            -t ghcr.io/${OWNER_LC}/quickticket-events:${GITHUB_SHA} \
+            -t ghcr.io/${OWNER_LC}/quickticket-events:main \
+            ./app/events
+          docker push ghcr.io/${OWNER_LC}/quickticket-events:${GITHUB_SHA}
+          docker push ghcr.io/${OWNER_LC}/quickticket-events:main
+
+      - name: Build and push payments
+        run: |
+          docker build \
+            -t ghcr.io/${OWNER_LC}/quickticket-payments:${GITHUB_SHA} \
+            -t ghcr.io/${OWNER_LC}/quickticket-payments:main \
+            ./app/payments
+          docker push ghcr.io/${OWNER_LC}/quickticket-payments:${GITHUB_SHA}
+          docker push ghcr.io/${OWNER_LC}/quickticket-payments:main
+
+      - name: Update image tags in manifests
+        run: |
+          sed -i "s|image: ghcr.io/.*/quickticket-gateway:.*|image: ghcr.io/${OWNER_LC}/quickticket-gateway:${GITHUB_SHA}|" k8s/gateway.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-events:.*|image: ghcr.io/${OWNER_LC}/quickticket-events:${GITHUB_SHA}|" k8s/events.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-payments:.*|image: ghcr.io/${OWNER_LC}/quickticket-payments:${GITHUB_SHA}|" k8s/payments.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-gateway:.*|image: ghcr.io/${OWNER_LC}/quickticket-gateway:${GITHUB_SHA}|" k8s/chart/values.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-events:.*|image: ghcr.io/${OWNER_LC}/quickticket-events:${GITHUB_SHA}|" k8s/chart/values.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-payments:.*|image: ghcr.io/${OWNER_LC}/quickticket-payments:${GITHUB_SHA}|" k8s/chart/values.yaml
+
+      - name: Commit and push manifest update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add k8s/
+          git diff --cached --quiet || git commit -m "ci: update image tags to ${GITHUB_SHA}"
+          git push
