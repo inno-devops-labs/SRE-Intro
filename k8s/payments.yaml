@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: payments
-          image: ghcr.io/wal1ys/quickticket-events:23d8036839eb050a0b5372c4abbbf68a58f71726
+          image: ghcr.io/wal1ys/quickticket-payments:23d8036839eb050a0b5372c4abbbf68a58f71726
           imagePullPolicy: Always
           env:
             - name: PAYMENT_FAILURE_RATE
