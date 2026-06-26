@@ -23,6 +23,8 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: REDIS_PORT     
+              value: "6379"
           ports:
             - containerPort: 8080
           resources:
