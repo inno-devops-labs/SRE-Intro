@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: {{ .Values.gateway.replicas }}
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: {{ .Values.gateway.image }}
+          imagePullPolicy: Never
+          env:
+            - name: EVENTS_URL
+              value: "http://events:{{ .Values.events.port }}"
+            - name: PAYMENTS_URL
+              value: "http://payments:{{ .Values.payments.port }}"
+            - name: GATEWAY_TIMEOUT_MS
+              value: {{ .Values.gateway.timeout | quote }}
+          ports:
+            - containerPort: {{ .Values.gateway.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: {{ .Values.gateway.port }}
+      targetPort: {{ .Values.gateway.port }}

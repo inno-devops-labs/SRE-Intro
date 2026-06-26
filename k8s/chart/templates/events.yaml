@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+spec:
+  replicas: {{ .Values.events.replicas }}
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      containers:
+        - name: events
+          image: {{ .Values.events.image }}
+          imagePullPolicy: Never
+          env:
+            - name: DB_HOST
+              value: {{ .Values.events.db.host }}
+            - name: DB_PORT
+              value: {{ .Values.events.db.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.events.db.name }}
+            - name: DB_USER
+              value: {{ .Values.events.db.user }}
+            - name: DB_PASS
+              value: {{ .Values.events.db.password }}
+            - name: REDIS_HOST
+              value: {{ .Values.events.redis.host }}
+            - name: REDIS_PORT
+              value: {{ .Values.events.redis.port | quote }}
+          ports:
+            - containerPort: {{ .Values.events.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  selector:
+    app: events
+  ports:
+    - port: {{ .Values.events.port }}
+      targetPort: {{ .Values.events.port }}
