@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: quickticket-gateway:v1
+          image: ghcr.io/wal1ys/quickticket-events:23d8036839eb050a0b5372c4abbbf68a58f71726
           imagePullPolicy: Always
           env:
             - name: EVENTS_URL
