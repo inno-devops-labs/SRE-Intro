@@ -26,7 +26,7 @@
 #    Without this, the first 2–3 measurements commonly return empty →
 #    consecutiveErrors > consecutiveErrorLimit → false abort.
 #
-# 4) `podTemplateHashValue: Latest` (in gateway.yaml strategy args) passes the
+# 4) `podTemplateHashValue: Latest` (in gateway-deployment.yaml strategy args) passes the
 #    current canary's pod-template-hash as `canary-hash`, filtering Prometheus
 #    series to the canary replicas only.
 # ----------------------------------------------------------------------------
