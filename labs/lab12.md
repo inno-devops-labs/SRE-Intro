@@ -72,7 +72,7 @@ spec:
 Apply:
 
 ```bash
-kubectl apply -f k8s/events-deployment.yaml -f k8s/payments-deployment.yaml -f k8s/notifications.yaml
+kubectl apply -f k8s/events.yaml -f k8s/payments.yaml -f k8s/notifications.yaml
 kubectl get deploy -l 'app in (events,payments,notifications)'
 ```
 
@@ -156,7 +156,7 @@ kubectl get pdb
 Production K8s clusters have multiple nodes; if all your gateway pods land on the same node, you've thrown away the whole point of multi-replica resilience. The standard tool is `topologySpreadConstraints`. Add one to the gateway Rollout pod template:
 
 ```yaml
-# k8s/gateway-deployment.yaml — YOUR TASK (add to spec.template.spec)
+# k8s/gateway.yaml — YOUR TASK (add to spec.template.spec)
 #
 # topologySpreadConstraints:
 #   - maxSkew: 1
@@ -179,7 +179,7 @@ Production K8s clusters have multiple nodes; if all your gateway pods land on th
 Apply and observe. **On single-node k3d the constraint has no observable effect** — every pod still lands on the only node:
 
 ```bash
-kubectl apply -f k8s/gateway-deployment.yaml
+kubectl apply -f k8s/gateway.yaml
 kubectl argo rollouts status gateway --timeout=240s
 kubectl get pod -l app=gateway -o wide
 # All 5 pods on the same NODE — that's expected here. The lesson is that
@@ -287,7 +287,7 @@ Edit `k8s/gateway.yaml` (it's an Argo Rollouts `Rollout`, not a `Deployment`). A
 Apply (it will trigger a canary rollout — the analysis template should pass):
 
 ```bash
-kubectl apply -f k8s/gateway-deployment.yaml
+kubectl apply -f k8s/gateway.yaml
 kubectl argo rollouts status gateway --timeout=240s
 ```
 
@@ -666,7 +666,7 @@ kubectl exec -i $(kubectl get pod -l app=postgres -o name) -- \
 
 ```bash
 git switch -c feature/lab12
-git add k8s/pdb.yaml k8s/gateway-deployment.yaml k8s/events-deployment.yaml k8s/payments-deployment.yaml k8s/notifications.yaml migrations/ app/events/ app/seed.sql submissions/lab12.md
+git add k8s/pdb.yaml k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml k8s/notifications.yaml migrations/ app/events/ app/seed.sql submissions/lab12.md
 git commit -m "feat(lab12): PDBs, preStop, and zero-downtime migration"
 git push -u origin feature/lab12
 ```

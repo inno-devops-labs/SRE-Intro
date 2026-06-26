@@ -206,10 +206,10 @@ Make a visible change — edit a gateway env var or add a label:
 
 ```bash
 # Add an annotation to gateway deployment
-# Edit k8s/gateway-deployment.yaml — add under metadata.labels:
+# Edit k8s/gateway.yaml — add under metadata.labels:
 #   version: "v2"
 
-git add k8s/gateway-deployment.yaml
+git add k8s/gateway.yaml
 git commit -m "feat: add version label to gateway"
 git push origin main
 ```
@@ -263,9 +263,9 @@ kubectl get deployment gateway -o jsonpath='{.metadata.labels.version}'
 Update a manifest with a non-existent image tag:
 
 ```bash
-# Edit k8s/gateway-deployment.yaml — change image to a tag that doesn't exist:
+# Edit k8s/gateway.yaml — change image to a tag that doesn't exist:
 # image: ghcr.io/YOUR_USERNAME/quickticket-gateway:does-not-exist
-git add k8s/gateway-deployment.yaml
+git add k8s/gateway.yaml
 git commit -m "feat: deploy new gateway version"
 git push origin main
 ```

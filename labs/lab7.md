@@ -103,7 +103,7 @@ Delete the old Deployment and apply the new Rollout:
 
 ```bash
 kubectl delete deployment gateway
-kubectl apply -f k8s/gateway-deployment.yaml
+kubectl apply -f k8s/gateway.yaml
 ```
 
 Verify:
@@ -116,12 +116,12 @@ kubectl argo rollouts get rollout gateway
 Your current gateway image is the "stable" version. To trigger a canary, change the image tag. You can add a simple environment variable to make versions distinguishable:
 
 ```bash
-# Edit k8s/gateway-deployment.yaml — add or change an env var to simulate a new version:
+# Edit k8s/gateway.yaml — add or change an env var to simulate a new version:
 # env:
 #   - name: APP_VERSION
 #     value: "v2"
 
-kubectl apply -f k8s/gateway-deployment.yaml
+kubectl apply -f k8s/gateway.yaml
 ```
 
 Now watch the canary in real-time:
@@ -178,8 +178,8 @@ Wait until status shows **Healthy** — full rollout complete.
 Now simulate deploying a broken version. Change the image to something bad or add a failing env var:
 
 ```bash
-# Edit k8s/gateway-deployment.yaml — change APP_VERSION to "v3-bad" or similar
-kubectl apply -f k8s/gateway-deployment.yaml
+# Edit k8s/gateway.yaml — change APP_VERSION to "v3-bad" or similar
+kubectl apply -f k8s/gateway.yaml
 
 # Watch canary start
 kubectl argo rollouts get rollout gateway --watch
@@ -373,7 +373,7 @@ env:
 ```
 
 ```bash
-kubectl apply -f k8s/gateway-deployment.yaml
+kubectl apply -f k8s/gateway.yaml
 kubectl argo rollouts get rollout gateway --watch
 ```
 
@@ -407,7 +407,7 @@ kubectl delete -f labs/lab7/loadgen.yaml
 
 ```bash
 git switch -c feature/lab7
-git add k8s/gateway-deployment.yaml k8s/analysis-template.yaml submissions/lab7.md
+git add k8s/gateway.yaml k8s/analysis-template.yaml submissions/lab7.md
 git commit -m "feat(lab7): add canary rollout for gateway"
 git push -u origin feature/lab7
 ```

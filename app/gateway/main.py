@@ -30,7 +30,7 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 EVENTS_URL = os.getenv("EVENTS_URL", "http://events:8081")
 PAYMENTS_URL = os.getenv("PAYMENTS_URL", "http://payments:8082")
 # Empty by default so labs 1-10 don't try to call a notifications service that
-# doesn't exist yet. Lab 11 students set this in k8s/gateway-deployment.yaml env.
+# doesn't exist yet. Lab 11 students set this in k8s/gateway.yaml env.
 NOTIFICATIONS_URL = os.getenv("NOTIFICATIONS_URL", "")
 GATEWAY_TIMEOUT_MS = int(os.getenv("GATEWAY_TIMEOUT_MS", "5000"))
 

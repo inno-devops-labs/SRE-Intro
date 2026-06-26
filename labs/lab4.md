@@ -102,8 +102,8 @@ Create `k8s/redis.yaml` similarly:
 Apply and verify:
 
 ```bash
-kubectl apply -f k8s/postgres-deployment.yaml
-kubectl apply -f k8s/redis-deployment.yaml
+kubectl apply -f k8s/postgres.yaml
+kubectl apply -f k8s/redis.yaml
 kubectl get pods
 # Wait until both show Running
 kubectl get svc

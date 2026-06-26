@@ -134,7 +134,7 @@ Following the lab-4 pattern, write a Deployment + Service in a single file:
 #   - port 8083 → targetPort 8083
 #   - selector app=notifications
 #
-# Hint: copy k8s/payments-deployment.yaml and edit the names + port. Lecture 4 slide 7-8.
+# Hint: copy k8s/payments.yaml and edit the names + port. Lecture 4 slide 7-8.
 ```
 
 ### 11.3: Configure the gateway to call notifications
@@ -569,7 +569,7 @@ kubectl set env deployment/payments PAYMENT_LATENCY_MS=0
 
 ```bash
 git switch -c feature/lab11
-git add app/notifications/ app/gateway/main.py app/docker-compose.yaml k8s/notifications.yaml k8s/gateway-deployment.yaml submissions/lab11.md
+git add app/notifications/ app/gateway/main.py app/docker-compose.yaml k8s/notifications.yaml k8s/gateway.yaml submissions/lab11.md
 git commit -m "feat(lab11): add notifications service and resilience patterns"
 git push -u origin feature/lab11
 ```
