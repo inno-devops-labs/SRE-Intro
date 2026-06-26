@@ -12,10 +12,12 @@ spec:
       labels:
         app: gateway
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: gateway
-          image: quickticket-gateway:v1
-          imagePullPolicy: Never
+          image: ghcr.io/kostya2505/quickticket-gateway:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
