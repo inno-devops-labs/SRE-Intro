@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres                    # имя деплоймента
+spec:
+  replicas: 1                       # сколько копий (подов)
+  selector:
+    matchLabels:
+      app: postgres                 # "управляй подами с этим лейблом"
+  template:                         # шаблон пода
+    metadata:
+      labels:
+        app: postgres               # лейбл пода — должен совпадать с selector
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "quickticket"
+            - name: POSTGRES_USER
+              value: "quickticket"
+            - name: POSTGRES_PASSWORD
+              value: "quickticket"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres                    # это имя станет DNS-именем внутри кластера
+spec:
+  selector:
+    app: postgres                   # "направляй трафик на поды с этим лейблом"
+  ports:
+    - port: 5432                    # порт сервиса
+      targetPort: 5432              # порт контейнера
