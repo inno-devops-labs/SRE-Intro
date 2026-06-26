@@ -21,6 +21,8 @@ spec:
               value: "0.0"
             - name: PAYMENT_LATENCY_MS
               value: "0"
+            - name: REDIS_PORT   
+              value: "6379"
           ports:
             - containerPort: 8082
           resources:
