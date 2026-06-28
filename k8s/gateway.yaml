@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: ghcr.io/jakefish18/quickticket-gateway:does-not-exist
+          image: ghcr.io/jakefish18/quickticket-gateway:b4dbad3edacdf1c055234d40b3d7b263eb3d0e9c
           imagePullPolicy: Always
           env:
             - name: EVENTS_URL
