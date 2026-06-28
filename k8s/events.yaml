@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: events
-          image: ghcr.io/jakefish18/quickticket-events:52037579b761e85cd77ea99ac3b005a371cdc532
+          image: ghcr.io/jakefish18/quickticket-events:b4dbad3edacdf1c055234d40b3d7b263eb3d0e9c
           imagePullPolicy: Always
           env:
             - name: DB_HOST
