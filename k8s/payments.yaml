@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: payments
-          image: ghcr.io/jakefish18/quickticket-payments:b4dbad3edacdf1c055234d40b3d7b263eb3d0e9c
+          image: ghcr.io/jakefish18/quickticket-payments:1c2c8f66e4f8ea2958717f8115a7af3e2d846511
           imagePullPolicy: Always
           env:
             - name: PAYMENT_FAILURE_RATE
