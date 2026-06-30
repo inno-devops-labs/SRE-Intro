@@ -18,7 +18,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/kostya2505/quickticket-gateway:2f18b31d1cfa561f5c27fc95a45165dbaf63c35e
+          image: ghcr.io/kostya2505/quickticket-gateway:8b02e0982d274cc357fc09ebeedb6be121964ee6
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
