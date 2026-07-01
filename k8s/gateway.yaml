@@ -1,14 +1,29 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
-    version: "v2"
+    version: "v8-bad"
 spec:
-  replicas: 1
+  replicas: 5
   selector:
     matchLabels:
       app: gateway
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: { duration: 20s }
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: { duration: 20s }
+        - setWeight: 100
   template:
     metadata:
       labels:
@@ -23,25 +38,25 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: EVENTS_URL
-              value: "http://events:8081"
-            - name: PAYMENTS_URL
-              value: "http://payments:8082"
-            - name: GATEWAY_TIMEOUT_MS
-              value: "5000"
+          - name: EVENTS_URL
+            value: "http://broken-on-purpose:8081"
+          - name: GATEWAY_TIMEOUT_MS
+            value: "2000"
           livenessProbe:
             httpGet:
               path: /health
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 30
+            timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
+            initialDelaySeconds: 60
             periodSeconds: 5
-            failureThreshold: 2
+            failureThreshold: 30
           resources:
             requests:
               cpu: 50m
