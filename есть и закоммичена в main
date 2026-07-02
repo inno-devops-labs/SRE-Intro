@@ -1,0 +1,808 @@
+[33mcommit 6ff7575783b5aa24e21b2ee0c7dbd48c4eba3c98[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/lab12[m[33m, [m[1;31morigin/feature/lab12[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Wed Jun 17 23:36:32 2026 +0500
+
+    feat(lab12): PDBs, graceful shutdown and zero-downtime migration
+
+[33mcommit f96db5a44d77864a6c0afe78ebbafa522e539239[m[33m ([m[1;31morigin/feature/lab11[m[33m, [m[1;32mfeature/lab11[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Wed Jun 17 23:21:50 2026 +0500
+
+    feat(lab11): add notifications service + resilience patterns
+
+[33mcommit 4d1a150437bc057b82b39ce5fe338386673570a8[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Wed Jun 17 23:21:07 2026 +0500
+
+    feat(lab11): add notifications service + resilience patterns
+
+[33mcommit 5f6fc63b140a5c680b08c0fd107bda41ebeb3e5d[m[33m ([m[1;31morigin/feature/lab10[m[33m, [m[1;32mfeature/lab10[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Wed Jun 17 22:06:23 2026 +0500
+
+    feat(lab10): load tests and reliability review
+
+[33mcommit e2d69f5e770f92592a03039b9434a757735b74ac[m[33m ([m[1;31morigin/feature/lab9[m[33m, [m[1;32mfeature/lab9[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Wed Jun 17 21:40:09 2026 +0500
+
+    docs(lab9): complete database migrations, backup/restore and disaster recovery
+
+[33mcommit 410bf299d5dc020a7292a912d442c2fde42d1c2e[m[33m ([m[1;31morigin/feature/lab8[m[33m, [m[1;31morigin/feature/lab7[m[33m, [m[1;32mfeature/lab8[m[33m, [m[1;32mfeature/lab7[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Wed Jun 17 21:18:48 2026 +0500
+
+    feat(lab7): complete canary rollout + bonus automated analysis
+
+[33mcommit a297df1768d0ff24b52bf2aa70f6dce70b9fbc39[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/feature/lab6[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m, [m[1;32mfeature/lab6[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Mon Jun 15 15:56:58 2026 +0500
+
+    ci: add automated image tag update (bonus task)
+
+[33mcommit 86e2df33aa9bcba79abc9d5d09fd673fd5b723f2[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Mon Jun 15 15:43:08 2026 +0500
+
+    docs(lab5): complete CI/CD, ArgoCD and rollback
+
+[33mcommit 06761253d5701adf808b640db2b23cbfba81ac94[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Mon Jun 15 15:36:18 2026 +0500
+
+    Revert "ci: add GitHub Actions CI pipeline for QuickTicket"
+    
+    This reverts commit cd0f334ab4a478bdf55b86b2dd3c95c723e07140.
+
+[33mcommit cd0f334ab4a478bdf55b86b2dd3c95c723e07140[m[33m ([m[1;32mfeature/lab4[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Sun Jun 14 20:18:34 2026 +0500
+
+    ci: add GitHub Actions CI pipeline for QuickTicket
+
+[33mcommit 9ee97c7d1e93e1b3a505b987a24b5c92f3332e0b[m[33m ([m[1;31morigin/feature/lab4[m[33m, [m[1;31morigin/feature/lab3[m[33m, [m[1;32mfeature/lab3[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Sat Jun 13 22:37:57 2026 +0500
+
+    docs(lab3): complete monitoring, SLOs and bonus
+
+[33mcommit 32ffdb6480c481259e7685c54df6f7eebbc5303a[m[33m ([m[1;31morigin/feature/lab2[m[33m, [m[1;32mfeature/lab2[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Fri Jun 12 21:19:22 2026 +0500
+
+    docs(lab2): complete Lab 2 with inspection, optimization and bonus
+
+[33mcommit a297c12e2fc1a6350abbd370040c7e2f42348e63[m[33m ([m[1;31morigin/feature/lab1[m[33m, [m[1;32mfeature/lab1[m[33m)[m
+Author: Ravil Khusnutdinov <ra.khusnutdinov@innopolis.university>
+Date:   Wed Jun 10 03:55:39 2026 +0500
+
+    docs(lab1): complete Lab 1 submission with Task 1, 2 and bonus
+
+[33mcommit 20e708aef9257d812be66515e7d4583f1e860b90[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Tue Jun 2 13:35:34 2026 +0400
+
+    docs(lab1): update Task 3 TA handle to @Naghme98
+    
+    Signed-off-by: Dmitrii Creed <creeed22@gmail.com>
+
+[33mcommit 917437cc4062a1a18ef7e28257e7da816d0d44e8[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Tue Jun 2 13:30:49 2026 +0400
+
+    docs(course): rebalance grading 149%→139% + add bonus tasks to labs 11/12
+    
+    Match DevSecOps-Intro's locked allocation (70/14/5/20/30 = 139%, capped at
+    100%). Bonus labs shrink from 30%→20% but gain an internal Bonus Task row
+    (4+4+2 = 10 pts each) so motivated students have a genuinely-challenging
+    extension inside each bonus lab.
+    
+    - Lab 11 Bonus Task: implement the Bulkhead pattern (Reading 11 §6, explicitly
+      marked concept-only in the lab body). Per-target asyncio.Semaphore wrapped
+      OUTSIDE the circuit breaker so retries inside one slot don't multiply the
+      cap. Slow-payments injection proves /events stays fast while /pay back-
+      pressures with 503s.
+    
+    - Lab 12 Bonus Task: execute the expand-and-contract column rename sketched
+      in 12.8. Three Alembic migrations + two events-service code deploys, zero
+      5xx delta from baseline across all five transitions under live mixedload.
+      Turns the design-only sketch into the senior-level skill students will
+      actually need in production.
+    
+    README sample-scores table updated (one bonus lab = 99%, both = 100% capped).
+    Bonuses-+-Bonus-Labs badge: 44%→34%.
+    
+    Signed-off-by: Dmitrii Creed <creeed22@gmail.com>
+
+[33mcommit 77d35c1348cc5792a72328f23a2905a1153bf44d[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sun Apr 26 18:03:31 2026 +0400
+
+    docs(course): update README + gitignore + readings for Lab 11/12 completion
+    
+    - README: add actual line counts for reading11 (473) and reading12 (408)
+    - README: clarify Labs 11/12 have no separate Bonus Task rows
+    - README: emphasize flat 2 pts per bonus task (no difficulty weighting)
+    - gitignore: add refs/ for instructor-only reference submissions; clarify submissions/ is student-only
+    - reading11: add Pattern 3.5 (retry-vs-CB composition), Pattern 4.5 (fire-and-forget), per-replica state limits, bridge to Lab 11
+    - reading12: add Argo Rollouts timing expectations, expand-and-contract detail, CREATE INDEX CONCURRENTLY pattern, PDB enforcement via API
+    
+    All labs 1-12 + readings now align with actual delivered content and student-facing lab structure.
+    
+    Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+
+[33mcommit a48e024214f56f8981962d4df7e006c56c2ca115[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sun Apr 26 15:44:52 2026 +0400
+
+    feat(lab11): ship Option B gateway scaffold; lighter lab focus on algorithms
+    
+    Per user feedback ("elective course, make it easier a bit"), the gateway
+    ships with all Lab 11 wiring pre-built. Students implement only the three
+    algorithm bodies, not the surrounding plumbing.
+    
+    app/gateway/main.py — Lab 11 scaffold:
+    - All Lab 11 imports, config block, Prometheus counters, helpers, and
+      wiring committed.
+    - Three pattern primitives have NO-OP default bodies marked
+      `# TODO (Lab 11): ...`:
+        - call_with_retry: just calls func once
+        - CircuitBreaker.call: just calls func, never trips (state stays CLOSED)
+        - RateLimiter.allow: always returns True
+      Each has the real signature, docstring with the behavior contract, and
+      references to the relevant lab section.
+    - _notify_order_confirmed gated on NOTIFICATIONS_URL being set (default empty).
+      When the env var is unset (labs 1-10) the helper short-circuits — no DNS
+      lookups for a notifications service that doesn't exist yet.
+    - /health gates notifications check on NOTIFICATIONS_URL too. Critical-ok
+      verdict still depends only on events + payments.
+    - /pay handler shows the cb.call(retry(_charge)) composition pre-wired.
+      An inline comment explains why the order is correct (mirrors lab 11 §11.4
+      design prompt).
+    - Smoke-tested on the lab-7 cluster: 100-request burst → 100×200/0×429
+      (rate limiter no-op default works); /pay → 200 (CB+retry no-ops compose
+      cleanly). Labs 1-10 unaffected.
+    
+    labs/lab11.md — Option B restructure:
+    - New "Where do the patterns live?" architecture diagram in Overview,
+      showing gateway-as-caller vs notifications/payments-as-destinations.
+      Addresses the "but payments doesn't have CB" confusion.
+    - New "What's pre-wired vs what you implement" subsection: makes the
+      scope crystal clear up front.
+    - 11.3 (gateway wiring) reduced from "write the helper + wire it into
+      /pay" to "set NOTIFICATIONS_URL env var; the wiring is already in place,
+      read it to understand."
+    - 11.4 / 11.7 / 11.8 retitled from "Add X" to "Implement X.method" —
+      task framing is now "fill in the TODO body" rather than "write the
+      function and find where to wire it." Volume drops from ~150 lines of
+      student code to ~80, focused on the three algorithms.
+    - Design prompt in 11.4 still asks students to articulate why
+      cb.call(retry(...)) is right. The answer is now visible in /pay's code,
+      but they must explain it.
+    
+    Total student-written code in app/gateway/main.py: ~80 lines (the three
+    algorithm bodies + reading the wiring). Plus app/notifications/main.py
+    (~75 lines, copy-and-adjust from payments) and k8s/notifications.yaml (~40
+    lines, copy-and-adjust from payments).
+    
+    Total ~200 lines of student work — ~50% reduction from the previous
+    all-from-scratch version, while still requiring real implementation of
+    the three patterns from a behavior contract.
+
+[33mcommit 2e61e7f6651230c6bfa2f7490a6b51a7c6266e05[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sun Apr 26 15:27:59 2026 +0400
+
+    docs(lab11+12): address all gaps from internal review
+    
+    Lab 11 (Microservice Patterns) — closes the operational holes:
+    - New "Build & Deploy Workflow" Setup section spelling out docker build →
+      k3d image import → kubectl argo rollouts set image. Critical: without
+      this, students wrote code that never reached the cluster.
+    - New 11.2: scaffold k8s/notifications.yaml as a YOUR-TASK block matching
+      the lab-4 manifest-writing pattern (was previously mentioned only in
+      Project State).
+    - 11.4 retry scaffold rewritten from "fill in 3 TODOs" pseudocode to
+      bullet-form behavior contract. Less spoonfed, more "you write it."
+    - New design prompt: why is `cb.call(retry(...))` correct vs
+      `retry(cb.call(...))`? — answered in submission.
+    - Tests split:
+        11.5 — fire-and-forget under NOTIFY_FAILURE_RATE
+        11.6 — retries fire under PAYMENT_FAILURE_RATE; verifies via
+                sum(gateway_retry_total) Prometheus query so a missing
+                wire-in is caught.
+      Old single test only proved fire-and-forget; retry could be silently
+      un-wired.
+    - 11.8 rate limiter: new test for the 429 Retry-After: 1 header and the
+      gateway_rate_limit_rejections_total counter (visible side-effects).
+    - Reading-vs-lab scope note at top: lab implements 5 of 7 patterns from
+      Reading 11; bulkhead + load-shed are concept-only this week.
+    - Test scripts: echo on failure paths instead of silent continue.
+    - Acceptance criteria + Rubric criteria + PR checklist updated to match.
+    
+    Lab 12 (K8s Resilience) — closes the lecture-promise gaps:
+    - New 12.4: write topologySpreadConstraints for the gateway Rollout. On
+      single-node k3d the effect is invisible; the lab acknowledges this
+      honestly and asks students to verify the field is in the live spec.
+      Reading 12 has been promising this pattern; the lab now delivers it.
+    - 12.5 (was 12.4) PDB-rejection demo restructured: the API call is now
+      inside a <details> reference solution. Students attempt first, peek
+      if stuck — a more authentic challenge for a bonus lab.
+    - 12.5 cleanup: kill %1 → PROXY_PID=$! + trap 'kill $PROXY_PID' EXIT.
+    - New 12.7 sidebar: "why the migration finishes in milliseconds" —
+      honest about the 5-row dataset masking the real win, with the 10M-row
+      scenario explained.
+    - New 12.8: expand-and-contract design exercise (sketch only, no impl).
+      3 migrations + 2 code deploys to rename a column with zero downtime.
+      Two answer prompts in the submission about the ordering rationale.
+    - New 12.9 (optional): HorizontalPodAutoscaler YAML + observation under
+      Lab 10 Locust load. Closes the HPA lecture-promise gap; flagged as
+      optional since real elasticity isn't visible on single-node k3d.
+    - Lab-9 dependency note: 5-minute Alembic bootstrap if students skipped
+      the Lab 9 Task 2 that set it up.
+    - 12.3 PDB rationale: why minAvailable: 2 (not 4) for a 5-replica gateway
+      — explained in the YOUR-TASK comment.
+    - Acceptance criteria + Rubric + PR checklist updated to reflect new
+      subtasks.
+    - Common Pitfalls expanded with kubectl proxy cleanup pattern and
+      topology-spread + drain limitations on single-node k3d.
+    
+    Both labs renumbered cleanly: 11.1-11.8 and 12.1-12.9. No subtask
+    collisions. Both still cap at 10 pts (Task 1: 6, Task 2: 4) — bonus
+    labs structure preserved.
+
+[33mcommit de169ae4f01fa20d982e1b3058629a3fe1513eee[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sun Apr 26 15:15:58 2026 +0400
+
+    chore(grading): rebalance to 70-14-5-30-30; bonus 2.5→2; strip bonus from labs 11/12
+    
+    Course-level grading rewrite based on cohort feedback (95% of students were
+    maxing labs+bonuses → A was undifferentiated). New model:
+    
+      Main labs 1-10  (10 raw × 10 labs)         100  → 70%
+      Bonus tasks 1-10 (2 pts each, flat)         20  → 14%
+      Quiz leaderboards (5 rolling per-2-labs)    —   → up to 5%
+      Bonus labs 11+12 (10 pts each, no Bonus)    20  → 30%
+      Final exam (optional path)                   —  → 30%
+                                              Sum 149%, capped at 100%
+    
+    The capped sum makes labs+bonuses+quiz alone top out at 89% (just short
+    of A). To earn A, a student must do at least one bonus lab OR the exam OR
+    both — multiple paths to A, no single mandatory route, late joiners
+    remain competitive via rolling per-2-labs leaderboards.
+    
+    Lab spec changes:
+    - labs/lab1.md … lab10.md: bonus 2.5 → 2 across badge / heading / acceptance
+      criteria / rubric / total. Subtask numbers (e.g., "### 2.5: Network
+      inspection" in lab2) untouched — those are not point values.
+    - labs/lab11.md, lab12.md: stripped Bonus Task entirely (badge changes
+      10%2B2.5 → 10, removed section + checklist + criteria + rubric row,
+      added an explanatory note that the bonus lab IS the bonus).
+    - README.md: rewrote Lab Structure + Grading sections with the new
+      allocation, sample student-profile matrix, rolling-leaderboard rules.
+    
+    Skill files (in ~/.claude/commands/):
+    - lab.md: bonus 2 (was 2.5), template rubric updated, badge updated,
+      added "Grading allocation" reference table for Intro courses, noted
+      bonus-labs structure (no Bonus row, 10 pts cap).
+    - lecture.md: noted quiz role in course grade (rolling leaderboards).
+    
+    Memory: feedback_innopolis_grading.md added with the canonical allocation
+    to be replicated across DevOps-Intro and DevSecOps-Intro later.
+
+[33mcommit c9bae1deeb7e0fc82772d3450e08b0b16bae7ebd[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 21:42:14 2026 +0400
+
+    docs(readme): rewrite to match actual course state
+    
+    Previous README made several claims the course doesn't deliver:
+    - "Pre-instrumented with OpenTelemetry (metrics + traces + logs)" — actually
+      only prometheus_client Counter/Histogram. No OTel SDK, no collector.
+    - "Tempo + Loki" in the Week 3 stack — not deployed anywhere; only mentioned
+      as adjacent concepts in lectures.
+    - "minikube/k3s" — actual cluster is k3d (k3s in Docker), specified in lab 4.
+    - "Helm charts" as core Week 4 deliverable — lab 4 uses raw manifests;
+      Helm is a bonus exercise.
+    - Python 3.12 — bumped to 3.13 in the April 2026 version sweep.
+    - Task structure showing Task 1=6 + Task 2=3 + Task 3=1 — only Lab 1 has
+      this shape. Labs 2-12 are Task 1=6 + Task 2=4 + Bonus=2.5.
+    - Lecture listing had Lecture 1 expanded and the rest as "will be added" —
+      now reflects that all 10 lectures + 2 readings exist, with slide counts.
+    
+    New sections:
+    - "What Ships vs What Students Produce" — explicit table distinguishing
+      course-repo content from student-fork content, matching the .gitignore.
+    - "Provided lab-asset files" — cross-references labs/lab7/, lab8/, lab9/,
+      lab10/ directories (plumbing provided so students don't rebuild infra).
+    - Fault-injection table now includes NOTIFY_FAILURE_RATE / NOTIFY_LATENCY_MS
+      from Lab 11.
+    - Architecture diagram shows the Lab-11 notifications service as a
+      dotted-line (fire-and-forget) 4th dependency.
+    
+    Removed the trailing stray "# SRE-Intro" heading.
+
+[33mcommit 19c72e30bb46aa1780b2e23345f4c2278601de93[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 21:21:58 2026 +0400
+
+    docs(lab12): k3d-native; PDB enforcement; preStop + CONCURRENTLY pre-solved
+    
+    Rewrote lab 12 to match students' actual cluster state after labs 4-11:
+    gateway is a Rollout (not Deployment), Postgres has a PVC, Alembic is set up,
+    mixedload is the zero-downtime traffic source.
+    
+    Key lab-spec changes:
+    
+    - 12.1/12.2: scale events+payments+notifications to 2 replicas (gateway is
+      already 5-replica from Lab 7). Instructions use kubectl, not docker-compose.
+    
+    - 12.3: PDB writing is now the skill — scaffolded with requirements + hints
+      rather than a ready-to-apply file. 4 PDBs (gateway/events/payments/
+      notifications), each with rationale in the TODO block.
+    
+    - 12.4: replaced the "kubectl drain --dry-run" theater (which lists every pod
+      on single-node k3d — NOT a failure, which students will misread) with a
+      proper API-level PDB enforcement test: tighten the PDB to minAvailable ==
+      replicas, fire one Eviction via POST /api/.../pods/<name>/eviction, observe
+      HTTP 429 with reason=DisruptionBudget. This IS the mechanism drain uses.
+    
+    - 12.5: preStop + readinessProbe + terminationGracePeriodSeconds explained as
+      a coordinated triad. Missing any one of them leaves a race.
+    
+    - Rolling restart step now uses `kubectl argo rollouts restart gateway`
+      (the old lab said `kubectl rollout restart deployment/gateway`, which
+      fails for a Rollout resource — confusingly for students).
+    
+    - 12.6: CONCURRENTLY migration now includes the `op.get_context().autocommit_block()`
+      wrapper in the scaffold requirements. Without it Postgres rejects the DDL
+      ("ActiveSqlTransaction: CREATE INDEX CONCURRENTLY cannot run inside a
+      transaction block") — lab spells that out as a pre-solved gotcha rather
+      than leaving students to debug it.
+    
+    - Common Pitfalls expanded from 0 to 8 real failure modes encountered during
+      dry-run (kubectl rollout vs argo rollouts, drain behavior on single-node,
+      preStop-alone-is-not-enough, grace period arithmetic, --wait=false on
+      kubectl delete, kubectl eviction doesn't exist, etc).
+    
+    Verified all tasks by real execution on the Lab 11 k3d cluster: 0 errors
+    during pod kill, 0 errors during rolling restart (50s window), 0 errors
+    during CONCURRENTLY migration, HTTP 429 properly returned from tightened
+    PDB + Eviction API call.
+
+[33mcommit 46718888707bcdfd68778b6fbaf1566d5c8346b0[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 20:33:47 2026 +0400
+
+    chore: add .gitignore, untrack student-produced artifacts
+    
+    Lab submissions are for instructor reference only, not part of the course
+    repo. Also explicitly gitignore other student-produced artifacts so they
+    don't accidentally re-enter tracking:
+      - submissions/       — instructor's local reference copies
+      - k8s/               — per-lab manifests students write from scratch
+      - migrations/        — alembic folder students generate in lab 9
+      - alembic.ini        — likewise
+      - .github/           — students add CI in lab 5 to their fork
+      - /locustfile.py     — students copy from labs/lab10/locustfile.py
+      - .venv/             — dry-run tooling
+      - monitoring/prometheus/  — students write their own scrape config
+
+[33mcommit 93b05bf404a0ad06a9d56dd87db6f5d62454328d[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 20:25:52 2026 +0400
+
+    docs(lab11): rewrite with pre-solved gotchas + reference submission
+    
+    This is a bonus lab — students write the code themselves (notifications
+    service, retry, circuit breaker, rate limiter). Only the lab spec and
+    reference submission ship in the course repo; student artifacts stay in
+    their forks.
+    
+    labs/lab11.md changes:
+    - Task 1: each step now includes a YOUR-TASK scaffold block with explicit
+      requirements (metric names, env-var names, fault-injection behavior) and
+      a Python skeleton students flesh out. Style matches lab 4's manifest
+      scaffolding and lab 9's CronJob scaffolding.
+    - Task 2: circuit breaker & rate limiter each have scaffolded class skeletons
+      with requirements, plus explicit test harnesses (copy-pasteable `kubectl
+      run` commands) so students don't need to invent their own verification.
+    - Pitfalls section rewritten from dry-run findings:
+        - retry 4xx is a bug (only 5xx + 408/429 + net errors)
+        - jitter is mandatory (thundering herd)
+        - in-process CB doesn't aggregate across replicas → plan test volume
+        - in-process rate limit is per-pod × replicas
+        - /health must NOT gate on notifications (fire-and-forget semantics)
+        - CB + retry interact: 1 CB-visible failure = N downstream calls
+    
+    Reference submission (submissions/lab11.md) from real execution:
+    - Task 1: 30/30 checkouts succeeded under 30% notify failure + 300ms latency;
+      /pay p99 stayed at 70ms (fire-and-forget verified)
+    - Task 2 CB: first 503 fast-fail at request #4, 72/80 fast-fails by end of
+      burst, 7 OPEN / 7 HALF_OPEN / 5 CLOSED transitions in Prometheus
+    - Task 2 RL: 64/100 OK under burst (matches 5 pods × 10 RPS per-pod limit);
+      0/30 rejected at sustained 5 RPS
+    - Bonus: service-mesh analysis with tradeoffs + scale thresholds (~20 services,
+      mandatory mTLS, or multi-region as the inflection points)
+    
+    Committed: lab spec + reference submission only. The notifications service,
+    gateway code changes, docker-compose additions, and k8s/notifications.yaml
+    are student-produced artifacts (see feedback_plumbing_vs_skill.md) —
+    they live in dry-run state locally, NOT in the course repo.
+
+[33mcommit 3e3d6131a80250b46c79c1aaca57126d4f75c0b1[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 19:50:12 2026 +0400
+
+    docs(lab10): split locustfile.py from runner.yaml; cleaner ConfigMap flow
+    
+    Previously shipped locustfile.py inline inside the Job-runner YAML as a
+    ConfigMap data field, which was awkward:
+    - `.py` code lived inside a YAML string (no syntax highlighting)
+    - students had to extract it back with `kubectl get cm -o jsonpath='{.data.locustfile\.py}'`
+    - editing required rewriting the YAML
+    
+    New structure:
+    - labs/lab10/locustfile.py — real .py file (editable, syntax-highlighted)
+    - labs/lab10/locust-runner.yaml — Job template only
+    - Students run:
+        cp labs/lab10/locustfile.py locustfile.py
+        kubectl create configmap locustfile --from-file=... --dry-run -o yaml | kubectl apply -f -
+      which always keeps the ConfigMap in sync with the file.
+    
+    Also fixed: Job template name was `load-TEMPLATE` (uppercase) which K8s
+    rejects ("must be lowercase RFC 1123 subdomain"). Changed to `load-template`.
+    
+    Updated labs/lab10.md Setup section and submissions/lab10.md to match.
+
+[33mcommit c060bf514257bd4ad31c58f20bac57e6b2f45956[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 19:41:23 2026 +0400
+
+    docs(lab10): k3d-consistent load testing; real DORA; capstone reliability review
+    
+    Lab 10 previously assumed docker-compose and used `kubectl port-forward` for
+    load tests — which doesn't load-balance (Lab 7 gotcha). Rewritten to run
+    Locust in-cluster as a Job so traffic goes through kube-proxy and exercises
+    all 5 gateway replicas.
+    
+    Asset provided (plumbing, not the skill):
+    - labs/lab10/locust-runner.yaml — ConfigMap wrapping a starter locustfile.py.
+      Students still write Job manifests themselves (that IS the K8s skill for
+      this week) and extend the locustfile for Task 2.
+    
+    labs/lab10.md changes:
+    - Port-forward gotcha called out upfront — students don't repeat it.
+    - Explicit "FLUSHDB between runs" instruction (otherwise stale Redis holds
+      dominate the 409 count and students misread it as capacity failure).
+    - Clear distinction between 409 (product inventory) and 5xx (system) — the
+      availability SLO only cares about 5xx.
+    - DORA measurement now references real project state (`argo rollouts`
+      AnalysisRun history, gateway ReplicaSets) instead of hand-wave git counts.
+    - Common Pitfalls expanded with 6 failure modes hit during dry-run.
+    
+    Reference submission from real execution:
+    - 10u → 6.9 RPS, p99 12ms, 0% errors
+    - 50u → 33 RPS, p99 28ms, 0% system errors (1.6% 409)
+    - 100u → 66 RPS, p99 68ms, 0.11% system errors (within SLO)
+    - 200u → 133 RPS, p99 120ms, 1.92% 5xx → SLO breach (real breaking point)
+    - Top-3 risks: single-node Postgres, events DB pool, no circuit breaker
+    - 5-minute interview walkthrough script as a bonus
+
+[33mcommit 620ea0a53f5d90a4994a354502ffa799d370cf7e[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 19:13:51 2026 +0400
+
+    docs(lab9): split bonus — provide backup storage as plumbing, students write CronJob
+    
+    The previous commit shipped the full CronJob as a ready-to-apply file, which
+    defeated the bonus task (the CronJob IS the skill being taught). Matching
+    lab 4's scaffolding pattern instead:
+    
+    - labs/lab9/backup-cronjob.yaml → labs/lab9/backup-storage.yaml
+      Only contains the PVC + backup-inspector Deployment (plumbing students
+      aren't learning from). Students `kubectl apply -f` this.
+    
+    - labs/lab9.md Bonus B.2 rewritten as a "YOUR TASK" scaffold with:
+      - explicit requirements list (schedule, env, retention, image, etc.)
+      - hints referencing the lecture and the idiomatic retention one-liner
+      - a debugging tip (exec into backup-inspector to iterate on pg_dump args)
+    
+    - submissions/lab9.md updated to show the full student-written CronJob
+      YAML as a reference example, plus apply-and-verify steps.
+    
+    - Bonus acceptance criteria now reads "Student-written CronJob…"
+
+[33mcommit f5a5e35440cbc492903e2db3c7e2e01dd79c927a[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 18:48:50 2026 +0400
+
+    docs(lab9): k3d-consistent DB reliability; PVC teaching moment; CronJob backup
+    
+    Lab 9 previously assumed docker-compose but students are on k3d from lab 4+.
+    Rewritten to be K8s-native throughout, with the PVC gap as a deliberate
+    teaching moment (the Task 2 disaster reveals data loss, then Bonus fixes it).
+    
+    labs/lab9.md changes:
+    - Setup: python venv + port-forward to k3d postgres for alembic
+    - 9.2: new baseline step — `alembic stamp head` on the seed schema
+    - 9.5: pg_dump via `kubectl exec`, pg_restore --list inside the pod
+      (host doesn't have pg client installed — documented as a pitfall)
+    - Task 2: force-delete postgres pod, observe new pod has empty DB,
+      restore from pg_dump backup. Real RTO/RPO measured.
+    - Bonus B.1 (new): add PVC to postgres.yaml, re-measure RTO (3.5s vs 36s)
+    - Bonus B.2: provided labs/lab9/backup-cronjob.yaml as ready-to-apply
+      (CronJob every 5min, keep 5 newest, backup-inspector Deployment for
+      `kubectl exec ls /backups`)
+    - Common Pitfalls: local pg_restore not available, alembic stamp required
+      on baseline, port-forward drops when pod recreated, NOT NULL column
+      table-rewrite warning.
+    
+    labs/lab9/backup-cronjob.yaml (new asset):
+    - PersistentVolumeClaim for dump storage
+    - Deployment "backup-inspector" so students can inspect backups
+    - CronJob with retention: `ls -1t | tail -n +$((KEEP_N+1)) | xargs rm`
+    
+    Reference submission captures real data from k3d execution:
+    - Migration 306ms, 0 additional 5xx under mixedload traffic
+    - DROP TABLE orders → /events returns 502 (cascading failure)
+    - pg_restore --clean --if-exists → API back to 200
+    - Disaster without PVC: 36s RTO, ~4 orders RPO gap
+    - Disaster with PVC: 3.5s RTO, RPO effectively zero (data survived on PV)
+    - CronJob ran 7 manual jobs, retention kept newest 5 (verified by inspector)
+
+[33mcommit 03ccc215f82a60b0dd16ef790a56b468f8250fd8[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 16:48:12 2026 +0400
+
+    docs(lab8): k3d-consistent chaos experiments; provided loadgen; real findings
+    
+    Lab 8 previously mixed docker-compose and kubectl commands — inconsistent with
+    students' post-lab-4 k3d setup. Rewritten to be K8s-native throughout:
+    
+    - Observation via in-cluster Prometheus from Lab 7 bonus (no Grafana required).
+    - Fault injection via `kubectl set env deployment/...` rather than stop+restart
+      compose dance.
+    - New asset file labs/lab8/mixedload.yaml — full-path loadgen exercising
+      /events + /reserve + /pay. Needed because lab 7's loadgen only hits read
+      paths, so any chaos injected into payments/Redis is invisible unless
+      mutating traffic is flowing.
+    
+    Common Pitfalls section expanded with real gotchas hit during dry-run:
+    - `kubectl set env X-` syntax removes vs sets to 0
+    - p99 histogram buckets need time to fill (~90s of [1m] rate window)
+    - `rate()` returns empty for /reserve and /pay unless mixedload is running
+    - scale-to-zero doesn't auto-restore
+    
+    Reference submission (submissions/lab8.md) captures all 4 experiments from
+    real execution on k3d: pod kill (14s recovery, 0 errors), 2s latency
+    (/pay p99 spike to 2485ms, no 5xx), 6s latency (5s gateway-timeout 504),
+    Redis kill (reads ok, reserve 504, /health correctly degraded), combined
+    scenario revealing DB_MAX_CONNS=3 as the weakest link (/reserve p99 → 6s).
+
+[33mcommit d23a0fa3f6f9263c1afbebc28622eb924a0f72bc[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 16:34:17 2026 +0400
+
+    docs(lab7): provide infra as files; pre-solve gotchas in lab instructions
+    
+    Previous version made students discover the same rakes I did during dry-run.
+    Now the infra plumbing is delivered as ready-to-apply files, and the lab
+    instructions present the solutions upfront with "why it's this way" explanations.
+    
+    New asset files (labs/lab7/):
+    - prometheus.yaml      — in-cluster Prometheus with the required
+                             rollouts-pod-template-hash → rs_hash relabel
+    - analysis-template.yaml — AnalysisTemplate with initialDelay, proper
+                               numerator fallback, strict denominator; all
+                               design choices explained in inline comments
+    - loadgen.yaml         — in-cluster curl loop (needed because port-forward
+                             doesn't load-balance)
+    
+    Lab spec changes (labs/lab7.md):
+    - 7.4: skip the "port-forward, fail, then switch" dance. Go straight to
+      `kubectl apply -f labs/lab7/loadgen.yaml` and count per-pod log lines.
+    - 7.9: acknowledge docker-compose Prometheus can't reach k3d pods; use
+      Argo Rollouts CLI as the primary observation tool.
+    - Bonus task: collapsed into apply-the-provided-file steps with a short
+      "read this and understand these 4 design choices" gate instead of
+      making students write the template from scratch and hit the empty-vector
+      panic themselves.
+    - Common Pitfalls: trimmed to things that actually bite with the provided
+      files (e.g. k3s tag 404s, ErrImageNeverPull on stale local images).
+    
+    Reference submission (submissions/lab7.md) rewritten to reflect the new
+    flow; no more "dry-run issues" section because the issues are now solved
+    upstream.
+
+[33mcommit 2a10ddb1f319e212cc22a5ae95c4f981424f4d55[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 14:07:21 2026 +0400
+
+    docs(lab7): enrich with real gotchas found during dry-run + add reference submission
+    
+    Lab spec updates (labs/lab7.md):
+    - 7.1: add non-sudo install path (~/.local/bin) for kubectl-argo-rollouts plugin
+    - 7.4: warn that kubectl port-forward svc/X does NOT load-balance; show in-cluster
+      curl pod as the correct way to verify canary traffic split
+    - 7.9: note docker-compose Prometheus from lab 3 can't scrape k3d pods; offer
+      CLI observation as easier alternative
+    - B.0: new prerequisite section — full in-cluster Prometheus manifest with
+      required rollouts-pod-template-hash → rs_hash relabel
+    - B.1: rewrite AnalysisTemplate with initialDelay:60s and proper empty-vector
+      handling (or on() vector(0) on numerator only, strict denominator = fail-safe)
+    - B.2: add args.canary-hash via podTemplateHashValue: Latest, continuous loadgen
+    - B.3: replace unreliable PAYMENT_FAILURE_RATE injection with EVENTS_URL env hack
+      that actually produces canary 5xx
+    - Pitfalls: expanded from 5 to 12 real failure modes encountered
+    
+    Reference submission (submissions/lab7.md) from full execution on k3d v1.33.10.
+    6 AnalysisRuns captured (3 successful, 3 failed for real reasons) showing
+    iterative debugging students are expected to go through.
+
+[33mcommit 94f04717f594290db2eb7fe0e59a71f611658b56[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 12:39:33 2026 +0400
+
+    docs(lectures): refactor lectures 5-10 + readings 11-12 to 400-500 lines each
+    
+    Enriched with additional depth, history, real incident examples, and modern
+    best practices (as of April 2026).
+    
+    Key additions:
+    - lec5: Grady Booch 1991 origin of CI term; advanced GitHub Actions
+      (matrix/reusable/composite); SLSA + Sigstore; ArgoCD vs Flux;
+      DORA metrics; supply-chain attack history; OIDC keyless auth.
+      Fix: ArgoCD graduated CNCF in Dec 2022, not 2024.
+    - lec6: MTTD/MTTA/MTTR; 5 Whys; Westrum typology; incident channels +
+      status pages; Knight Capital postmortem; alert anti-patterns.
+    - lec7: "Progressive Delivery" term (Governor 2018); deploy != release;
+      feature flags (LaunchDarkly/OpenFeature/Gatekeeper); service-mesh
+      canary; Kayenta statistical analysis; analysis providers.
+    - lec8: 5 principles of chaos; steady-state hypothesis; blast radius;
+      chaos tooling landscape; Game Days/DiRT/Fire Drills; real incidents.
+    - lec9: Database landscape; online schema tools; logical vs physical
+      backups; PITR with WAL; replication tiers; PgBouncer; operators.
+    - lec10: Load test types; Locust vs alternatives; capacity planning;
+      error budget policy; 3 pillars observability; SRE career ladder;
+      interview walkthrough.
+    - reading11: 8 Fallacies; idempotency keys; deadline propagation;
+      bulkhead + load shedding; 3 resilience layers (code/sidecar/mesh).
+    - reading12: Topology Spread Constraints; HPA + Karpenter;
+      PriorityClass; eviction types; StatefulSet partitioned updates.
+
+[33mcommit e6e7cb57249d0d8d0d7e7f1b87580f818af75fba[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Sat Apr 18 12:17:17 2026 +0400
+
+    chore: bump versions to latest stable (April 2026)
+    
+    - python:3.12-slim → 3.13-slim (latest stable CPython)
+    - postgres:16-alpine → 17-alpine
+    - fastapi 0.115.0 → 0.136.0
+    - uvicorn 0.32.0 → 0.44.0
+    - httpx 0.28.0 → 0.28.1
+    - prometheus-client 0.21.0 → 0.25.0
+    - psycopg2-binary 2.9.10 → 2.9.11
+    - redis (python) 5.2.0 → 7.4.0
+    - prom/prometheus v3.4.0 → v3.11.2
+    - grafana/grafana 11.6.0 → 13.0.1
+    
+    Verified: docker compose build, up, critical path (list/reserve/pay),
+    loadgen at 5 RPS, monitoring targets all healthy.
+
+[33mcommit 805e78cc105d67a68387e65c53e0a1892b0ab085[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Fri Apr 17 00:05:53 2026 +0400
+
+    fix: remove student artifacts (k8s manifests, CI workflow) — students create these in labs 4-5
+
+[33mcommit da8f14fe548862f8c1075e21127f50dd7315a21d[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Fri Apr 17 00:03:58 2026 +0400
+
+    feat: add Weeks 7-10 + Bonus 11-12, fix grading in labs 2-7
+    
+    Weeks 7-10 (lecture + lab + quiz EN/RU uploaded):
+    - Week 7: Progressive Delivery — Argo Rollouts canary deployments
+    - Week 8: Chaos Engineering — hypothesis-driven experiments
+    - Week 9: DB Reliability — Alembic migrations, pg_dump backup/restore
+    - Week 10: SRE Portfolio — Locust load testing, DORA metrics, reliability review
+    
+    Bonus (reading + lab, no quiz):
+    - Bonus 11: Advanced Microservice Patterns — retries, circuit breaker, rate limiting
+    - Bonus 12: Advanced K8s Resilience — PDB, anti-affinity, graceful shutdown
+    
+    Grading fix: Task 2 changed from 3pts to 4pts in labs 2-7 (total: 10+2.5=12.5)
+
+[33mcommit b4a57ff44c2cab3220a0f1e08b1bb1b020c25c29[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 22:33:04 2026 +0400
+
+    docs(lab6): add hint about threshold tuning vs traffic mix
+
+[33mcommit aaef8668e9a682042aef6e26962d226a51a07f34[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 22:30:13 2026 +0400
+
+    fix: normalize URL paths in metrics to prevent high-cardinality label explosion
+    
+    UUIDs in /reserve/{uuid}/pay and /events/{id}/reserve created unique time
+    series per request, making rate() useless. Normalized to /reserve/{id}/pay
+    and /events/{id}/reserve.
+
+[33mcommit 26830011739863ecf945580c5329c82d96261d04[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 19:46:42 2026 +0400
+
+    feat: add Week 6 — Alerting & Incident Response lecture, lab, quiz
+    
+    - Lecture 6: alert fatigue (Google SRE Book), SLO-based burn rate alerting
+      (SRE Workbook Ch5), Grafana Unified Alerting, incident management roles
+      (PagerDuty ICS), blameless postmortems (Allspaw/Dekker), runbooks,
+      Cloudflare 2019 regex incident (14 slides, 258 lines)
+    - Lab 6: students create Grafana alert rules (error rate + burn rate),
+      configure contact point, write a runbook, inject failure, respond using
+      runbook, write blameless postmortem
+    - Nothing provided — students write alerts, runbook, postmortem themselves
+    - Quiz 6: EN + RU uploaded (15 questions each)
+
+[33mcommit 78c98d96e8e1a4231747440cf4bff0af8b13b714[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 19:35:18 2026 +0400
+
+    fix(lab5): add imagePullSecrets instructions, note about classic PAT requirement
+
+[33mcommit 71416a2aeeef3221c1060e596268a8ee9bad2a2d[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 14:46:12 2026 +0400
+
+    fix: correct imagePullSecrets placement in manifests
+
+[33mcommit 62b324185615b35cc0c584710ee23b06d755dd22[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 14:14:46 2026 +0400
+
+    feat: add imagePullSecrets for ghcr.io private packages
+
+[33mcommit 251abdbeaf50f27713e3697617f74bf8f08623c1[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 14:07:39 2026 +0400
+
+    feat: use ghcr.io images in K8s manifests
+
+[33mcommit bffba819763445b07e27826da9fab8eac1af95c9[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 13:55:34 2026 +0400
+
+    docs: trigger CI build
+
+[33mcommit 2cfbbb2ae0931779d7e88022ae274acb390338a4[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 13:55:04 2026 +0400
+
+    ci: add CI pipeline for QuickTicket
+
+[33mcommit b8badda91fcc2f46f837c5cd642fbb4c20a72ff9[m
+Author: Dmitrii Creed <creeed22@gmail.com>
+Date:   Thu Apr 16 13:44:22 2026 +0400
+
+    feat: SRE-Intro course — Weeks 1-5
+    
+    Site Reliability Engineering Fundamentals (Elective)
+    10-week course with progressive QuickTicket project.
+    
+    Weeks included:
+    - Week 1: SRE Philosophy & Systems Thinking
+    - Week 2: Containerization
+    - Week 3: Monitoring, Observability & SLOs
+    - Week 4: Kubernetes & Helm
+    - Week 5: CI/CD & GitOps
+    
+    Contents:
+    - 5 lectures (lec1-lec5.md)
+    - 5 labs (lab1-lab5.md) with 10+2.5 pts each
+    - QuickTicket starter app (3 Python/FastAPI services)
+    - Monitoring stack configs (Grafana provisioning, partial dashboard)
+    - docker-compose.monitoring.yaml overlay
