@@ -50,6 +50,8 @@ data:
     global:
       scrape_interval: 5s
       evaluation_interval: 5s
+    rule_files:
+      - /etc/prometheus/rules/*.yml
     scrape_configs:
       - job_name: gateway
         kubernetes_sd_configs:
@@ -102,10 +104,15 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus
+            - name: rules
+              mountPath: /etc/prometheus/rules
       volumes:
         - name: config
           configMap:
             name: prometheus-config
+        - name: rules
+          configMap:
+            name: prometheus-alert-rules
 ---
 apiVersion: v1
 kind: Service
