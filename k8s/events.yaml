@@ -16,7 +16,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: events
-          image: ghcr.io/sentaru-01/quickticket-events:f220a8c65310b0834909c1462be7be09d77bc6b6
+          image: ghcr.io/sentaru-01/quickticket-events:c6ce4dc3a7d085cb069916baf65a250ffce42235
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
