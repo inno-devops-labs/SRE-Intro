@@ -1,11 +1,24 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
-  labels:
-    version: "v2"
 spec:
-  replicas: 1
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 20s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -14,34 +27,19 @@ spec:
       labels:
         app: gateway
     spec:
-      imagePullSecrets:
-        - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/sentaru-01/quickticket-gateway:f220a8c65310b0834909c1462be7be09d77bc6b6
+          image: quickticket-gateway:v2
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
-            - name: PAYMENTS_URL
-              value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            - name: APP_VERSION
+              value: "v6"
           resources:
             requests:
               cpu: 50m
