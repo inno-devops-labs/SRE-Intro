@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: quickticket-gateway:v2
+          image: ghcr.io/abeb021/quickticket-gateway:570f89f75fa54b79ecb2a775124433c9160a57a2
           imagePullPolicy: Never
           env:
             - name: EVENTS_URL

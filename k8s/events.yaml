@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: events
-          image: ghcr.io/abeb021/quickticket-events:latest
+          image: ghcr.io/abeb021/quickticket-events:570f89f75fa54b79ecb2a775124433c9160a57a2
           imagePullPolicy: Never
           env:
             - name: DB_HOST
