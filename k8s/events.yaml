@@ -12,10 +12,12 @@ spec:
       labels:
         app: events
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
       - name: events
-        image: quickticket-events:v1
-        imagePullPolicy: Never  # Не пытаться скачать из Docker Hub
+        image: ghcr.io/viadimirsoiovev/quickticket-events:1133ec0
+        imagePullPolicy: Always
         ports:
         - containerPort: 8081
         env:
