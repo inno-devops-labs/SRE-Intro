@@ -52,9 +52,14 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
+          # Lab 8 bonus fix: readiness is a SHALLOW TCP check, not the
+          # dependency-aware /health. A Redis/events outage no longer flips every
+          # gateway pod to NotReady (which previously removed the whole gateway from
+          # the Service and caused a total outage). Now the gateway stays in rotation
+          # and keeps serving the paths that still work (e.g. /events); only the
+          # Redis-dependent path (/reserve) degrades.
           readinessProbe:
-            httpGet:
-              path: /health
+            tcpSocket:
               port: 8080
             periodSeconds: 5
             failureThreshold: 2
