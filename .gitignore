@@ -8,5 +8,6 @@ refs/
 
 # Dry-run / local tooling
 .venv/
+.tools/
 __pycache__/
 *.pyc
