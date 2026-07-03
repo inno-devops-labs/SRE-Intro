@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+spec:
+  replicas: {{ .Values.events.replicas }}
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      containers:
+        - name: events
+          image: {{ .Values.events.image }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: "{{ .Values.events.db.host }}"
+            - name: DB_PORT
+              value: "{{ .Values.events.db.port }}"
+            - name: DB_NAME
+              value: "{{ .Values.events.db.name }}"
+            - name: DB_USER
+              value: "{{ .Values.events.db.user }}"
+            - name: DB_PASS
+              value: "{{ .Values.events.db.password }}"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  type: ClusterIP
+  selector:
+    app: events
+  ports:
+    - port: 8081
+      targetPort: 8081
