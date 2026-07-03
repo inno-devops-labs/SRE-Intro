@@ -1,12 +1,28 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
     app: gateway
-    version: "v2"
 spec:
-  replicas: 1
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause:
+            duration: 20s
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause:
+            duration: 20s
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -14,11 +30,10 @@ spec:
     metadata:
       labels:
         app: gateway
-        version: "v2"
     spec:
       containers:
         - name: gateway
-          image: ghcr.io/abeb021/quickticket-gateway:latest
+          image: quickticket-gateway:v2
           imagePullPolicy: Never
           env:
             - name: EVENTS_URL
@@ -27,6 +42,8 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: APP_VERSION
+              value: "v2"
           ports:
             - containerPort: 8080
           livenessProbe:
@@ -56,7 +73,6 @@ metadata:
   name: gateway
   labels:
     app: gateway
-    version: "v2"
 spec:
   selector:
     app: gateway
