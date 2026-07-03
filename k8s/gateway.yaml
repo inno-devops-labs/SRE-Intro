@@ -1,12 +1,26 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
     app: gateway
-    version: "v2"
 spec:
-  replicas: 1
+  replicas: 5                     # 5 replicas so canary weights map to whole pods (20% = 1 pod)
+  strategy:
+    canary:
+      steps:                      # bonus: automated analysis gates the rollout
+        - setWeight: 20
+        - pause: {duration: 20s}
+        - analysis:               # query Prometheus; abort if canary 5xx > 5%
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -26,13 +40,12 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: APP_VERSION        # bump this to trigger a canary rollout
+              value: "v6"
           ports:
             - containerPort: 8080
           # Liveness = "is the process alive?" — TCP check, NOT /health, because the
           # gateway's /health is dependency-aware (503 when events/payments are down).
-          # An httpGet /health liveness would restart the gateway on a downstream outage,
-          # which never helps. Readiness uses /health so a degraded gateway is pulled
-          # from Service endpoints (stops traffic) without being killed.
           livenessProbe:
             tcpSocket:
               port: 8080
@@ -59,7 +72,7 @@ metadata:
   name: gateway
 spec:
   selector:
-    app: gateway
+    app: gateway            # selects BOTH stable and canary pods (no pod-template-hash)
   ports:
     - port: 8080
       targetPort: 8080
