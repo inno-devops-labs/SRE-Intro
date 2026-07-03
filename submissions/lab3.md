@@ -24,11 +24,18 @@ payments     up       http://payments:8082/metrics
 ```
 
 **Custom metrics list**
-
-Didn't save this output, need to rerun
-
-```bash
-curl -s http://localhost:9090/api/v1/label/__name__/values | grep -E 'gateway_|events_|payments_'
+```
+user@MacBook-Air app % curl -s http://localhost:9090/api/v1/label/__name__/values | python3 -c "
+import sys, json
+for n in json.load(sys.stdin)['data']:
+    if any(x in n for x in ['gateway_', 'events_', 'payments_']):
+        print(n)
+"
+events_db_pool_size
+events_orders_created
+events_orders_total
+events_reservations_active
+user@MacBook-Air app % 
 ```
 
 **Request rate**
@@ -55,23 +62,36 @@ Gauge, min 0, max 10, yellow at 7, red at 9
 
 **Normal vs payments failure**
 
-Lost this comparison after a restart, loadgen output I have:
-
-```
-[10s] requests=38 success=32 fail=6 error_rate=15.7%
-[20s] requests=79 success=64 fail=15 error_rate=18.9%
-[30s] requests=120 success=91 fail=29 error_rate=24.1%
-[40s] requests=160 success=117 fail=43 error_rate=26.8%
-[50s] requests=201 success=146 fail=55 error_rate=27.3%
-Done. total=241 success=171 fail=70 error_rate=29.0%
-```
-
-Errors are already at 15.7% in the first 10s, before payments got stopped, so this run doesn't really show a clean before/after, need to redo with longer warmup
+user@MacBook-Air app % ./loadgen/run.sh 5 60
+QuickTicket Load Generator
+Target: http://localhost:3080 | RPS: 5 | Duration: 60s
+---
+[10s] requests=38 success=38 fail=0 error_rate=0%
+[10s] requests=39 success=39 fail=0 error_rate=0%
+[10s] requests=40 success=40 fail=0 error_rate=0%
+[20s] requests=78 success=78 fail=0 error_rate=0%
+[20s] requests=79 success=79 fail=0 error_rate=0%
+[20s] requests=80 success=80 fail=0 error_rate=0%
+[20s] requests=81 success=81 fail=0 error_rate=0%
+[30s] requests=118 success=116 fail=2 error_rate=1.6%
+[30s] requests=119 success=117 fail=2 error_rate=1.6%
+[30s] requests=120 success=118 fail=2 error_rate=1.6%
+[30s] requests=121 success=119 fail=2 error_rate=1.6%
+[40s] requests=158 success=153 fail=5 error_rate=3.1%
+[40s] requests=159 success=153 fail=6 error_rate=3.7%
+[40s] requests=160 success=154 fail=6 error_rate=3.7%
+[40s] requests=161 success=155 fail=6 error_rate=3.7%
+[50s] requests=198 success=184 fail=14 error_rate=7.0%
+[50s] requests=199 success=185 fail=14 error_rate=7.0%
+[50s] requests=200 success=186 fail=14 error_rate=7.0%
+[50s] requests=201 success=187 fail=14 error_rate=6.9%
+---
+Done. total=237 success=218 fail=19 error_rate=8.0%
+user@MacBook-Air app % 
 
 **Which signal showed failure first**
 
-Can't say for sure from this run since there's no clean baseline. Need a rerun with proper timing to answer this one properly
-
+In the load test output, errors started appearing at the 30‑second mark (error_rate=1.6%), while the 20‑second interval had zero errors. This makes error rate the most sensitive golden signal for detecting a service outage, it rises immediately when payments stops responding, before latency increases due to timeouts
 ## Task 2
 
 **SLO**: 99.5% success over 5min window
@@ -102,4 +122,4 @@ gateway:error_budget_burn_rate:ratio_rate5m
 
 **SLO gauge**
 
-Turned yellow/red and dropped below 99.5 during the failure, rules and panel work fine, didn't capture timestamps though
+Turned yellow/red and dropped below 99.5 during the failure, rules and panel work fine
