@@ -1,11 +1,26 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
-    app: gateway
+    version: v2
 spec:
-  replicas: 1
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 20s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -13,17 +28,19 @@ spec:
     metadata:
       labels:
         app: gateway
-        version: "v2"
+        version: v2
     spec:
       imagePullSecrets:
         - name: ghcr-secret
       containers:
         - name: gateway
           image: ghcr.io/slickip/quickticket-gateway:05eaf17eab81f8e932ef2cfb331d6879afb71da9
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
+            - name: APP_VERSION
+              value: "v2"
             - name: EVENTS_URL
               value: "http://events:8081"
             - name: PAYMENTS_URL
@@ -37,7 +54,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
-
           readinessProbe:
             httpGet:
               path: /health
@@ -62,4 +78,3 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
-  type: ClusterIP
