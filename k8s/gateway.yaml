@@ -1,12 +1,25 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout 
 metadata:
   name: gateway
   labels:
     app: gateway
     version: "v2"
+
 spec:
-  replicas: 1
+  replicas: 5                         # ← Need 5 for meaningful canary splits
+  strategy:                           # ← NEW: canary strategy
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 60s}    # Observe for 1 min
+        - setWeight: 40
+        - pause: {duration: 60s}
+        - setWeight: 60
+        - pause: {duration: 60s}
+        - setWeight: 80
+        - pause: {duration: 30s}
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -24,6 +37,8 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        - name: APP_VERSION
+          value: "v3-bad"
         - name: EVENTS_URL
           value: "http://events:8081"
         - name: PAYMENTS_URL
