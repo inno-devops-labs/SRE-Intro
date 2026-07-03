@@ -31,6 +31,10 @@ spec:
         - name: gateway
           image: ghcr.io/wal1ys/quickticket-gateway:23d8036839eb050a0b5372c4abbbf68a58f71726
           imagePullPolicy: Always
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
