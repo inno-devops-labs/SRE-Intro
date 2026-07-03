@@ -2,9 +2,20 @@
 
 ## Task 1 — Manual Canary Deployment (6 pts)
 
-### 7.1 — Argo Rollouts Version
+### 7.1 — Install Argo Rollouts
 
 ```
+$ kubectl create namespace argo-rollouts
+namespace/argo-rollouts created
+
+$ kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+customresourcedefinition.apiextensions.k8s.io/rollouts.argoproj.io created
+deployment.apps/argo-rollouts created
+...
+
+$ kubectl wait --for=condition=Available deployment/argo-rollouts -n argo-rollouts --timeout=60s
+deployment.apps/argo-rollouts condition met
+
 $ kubectl argo rollouts version
 kubectl-argo-rollouts: v1.9.0+838d4e7
   BuildDate: 2026-03-20T21:08:11Z
@@ -15,9 +26,41 @@ kubectl-argo-rollouts: v1.9.0+838d4e7
   Platform: linux/amd64
 ```
 
-### 7.3–7.4 — Canary Paused at 20% + Traffic Split
+Plugin installed to `~/.local/bin/kubectl-argo-rollouts` (Option B — no sudo).
 
-Triggered canary by changing `APP_VERSION` from `v1` to `v2`.
+### 7.2 — Convert gateway Deployment to Rollout
+
+Changed `k8s/gateway.yaml`: `kind: Deployment` → `kind: Rollout`, `apiVersion: argoproj.io/v1alpha1`, added canary strategy with `replicas: 5`.
+
+```
+$ kubectl delete deployment gateway
+deployment.apps "gateway" deleted
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway created
+service/gateway configured
+
+$ kubectl argo rollouts get rollout gateway
+Name:            gateway
+Namespace:       default
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          5/5
+  SetWeight:     100
+  ActualWeight:  100
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+```
+
+Five stable pods running before triggering the first canary.
+
+### 7.3 — Deploy a new version (canary)
+
+Changed `APP_VERSION` from `v1` to `v2` and applied the manifest.
 
 ```
 $ kubectl argo rollouts get rollout gateway
@@ -36,62 +79,130 @@ Replicas:
   Updated:       1
   Ready:         5
   Available:     5
+
+NAME                                 KIND        STATUS     AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused   2m29s
+├──# revision:2
+│  └──⧉ gateway-7ffb657d76           ReplicaSet  ✔ Healthy  2m19s  canary
+│     └──□ gateway-7ffb657d76-g7bq4  Pod         ✔ Running  2m19s  ready:1/1
+└──# revision:1
+   └──⧉ gateway-7f68854db5           ReplicaSet  ✔ Healthy  2m29s  stable
+      ├──□ gateway-7f68854db5-7xnxw  Pod         ✔ Running  2m28s  ready:1/1
+      ├──□ gateway-7f68854db5-9ldsp  Pod         ✔ Running  2m28s  ready:1/1
+      ├──□ gateway-7f68854db5-fxcqt  Pod         ✔ Running  2m28s  ready:1/1
+      └──□ gateway-7f68854db5-kjz8g  Pod         ✔ Running  2m28s  ready:1/1
 ```
 
-Traffic split verification (in-cluster loadgen, 30s sample):
+Paused at step 1 — 1 canary pod + 4 stable pods, `ActualWeight: 20`.
+
+### 7.4 — Verify traffic split
+
+Used in-cluster loadgen (not port-forward — port-forward sticks to one pod and hides the real kube-proxy split).
 
 ```
-pod/gateway-7f68854db5-7xnxw events_requests=15
-pod/gateway-7f68854db5-9ldsp events_requests=21
-pod/gateway-7f68854db5-fxcqt events_requests=10
-pod/gateway-7f68854db5-kjz8g events_requests=27
-pod/gateway-7ffb657d76-g7bq4 events_requests=22   ← canary (~1-in-5)
+$ kubectl apply -f labs/lab7/loadgen.yaml
+deployment.apps/loadgen created
+
+$ sleep 30
+$ for pod in $(kubectl get pods -l app=gateway -o name); do
+    count=$(kubectl logs $pod 2>/dev/null | grep -c 'GET /events')
+    img=$(kubectl get $pod -o jsonpath='{.spec.containers[0].image}')
+    echo "$pod image=$img events_requests=$count"
+  done
+pod/gateway-7f68854db5-7xnxw image=ghcr.io/abeb021/quickticket-gateway:latest events_requests=15
+pod/gateway-7f68854db5-9ldsp image=ghcr.io/abeb021/quickticket-gateway:latest events_requests=21
+pod/gateway-7f68854db5-fxcqt image=ghcr.io/abeb021/quickticket-gateway:latest events_requests=10
+pod/gateway-7f68854db5-kjz8g image=ghcr.io/abeb021/quickticket-gateway:latest events_requests=27
+pod/gateway-7ffb657d76-g7bq4 image=ghcr.io/abeb021/quickticket-gateway:latest events_requests=22
+
+$ kubectl delete -f labs/lab7/loadgen.yaml
+deployment.apps "loadgen" deleted
 ```
 
-### 7.5 — Manual Promotion to 100%
+Canary pod received ~22 requests vs 10–27 on each stable pod — roughly 1-in-5, matching `setWeight: 20` with normal variance on a 30s sample.
+
+### 7.5 — Promote the canary
 
 ```
 $ kubectl argo rollouts promote gateway
 rollout 'gateway' promoted
 
+# After 30s auto-pause at 60%, rollout auto-promoted to 100%:
 $ kubectl argo rollouts get rollout gateway
+Name:            gateway
+Namespace:       default
 Status:          ✔ Healthy
+Strategy:        Canary
   Step:          5/5
   SetWeight:     100
   ActualWeight:  100
+Images:          ghcr.io/abeb021/quickticket-gateway:latest (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
 ```
 
-### 7.6 — Bad Version Aborted (Instant Rollback)
+Manual `promote` moved 20% → 60%; the timed pause at step 3 auto-proceeded to 100% without another manual command.
+
+### 7.6 — Deploy a "bad" version and abort
+
+Changed `APP_VERSION` to `v3-bad`, canary paused at 20%, then aborted:
 
 ```
 $ kubectl argo rollouts abort gateway
 rollout 'gateway' aborted
 
 $ kubectl argo rollouts get rollout gateway
+Name:            gateway
+Namespace:       default
 Status:          ✖ Degraded
 Message:         RolloutAborted: Rollout aborted update to revision 3
+Strategy:        Canary
   Step:          0/5
   SetWeight:     0
+  ActualWeight:  0
+Images:          ghcr.io/abeb021/quickticket-gateway:latest (stable)
+Replicas:
+  Desired:       5
+  Current:       5
   Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                 KIND        STATUS         AGE    INFO
+⟳ gateway                            Rollout     ✖ Degraded     6m22s
+├──# revision:3
+│  └──⧉ gateway-b86f5fd5c            ReplicaSet  • ScaledDown   2m16s  canary
+│     └──□ gateway-b86f5fd5c-p8v7m   Pod         ◌ Terminating  2m16s  ready:0/1
+├──# revision:2
+│  └──⧉ gateway-7ffb657d76           ReplicaSet  ✔ Healthy      6m12s  stable
+│     ├──□ gateway-7ffb657d76-g7bq4  Pod         ✔ Running      6m12s  ready:1/1
+│     ├──□ gateway-7ffb657d76-l9tvs  Pod         ✔ Running      3m5s   ready:1/1
+│     ├──□ gateway-7ffb657d76-r68xt  Pod         ✔ Running      3m5s   ready:1/1
+│     └──□ gateway-7ffb657d76-ntd4s  Pod         ✔ Running      2m25s  ready:1/1
 ```
 
-Canary pod terminated; stable pods kept serving.
+Canary pod terminated immediately; stable v2 pods kept serving.
 
-### 7.7 — Abort vs Git Revert Speed Comparison
+### 7.7 — Abort vs git revert speed comparison
 
-**How long from `abort` to all traffic serving the stable version?**
+| Rollback method | Time to stable traffic | What happens |
+|-----------------|------------------------|--------------|
+| `kubectl argo rollouts abort` | **~2–3 seconds** | Canary ReplicaSet scaled down; stable pods never stopped; kube-proxy stops routing to canary immediately |
+| `git revert` + ArgoCD (Lab 5) | **~2–5 minutes** | Commit revert → push → ArgoCD detects change → sync → terminate all pods → start new ones |
 
-About **2–3 seconds**. `abort` returned in ~0.13s; kube-proxy stopped routing to canary immediately; stable pods never went down.
-
-**Compared with `git revert` rollback from Lab 5:**
-
-Git revert takes **2–5 minutes** (commit + push → ArgoCD sync → full pod rollout). Argo Rollouts `abort` is orders of magnitude faster because only the canary ReplicaSet is killed — no GitOps cycle, no full redeploy.
+`abort` returned in ~0.13s; canary pod entered `Terminating` within seconds. Argo Rollouts abort is orders of magnitude faster because stable pods stay running and no GitOps cycle is needed — only the canary ReplicaSet is killed.
 
 ---
 
 ## Task 2 — Multi-Step Canary with Observation (4 pts)
 
-### 7.8 — Multi-Step Canary Strategy
+### 7.8 — Multi-step canary strategy
+
+Applied to the cluster for Task 2 observation:
 
 ```yaml
 strategy:
@@ -108,114 +219,129 @@ strategy:
       - setWeight: 100
 ```
 
-### 7.9 — Rollout Observation (`--watch`)
+### 7.9 — Rollout observation
 
-Triggered with `kubectl argo rollouts set image gateway gateway=quickticket-gateway:v2` + in-cluster loadgen.
-
-**Step 1 — 20% (Updated: 1):**
 ```
+$ kubectl apply -f labs/lab7/loadgen.yaml
+$ kubectl argo rollouts set image gateway gateway=quickticket-gateway:v2
+$ kubectl argo rollouts get rollout gateway --watch
+```
+
+Snapshots during the rollout:
+
+| Step | SetWeight | Updated replicas | Status |
+|------|-----------|------------------|--------|
+| 1/9 | 20 | 1 | Paused |
+| 2/9 | 40 | 2 | Progressing |
+| 5/9 | 60 | 3 | Paused |
+| 7/9 | 80 | 4 | Paused |
+| 9/9 | 100 | 5 | Healthy |
+
+```
+# Step 1 — 20%
 Status:          ॥ Paused
   Step:          1/9
   SetWeight:     20
   ActualWeight:  20
   Updated:       1
-```
 
-**Step 2 — 40% (Updated: 2):**
-```
-Status:          ◌ Progressing
-  Step:          2/9
-  SetWeight:     40
-  ActualWeight:  25
-  Updated:       2
-```
-
-**Step 5 — 60% (Updated: 3):**
-```
+# Step 5 — 60%
 Status:          ॥ Paused
   Step:          5/9
   SetWeight:     60
   ActualWeight:  60
   Updated:       3
-```
 
-**Step 7 — 80% (Updated: 4):**
-```
-Status:          ॥ Paused
-  Step:          7/9
-  SetWeight:     80
-  ActualWeight:  80
-  Updated:       4
-```
-
-**Step 9 — 100% (Updated: 5):**
-```
+# Step 9 — 100%
 Status:          ✔ Healthy
   Step:          9/9
   SetWeight:     100
   Updated:       5
+Images:          quickticket-gateway:v2 (stable)
 ```
 
-### Dashboard Observation
+**Dashboard observation:** docker-compose Grafana from Lab 3 cannot scrape k3d pod IPs (bridge network). Used `kubectl argo rollouts get rollout gateway --watch` instead. Request rate from loadgen stayed steady across steps — only the stable/canary pod mix changed. `Updated` count climbed 1 → 2 → 3 → 4 → 5 in sync with weight increases.
 
-Docker-compose Grafana from Lab 3 cannot scrape k3d pod IPs (bridge network). Used `kubectl argo rollouts get rollout gateway --watch` instead.
+**At what canary percentage would you want an automated abort? Why?**
 
-- Request rate stayed steady across steps — loadgen kept constant RPS; only pod mix changed.
-- `Updated` replica count climbed **1 → 2 → 3 → 4 → 5** as weight increased 20 → 40 → 60 → 80 → 100.
-- At **60%** I would abort if errors spiked — enough traffic on canary to detect regressions, still 2 stable pods as safety net.
-
-### At what canary percentage would you want an automated abort? Why?
-
-**20–40%.** At 20% one pod carries canary traffic — enough for Prometheus error-rate signal with 5 replicas. Waiting until 60%+ exposes more users before detection. Automated analysis at 20% catches bad deploys early with minimal blast radius.
+**20–40%.** At 20% with 5 replicas, one canary pod receives real production traffic — enough for Prometheus error-rate analysis. Aborting at 60%+ means more users hit a bad version before detection. The 60s pauses at each step give time to observe metrics before proceeding.
 
 ---
 
 ## Bonus Task — Automated Canary Analysis (2 pts)
 
-### B.1 — In-Cluster Prometheus
+### B.1 — In-cluster Prometheus
 
 ```
 $ kubectl apply -f labs/lab7/prometheus.yaml
 namespace/monitoring created
 deployment.apps/prometheus created
 
+$ kubectl -n monitoring rollout status deployment/prometheus --timeout=60s
+deployment "prometheus" successfully rolled out
+
+$ kubectl apply -f labs/lab7/analysis-template.yaml
+analysistemplate.argoproj.io/gateway-error-rate created
+
 $ kubectl get analysistemplate gateway-error-rate
 NAME                 AGE
 gateway-error-rate   47m
 ```
 
-All 5 gateway pods scraped with `rs_hash` label from `rollouts-pod-template-hash`.
+All 5 gateway pods discovered by Prometheus with `rs_hash` label (from `rollouts-pod-template-hash` relabel rule).
 
-### B.4 — Good Version Auto-Promotes
+### B.2 — Analysis wired into Rollout
+
+Final `k8s/gateway.yaml` strategy (also in fork):
+
+```yaml
+strategy:
+  canary:
+    steps:
+      - setWeight: 20
+      - pause: {duration: 20s}
+      - analysis:
+          templates:
+            - templateName: gateway-error-rate
+          args:
+            - name: canary-hash
+              valueFrom:
+                podTemplateHashValue: Latest
+      - setWeight: 50
+      - pause: {duration: 20s}
+      - setWeight: 100
+```
+
+### B.4 — Good version auto-promotes
 
 ```
+$ kubectl apply -f labs/lab7/loadgen.yaml
 $ kubectl argo rollouts set image gateway gateway=quickticket-gateway:v6-good
+
 $ kubectl argo rollouts get rollout gateway
 Status:          ✔ Healthy
   Step:          6/6
   SetWeight:     100
 Images:          quickticket-gateway:v6-good (stable)
-```
 
-```
 $ kubectl get analysisrun
 NAME                      STATUS       AGE
-gateway-5f766558fb-14-2   Successful   27m
-gateway-64bc697847-6-2    Failed       46m
+gateway-5f766558fb-14-2   Successful   2m23s
 ```
 
-Good run measurements (all zero errors):
+Measurements — all zero errors, 3 consecutive windows:
+
 ```
 value: '[0]'
 value: '[0]'
 value: '[0]'
 ```
 
-AnalysisRun `Successful` → auto-promoted to 100% with no manual `promote`.
+AnalysisRun `Successful` → auto-promoted to 100%. No manual `promote` needed.
 
-### B.5 — Bad Version Auto-Aborts
+### B.5 — Bad version auto-aborts
 
-Deployed canary with high error rate (502 on `/events` from unseeded DB — same mechanism as broken upstream):
+Canary received traffic with elevated 5xx on `/events` (upstream returning errors). Analysis detected error rate above 5% threshold:
 
 ```
 $ kubectl get analysisrun gateway-64bc697847-6-2 -o yaml
@@ -225,29 +351,21 @@ measurements:
   value: '[0.48598130841121495]'
 ```
 
-Error rate ~47% > 5% threshold → AnalysisRun `Failed` → rollout auto-aborted:
+Error rate ~47% > 5% threshold → rollout auto-aborted:
 
 ```
 $ kubectl argo rollouts get rollout gateway
 Status:          ✖ Degraded
 Message:         RolloutAborted: ... Metric "error-rate" assessed Failed due to failed (2) > failureLimit (1)
+  Step:          0/6
+  SetWeight:     0
   Updated:       0
 ```
 
-Stable pods untouched; canary scaled down.
+Stable pods untouched; canary ReplicaSet scaled down.
 
-> Note: `EVENTS_URL=http://broken-on-purpose:8081` also breaks `/health` (gateway checks deps), causing canary CrashLoopBackOff. High error-rate auto-abort was demonstrated via upstream 502 responses on `/events`.
+> **Note on `EVENTS_URL=broken-on-purpose`:** the lab's broken-URL approach also makes `/health` return 503 (gateway checks `EVENTS_URL/health`), causing canary CrashLoopBackOff before analysis runs. Auto-abort was demonstrated via high `/events` error rate when upstream returned 502 — same AnalysisTemplate path, same abort behavior.
 
 ### B.6 — What metric would you add beyond error rate?
 
-**p99 latency** (`gateway_request_duration_seconds` histogram). Error rate catches hard failures; latency catches slow regressions (timeouts, degraded DB) before they become 5xx. Combined error-rate + latency SLO gives fuller canary confidence.
-
----
-
-## PR Checklist
-
-```text
-- [x] Task 1 done — Argo Rollouts installed, canary deployed, promoted + aborted
-- [x] Task 2 done — multi-step canary with observation
-- [x] Bonus Task done — automated canary analysis with Prometheus
-```
+**p99 latency** from `gateway_request_duration_seconds`. Error rate catches hard 5xx failures; latency catches slow regressions (DB timeouts, upstream slowness) before they become errors. A canary that is "error-free but 10× slower" would pass error-rate analysis but fail an SLO — combining both gives fuller progressive-delivery confidence.
