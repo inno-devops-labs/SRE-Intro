@@ -211,6 +211,46 @@ $ kubectl scale deployment/mixedload --replicas=2
 
 ---
 
+## Bonus Task — Resilience Improvement (2 pts)
+
+### B.1 — Weakness chosen
+
+From Task 2: **`DB_MAX_CONNS=3` on events** caused reserve p99 to climb under combined load (payments 30% failure + 500ms latency + 5 mixedload replicas). Connection pool queueing amplified `/events/{id}/reserve` latency before error rate became alarming.
+
+### B.2 — Fix implemented
+
+Raised default pool size in `k8s/events.yaml`:
+
+```diff
+             - name: REDIS_PORT
+               value: "6379"
++            - name: DB_MAX_CONNS
++              value: "20"
+```
+
+This survives `kubectl apply` and restores a sane default after chaos experiments that used `kubectl set env DB_MAX_CONNS=3`.
+
+### B.3 — Re-run same combined scenario
+
+Same conditions as Task 2, but with **5 mixedload replicas** (higher stress to expose pool bottleneck):
+
+```
+$ kubectl set env deployment/payments PAYMENT_FAILURE_RATE=0.3 PAYMENT_LATENCY_MS=500
+$ kubectl scale deployment/mixedload --replicas=5
+# wait 90s for Prometheus [1m] window
+```
+
+| Config | p99 `/events/{id}/reserve` |
+|--------|------------------------------|
+| **Before fix** (`DB_MAX_CONNS=3`) | **0.184s** |
+| **After fix** (`DB_MAX_CONNS=20`) | **0.098s** |
+
+Reserve p99 dropped **~47%** (184ms → 98ms) under identical chaos conditions.
+
+**Tradeoff:** larger pool holds more idle Postgres connections — uses slightly more DB memory and connection slots, but prevents reserve queueing under concurrent checkout load.
+
+---
+
 ## Cleanup
 
 ```

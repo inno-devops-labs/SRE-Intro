@@ -31,6 +31,8 @@ spec:
               value: "redis"
             - name: REDIS_PORT
               value: "6379"
+            - name: DB_MAX_CONNS
+              value: "20"
           ports:
             - containerPort: 8081
           livenessProbe:
