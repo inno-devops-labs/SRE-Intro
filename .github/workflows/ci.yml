@@ -17,20 +17,20 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: viadimirsoiovev
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push gateway
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner | lower }}/quickticket-gateway:${{ github.sha }} ./app/gateway
-          docker push ghcr.io/${{ github.repository_owner | lower }}/quickticket-gateway:${{ github.sha }}
+          docker build -t ghcr.io/viadimirsoiovev/quickticket-gateway:${{ github.sha }} ./app/gateway
+          docker push ghcr.io/viadimirsoiovev/quickticket-gateway:${{ github.sha }}
 
       - name: Build and push events
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner | lower }}/quickticket-events:${{ github.sha }} ./app/events
-          docker push ghcr.io/${{ github.repository_owner | lower }}/quickticket-events:${{ github.sha }}
+          docker build -t ghcr.io/viadimirsoiovev/quickticket-events:${{ github.sha }} ./app/events
+          docker push ghcr.io/viadimirsoiovev/quickticket-events:${{ github.sha }}
 
       - name: Build and push payments
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner | lower }}/quickticket-payments:${{ github.sha }} ./app/payments
-          docker push ghcr.io/${{ github.repository_owner | lower }}/quickticket-payments:${{ github.sha }}
+          docker build -t ghcr.io/viadimirsoiovev/quickticket-payments:${{ github.sha }} ./app/payments
+          docker push ghcr.io/viadimirsoiovev/quickticket-payments:${{ github.sha }}
