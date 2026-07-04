@@ -1,0 +1,10 @@
+__pycache__
+*.pyc
+*.pyo
+.git
+.gitignore
+.env
+README.md
+*.md
+.vscode
+__MACOSX
