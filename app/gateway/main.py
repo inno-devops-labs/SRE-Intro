@@ -24,7 +24,7 @@ from collections import defaultdict, deque
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 # --- Config ---
 EVENTS_URL = os.getenv("EVENTS_URL", "http://events:8081")
@@ -41,6 +41,10 @@ RETRY_BASE_DELAY_MS = int(os.getenv("RETRY_BASE_DELAY_MS", "100"))
 # Circuit breaker (Lab 11) — protects payments
 CB_FAILURE_THRESHOLD = int(os.getenv("CB_FAILURE_THRESHOLD", "5"))
 CB_COOLDOWN_S = float(os.getenv("CB_COOLDOWN_S", "30"))
+
+# Bulkhead (Lab 11) — bounds concurrent payments work
+BULKHEAD_PAYMENTS_MAX = int(os.getenv("BULKHEAD_PAYMENTS_MAX", "10"))
+BULKHEAD_PAYMENTS_TIMEOUT_S = float(os.getenv("BULKHEAD_PAYMENTS_TIMEOUT_S", "0.5"))
 
 # Rate limiter (Lab 11) — per endpoint, sliding window
 RATE_LIMIT_RPS = int(os.getenv("RATE_LIMIT_RPS", "10"))
@@ -68,6 +72,12 @@ CB_STATE_TRANSITIONS = Counter(
 )
 RATE_LIMIT_REJECTIONS = Counter(
     "gateway_rate_limit_rejections_total", "Requests rejected by rate limiter", ["path"]
+)
+BULKHEAD_IN_FLIGHT = Gauge(
+    "gateway_bulkhead_in_flight", "Current bulkhead occupants", ["target"]
+)
+BULKHEAD_REJECTIONS = Counter(
+    "gateway_bulkhead_rejections_total", "Bulkhead rejections", ["target"]
 )
 
 client = httpx.AsyncClient(timeout=GATEWAY_TIMEOUT_MS / 1000)
@@ -135,6 +145,10 @@ async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
 
 class CircuitOpenError(Exception):
     """Raised by CircuitBreaker.call when the circuit is open (fast-fail)."""
+
+
+class BulkheadFullError(Exception):
+    """Raised when a bulkhead cannot admit a new request."""
 
 
 class CircuitBreaker:
@@ -221,8 +235,32 @@ class RateLimiter:
         return True
 
 
+class Bulkhead:
+    """Per-target bounded concurrency guard for slow downstreams."""
+
+    def __init__(self, name: str, max_concurrent: int, acquire_timeout_s: float):
+        self.name = name
+        self.acquire_timeout_s = acquire_timeout_s
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def call(self, func):
+        try:
+            await asyncio.wait_for(self.semaphore.acquire(), timeout=self.acquire_timeout_s)
+        except TimeoutError:
+            BULKHEAD_REJECTIONS.labels(self.name).inc()
+            raise BulkheadFullError(f"bulkhead[{self.name}] full")
+
+        BULKHEAD_IN_FLIGHT.labels(self.name).inc()
+        try:
+            return await func()
+        finally:
+            BULKHEAD_IN_FLIGHT.labels(self.name).dec()
+            self.semaphore.release()
+
+
 payments_cb = CircuitBreaker(CB_FAILURE_THRESHOLD, CB_COOLDOWN_S, name="payments")
 rate_limiter = RateLimiter(RATE_LIMIT_RPS)
+payments_bulkhead = Bulkhead("payments", BULKHEAD_PAYMENTS_MAX, BULKHEAD_PAYMENTS_TIMEOUT_S)
 
 
 # --- Middleware ---
@@ -363,12 +401,12 @@ async def _notify_order_confirmed(reservation_id: str):
 
 @app.post("/reserve/{reservation_id}/pay")
 async def pay_reservation(reservation_id: str):
-    # 1. Call payments — wrapped in circuit breaker + retry.
+    # 1. Call payments — wrapped in bulkhead + circuit breaker + retry.
     #
-    # Composition order matters: cb.call(retry(_charge)) means each CB-tracked
-    # invocation includes its retries internally; the CB only sees the FINAL
-    # outcome. The reverse — retry(cb.call(_charge)) — would retry past the
-    # CircuitOpenError, defeating the fast-fail. See lab 11 §11.4.
+    # Composition order matters: bulkhead -> cb.call(retry(_charge)) means the
+    # bulkhead bounds the whole logical payment attempt, the CB only sees the
+    # final outcome, and retries stay inside the same slot. The reverse would
+    # let each retry attempt consume its own slot, which defeats the bound.
     async def _charge():
         resp = await client.post(
             f"{PAYMENTS_URL}/charge",
@@ -378,8 +416,13 @@ async def pay_reservation(reservation_id: str):
         return resp
 
     try:
-        pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        pay_resp = await payments_bulkhead.call(
+            lambda: payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        )
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
+    except BulkheadFullError:
+        log.error("bulkhead full, skipping payments call")
+        raise HTTPException(503, "Payment service temporarily unavailable (bulkhead full)")
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
         raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")

@@ -15,6 +15,7 @@
 - `k8s/chart/templates/gateway.yaml` — gateway env wiring for Lab 11.
 - `k8s/chart/templates/notifications.yaml` — chart template for notifications.
 - `k8s/chart/values.yaml` — Lab 11 tunables for the chart.
+- `app/gateway/main.py` also includes the bonus bulkhead isolation layer.
 
 ---
 
@@ -158,7 +159,7 @@ That confirms the per-endpoint sliding-window limiter is active.
 ---
 
 ## Bonus / Notes
-- The bonus bulkhead task was not implemented.
+- The bonus bulkhead task is implemented as a bounded concurrency layer around payments.
 - The new notifications service is deployed as `k8s/notifications.yaml` and is reachable in-cluster at `http://notifications:8083`.
 - The gateway still behaves normally for labs 1-10 when `NOTIFICATIONS_URL` is unset.
 
@@ -171,4 +172,4 @@ That confirms the per-endpoint sliding-window limiter is active.
 - [x] Rate limiter implemented and validated
 - [x] Prometheus metrics captured for retry / CB / rate limiting
 - [x] Answered the composition-order design question
-- [ ] Bonus bulkhead task not completed
+- [x] Bonus bulkhead task completed

@@ -37,6 +37,10 @@ spec:
               value: {{ .Values.gateway.cbCooldownS | quote }}
             - name: RATE_LIMIT_RPS
               value: {{ .Values.gateway.rateLimitRps | quote }}
+            - name: BULKHEAD_PAYMENTS_MAX
+              value: {{ .Values.gateway.bulkheadPaymentsMax | quote }}
+            - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+              value: {{ .Values.gateway.bulkheadPaymentsTimeoutS | quote }}
           livenessProbe:
             httpGet:
               path: /health
