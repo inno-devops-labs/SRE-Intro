@@ -6,7 +6,7 @@ metadata:
   labels:
     app: notifications
 spec:
-  replicas: 1                        # scaled to 2 in Lab 12
+  replicas: 2                        # Lab 12: multi-replica failover
   selector:
     matchLabels:
       app: notifications

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: payments
 spec:
-  replicas: 1
+  replicas: 2                         # Lab 12: multi-replica failover
   selector:
     matchLabels:
       app: payments

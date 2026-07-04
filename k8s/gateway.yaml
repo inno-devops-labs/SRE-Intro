@@ -26,6 +26,19 @@ spec:
       labels:
         app: gateway
     spec:
+      # Lab 12: give in-flight requests time to finish after SIGTERM
+      # (10s preStop + up to 30s uvicorn drain).
+      terminationGracePeriodSeconds: 40
+      # Lab 12: spread gateway replicas across nodes. No observable effect on
+      # single-node k3d (all pods land on the one node) but correct + live in
+      # the spec for a real multi-node cluster.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway    # don't block scheduling on 1 node
+          labelSelector:
+            matchLabels:
+              app: gateway
       imagePullSecrets:
         - name: ghcr-secret
       containers:
@@ -34,6 +47,13 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          lifecycle:
+            # Sleep BEFORE SIGTERM reaches uvicorn so kube-proxy/endpoints
+            # propagate this pod's NotReady state and stop routing new traffic
+            # here before the app starts shutting down (avoids RST on in-flight).
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
@@ -56,8 +76,8 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2            # Lab 12: fail fast so kube-proxy drops the
+            failureThreshold: 1         # endpoint quickly during graceful shutdown
           resources:
             requests:
               cpu: 50m

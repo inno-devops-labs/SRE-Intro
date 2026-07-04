@@ -1,0 +1,44 @@
+# Lab 12 — PodDisruptionBudgets: one per service. These bound how many pods a
+# voluntary disruption (node drain, eviction) may remove at once.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+spec:
+  # 5 replicas, gateway IS the critical path. minAvailable: 2 lets a node drain
+  # take up to 3 at once (enough to actually replace nodes) while keeping ~half
+  # of normal RPS live. minAvailable: 4 would block a drain indefinitely.
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+spec:
+  minAvailable: 1            # 2 replicas → tolerate losing 1 at a time
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+spec:
+  minAvailable: 1            # 2 replicas → tolerate losing 1 at a time
+  selector:
+    matchLabels:
+      app: payments
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+spec:
+  maxUnavailable: 1          # best-effort (fire-and-forget dependency, Lab 11)
+  selector:
+    matchLabels:
+      app: notifications
