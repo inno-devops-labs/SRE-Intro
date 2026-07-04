@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: gateway-error-rate
+spec:
+  metrics:
+  - name: error-rate
+    interval: 30s
+    count: 5
+    successCondition: result[0] < 0.1   # less than 10% error rate
+    failureLimit: 2
+    provider:
+      prometheus:
+        address: http://prometheus:9090
+        query: |
+          sum(rate(gateway_requests_total{status=~"5..", rs_hash="{{args.canary-hash}}"}[1m])) 
+          / 
+          sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[1m]))
