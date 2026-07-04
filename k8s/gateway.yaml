@@ -41,6 +41,8 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: NOTIFICATIONS_URL     # Lab 11: enables fire-and-forget notify
+              value: "http://notifications:8083"
             - name: APP_VERSION           # bump this to trigger a new canary
               value: "v1"
           livenessProbe:
