@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      containers:
+      - name: events
+        image: quickticket-events:v1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "quickticket"
+        - name: DB_USER
+          value: "quickticket"
+        - name: DB_PASSWORD
+          value: "quickticket"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
