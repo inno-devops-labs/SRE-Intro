@@ -161,7 +161,3 @@ The new pod was empty because `k8s/postgres.yaml` has no PVC. Postgres data was 
 ### One important observation
 
 The pod became `Ready` very fast, but my first `psql` and `pg_restore` calls still failed because Postgres inside the container was not accepting connections yet. So in a real recovery run it is safer to check an actual DB connection, not only the Kubernetes `Ready` condition.
-
-## Bonus
-
-I did not do the bonus task with PVC and CronJob backup rotation in this run.
