@@ -1,12 +1,23 @@
-apiVersion: apps/v1
-kind: Deployment
+# Lab 7 — gateway converted from Deployment to an Argo Rollouts canary Rollout.
+# The container spec is unchanged from Lab 4/5; only kind/apiVersion + a canary
+# strategy + replicas:5 were added so a canary weight of 20% == exactly 1 pod.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
     app: gateway
     version: "v2"
 spec:
-  replicas: 1
+  replicas: 5                         # 5 for meaningful canary splits (20% = 1 pod)
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20               # 1 of 5 pods = canary
+        - pause: {}                   # infinite pause — wait for manual `promote`
+        - setWeight: 60               # 3 of 5 pods = canary
+        - pause: {duration: 30s}      # auto-proceed after 30s
+        - setWeight: 100              # full rollout
   selector:
     matchLabels:
       app: gateway
@@ -30,6 +41,8 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: APP_VERSION           # bump this to trigger a new canary
+              value: "v1"
           livenessProbe:
             httpGet:
               path: /health
@@ -58,7 +71,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: gateway
+    app: gateway            # matches BOTH stable and canary pods (no pod-template-hash)
   ports:
     - port: 8080
       targetPort: 8080
