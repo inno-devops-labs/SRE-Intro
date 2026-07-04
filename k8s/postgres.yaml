@@ -1,3 +1,16 @@
+# Lab 9 Bonus — Postgres now backed by a PersistentVolumeClaim so data survives
+# pod restarts (previously the DB lived on ephemeral pod storage and every
+# restart wiped it — the classic stateful-on-K8s outage).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,6 +19,8 @@ metadata:
     app: postgres
 spec:
   replicas: 1
+  strategy:
+    type: Recreate          # RWO PVC can't be mounted by two pods at once
   selector:
     matchLabels:
       app: postgres
@@ -26,6 +41,11 @@ spec:
               value: "quickticket"
             - name: POSTGRES_PASSWORD
               value: "quickticket"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"   # subdir — avoid lost+found
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
           readinessProbe:
             exec:
               command: ["pg_isready", "-U", "quickticket"]
@@ -38,6 +58,10 @@ spec:
             limits:
               cpu: 200m
               memory: 256Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
 ---
 apiVersion: v1
 kind: Service
