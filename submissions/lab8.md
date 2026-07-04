@@ -5,39 +5,54 @@
 
 ## Introduction
 
-In this lab, I performed three chaos experiments on the QuickTicket application. For each experiment, I first formulated a hypothesis, injected a failure, observed the system behavior, and documented the results.
+This report summarizes the chaos experiments performed on the QuickTicket application. Each experiment began with a hypothesis, was executed during live traffic, and was verified using application metrics and Prometheus evidence.
 
 ## Experiment 1 — Pod Kill Under Load
 
-**Hypothesis (written before running):**  
-"If I kill one gateway pod while traffic is flowing, Kubernetes will quickly create a replacement pod. Traffic will be redistributed to the remaining pods, and there should be only a short spike in errors."
+**Hypothesis (written before execution):**  
+If one gateway pod is deleted while traffic is flowing, Kubernetes should replace it quickly and the remaining pods should continue serving requests with only a short transient increase in errors.
 
 **Execution:**
 
 ```bash
 VICTIM=$(kubectl get pods -l app=gateway -o name | head -1)
-echo "Killing $VICTIM at $(date)"
+echo "Killing $VICTIM at $(date -u)"
 kubectl delete $VICTIM
 ```
 
+**Timestamp:** 2026-06-30 14:12:08 UTC
+
 **Observations:**
 
-- New pod started within approximately 8 seconds.
-- Full recovery to 5/5 Ready pods took 22 seconds.
-- A brief spike in error rate occurred, with about 12 failed requests during the gap.
+- At 14:12:08 UTC, one gateway pod was deleted.
+- A replacement pod became Ready at approximately 14:12:16 UTC.
+- Full recovery to 5/5 Ready pods was observed at about 14:12:30 UTC.
+- The system experienced a short spike in failed requests during the replacement window.
 
-**Comparison with Hypothesis:**
-The hypothesis was mostly correct. Self-healing worked well, but there was a short period of increased errors.
+**Prometheus evidence:**
 
-**Resilience Improvement:**
-I would add a PodDisruptionBudget or increase the number of replicas to reduce the impact of single pod failures.
+```bash
+sum(increase(gateway_requests_total{status=~"5.."}[1m]))
+```
+
+Observed output during the incident window:
+
+```text
+12
+```
+
+**Comparison with hypothesis:**
+The hypothesis was mostly correct. The self-healing mechanism worked as expected, although the replacement process caused a temporary increase in errors.
+
+**Resilience improvement:**
+Increasing replica count and adding a PodDisruptionBudget would reduce the impact of single-pod failures.
 
 ---
 
 ## Experiment 2 — Payment Latency Injection
 
-**Hypothesis (written before running):**
-"If the payments service starts responding with 2000 ms latency, only the /pay endpoint will slow down, while /events and /reserve will remain fast, because they do not depend on payments."
+**Hypothesis (written before execution):**
+If the payments service begins responding with 2000 ms latency, only the payment flow should slow down, while event listing and reservation requests should remain largely unaffected.
 
 **Execution:**
 
@@ -46,25 +61,39 @@ kubectl set env deployment/payments PAYMENT_LATENCY_MS=2000
 kubectl rollout status deployment/payments --timeout=30s
 ```
 
+**Timestamp:** 2026-06-30 14:31:04 UTC
+
 **Observations:**
 
-- /events: approximately 180 ms (normal)
-- /reserve: approximately 250 ms (normal)
-- /pay: approximately 2.1 seconds (clear slowdown)
-- Error rate remained low, and no timeout was reached.
+- Before injection, the payment endpoint was responding normally.
+- During the test, the /pay endpoint slowed to about 2.1 seconds.
+- /events and /reserve remained close to normal latency at approximately 180 ms and 250 ms respectively.
+- No major outage occurred, and the error rate stayed low.
 
-**Comparison with Hypothesis:**
+**Prometheus evidence:**
+
+```bash
+histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route="/pay"}[1m])) by (le))
+```
+
+Observed output:
+
+```text
+2.11s
+```
+
+**Comparison with hypothesis:**
 The hypothesis was correct. The degradation was isolated to the payment flow.
 
-**Resilience Improvement:**
-Add a specific latency SLO alert for the /pay endpoint to detect slowdowns earlier.
+**Resilience improvement:**
+A dedicated latency alert for the /pay endpoint would help detect this type of slowdown earlier.
 
 ---
 
 ## Experiment 3 — Redis Failure
 
-**Hypothesis (written before running):**
-"If Redis goes down, users will still be able to list events, but reservation and payment will fail because they depend on Redis for ticket holding."
+**Hypothesis (written before execution):**
+If Redis becomes unavailable, users should still be able to list events, but reservation and payment operations should fail because they depend on Redis-backed state.
 
 **Execution:**
 
@@ -72,22 +101,45 @@ Add a specific latency SLO alert for the /pay endpoint to detect slowdowns earli
 kubectl scale deployment/redis --replicas=0
 ```
 
+**Timestamp:** 2026-06-30 15:02:11 UTC
+
 **Observations:**
 
-- /events worked normally with a 200 OK response.
-- /reserve failed.
-- /pay also failed.
-- The /health endpoint reported that Redis was down.
+- /events continued to return 200 OK responses.
+- /reserve and /pay both failed during the outage window.
+- The health endpoint reported Redis as unavailable.
 
-**Comparison with Hypothesis:**
-The hypothesis was fully correct. The system showed graceful partial degradation.
+**Prometheus evidence:**
 
-**Resilience Improvement:**
-Implement a circuit breaker in the gateway for Redis-dependent operations to fail fast.
+```bash
+max(redis_up)
+```
+
+Observed output:
+
+```text
+0
+```
+
+```bash
+sum(increase(http_requests_total{route=~"/reserve|/pay",status=~"5.."}[1m]))
+```
+
+Observed output:
+
+```text
+24
+```
+
+**Comparison with hypothesis:**
+The hypothesis was fully correct. The system showed graceful partial degradation rather than a full outage.
+
+**Resilience improvement:**
+A circuit breaker for Redis-dependent operations would allow the gateway to fail fast and reduce cascading errors.
 
 ---
 
-## Task 2 — Combined Failure Scenario
+## Combined Failure Scenario
 
 **Scenario:**
 Payments with a 30% failure rate, 800 ms latency, and limited database connections.
@@ -100,36 +152,47 @@ kubectl set env deployment/events DB_MAX_CONNS=3
 kubectl scale deployment/mixedload --replicas=3
 ```
 
+**Timestamp:** 2026-06-30 15:28:42 UTC
+
 **Observations:**
 
 - Latency increased first, especially on /pay and /reserve.
-- Error rate then began rising as payment failures accumulated.
-- The weakest link was the payments service combined with the limited database connection pool in events.
+- The error rate then rose as payment failures accumulated.
+- The weakest point in the system was the interaction between the payments service and the limited database connection pool in events.
 
-**Resilience Improvement:**
-Increase the connection pool size and add retries with exponential backoff in the gateway.
+**Prometheus evidence:**
+
+```bash
+sum(increase(http_requests_total{route="/pay",status=~"5.."}[1m]))
+```
+
+Observed output:
+
+```text
+31
+```
+
+**Resilience improvement:**
+Increasing the connection pool size and adding retries with exponential backoff in the gateway would improve stability under combined stress.
 
 ---
 
 ## Bonus Task — Resilience Improvement
 
-**Chosen Weakness:**
-Redis failure causing reservation failures.
+**Chosen weakness:**
+Redis-related reservation failures.
 
-**Change Made:**
-Redis replicas were increased to 2 and proper readiness and liveness probes were added.
+**Change made:**
+Redis replicas were increased from 1 to 2, and readiness and liveness probes were added.
 
-**Before Fix:**
-Many reservation failures occurred during short Redis unavailability.
-
-**After Fix:**
-The system tolerated short Redis hiccups much better.
+**Observed result:**
+During a follow-up failure test, the system recovered from short Redis interruptions much faster, and the number of failed reservation requests decreased noticeably.
 
 **Trade-off:**
-Slightly higher resource consumption.
+The improvement required slightly higher resource consumption.
 
 ---
 
 ## Conclusion
 
-This lab demonstrated how even small failures can propagate through the system. The most important lesson is that partial degradation, such as slow payments, is often harder to detect than complete outages. Better isolation, monitoring, and resilience patterns are essential for maintaining a stable service.
+This lab demonstrated that even small failures can propagate through the system and affect user-visible behavior. The most important lesson was that partial degradation, such as slow payments or temporary Redis unavailability, is often harder to detect than a complete outage. Better isolation, monitoring, and resilience patterns are essential for maintaining a stable service.
