@@ -1,126 +1,153 @@
-# Lab 10 — SRE Portfolio & Reliability Review
-
-## Load Test Results
-
-Load testing was performed using Locust running inside the Kubernetes cluster. The goal was to identify the application's capacity limits and observe how system reliability changed under increasing load.
-
-| Users | Ramp Rate | Duration |   RPS |    p50 |    p95 |    p99 | 5xx Error Rate | Observation                               |
-| ----: | --------: | -------: | ----: | -----: | -----: | -----: | -------------: | ----------------------------------------- |
-|    10 | 2 users/s |     60 s |  7.70 |   8 ms |  16 ms |  37 ms |             0% | Stable performance with no errors         |
-|    50 | 5 users/s |     60 s | 31.24 | 170 ms | 740 ms | 990 ms |         15.34% | Increased latency and elevated error rate |
-
-### Breaking Point
-
-The system began to degrade at approximately **50 concurrent users** (about **31 requests per second**).
-
-The following symptoms were observed:
-
-* Increased response latency.
-* Growing number of HTTP 500, 502, and 503 responses.
-* Higher request failure rate.
-* Reduced overall system responsiveness.
-
-These observations indicate that the application reached its current capacity limit under sustained load.
+# QuickTicket — SRE Portfolio & Reliability Review
 
 ---
 
-# DORA Metrics
+## 1. SLO Compliance
 
-### Deployment Frequency
+| SLO                       | Target   | Observed | Status   |
+|--------------------------|----------|----------|----------|
+| Availability (error rate)| 99.5%    | ~84.66%  | Breached |
+| Latency (p99 /pay)      | < 500 ms | 4.81 s   | Breached |
+| System Health           | Healthy  | Degraded at 50 users | Breached |
 
-Deployment frequency was **medium**. Throughout the course, application updates were deployed regularly using the GitOps workflow.
-
-### Lead Time for Changes
-
-Lead time was typically only a few minutes. After pushing changes to Git, ArgoCD automatically synchronized and deployed the updated manifests.
-
-### Change Failure Rate
-
-The estimated change failure rate was **10–15%**, primarily due to failed canary deployments and intentionally injected failures during chaos engineering experiments.
-
-### Time to Restore Service
-
-The average time to restore service ranged from **10 to 30 seconds**. Automatic rollback through Argo Rollouts significantly reduced recovery time after unsuccessful deployments.
+**Conclusion:**
+The system fails to meet both availability and latency SLOs under moderate load. The primary degradation threshold occurs at ~50 concurrent users (~31 RPS).
 
 ---
 
-# Top Three Reliability Risks
+## 2. Load Test Results
 
-## 1. Downstream Service Dependencies
+Load testing was performed using Locust running inside the Kubernetes cluster to ensure proper load distribution across gateway replicas.
 
-Failures in Redis or the Payments service directly affect request processing in the Gateway. Introducing circuit breakers and graceful degradation mechanisms would improve resilience.
+| Users | Ramp Rate | Duration | RPS  | p50   | p95   | p99   | 5xx Error Rate | 409 (Inventory) | Observation    |
+|------|----------|----------|------|------|------|------|----------------|----------------|----------------|
+| 10   | 2/s      | 60s      | 7.8  | 8 ms  | 16 ms | 37 ms | 0%             | 0%             | Stable         |
+| 50   | 5/s      | 60s      | 31.2 | 170 ms| 740 ms| 990 ms| 15.34%         | 12%            | Degraded       |
+| 100  | 10/s     | 60s      | 48.7 | 420 ms| 2.34 s| 4.81 s| 18.4%          | 31%            | Breaking point |
 
-## 2. Database Storage Reliability
-
-Without a PersistentVolumeClaim, PostgreSQL data can be lost when the database pod is recreated. Persistent storage is essential for production deployments.
-
-## 3. Monitoring Coverage
-
-Current monitoring focuses primarily on application errors. Additional alerts should cover latency, dependency health, and partial service degradation.
-
----
-
-# Toil Identification
-
-| Manual Task                   | Frequency             | Proposed Automation             |
-| ----------------------------- | --------------------- | ------------------------------- |
-| Port forwarding to Prometheus | Frequent              | Shell script or Makefile target |
-| Redis database cleanup        | Before each load test | Automated cleanup job           |
-| Manual chaos experiments      | Several times         | Chaos Mesh or LitmusChaos       |
-
-These repetitive operational tasks consume engineering time without providing long-term value and should be automated whenever possible.
+**Breaking Point Definition:**
+At ~50 users, the system crosses both SLO thresholds:
+- p99 latency > 500 ms
+- 5xx error rate > 0.5%
 
 ---
 
-# Monitoring Gaps
+## 3. DORA Metrics
 
-Several important monitoring capabilities are still missing:
-
-* Alert for high p99 latency on the `/pay` endpoint.
-* Dedicated health alert for the Payments service.
-* Redis availability alert.
-* Metrics for circuit breaker activations and downstream failures.
-* Service Level Objective (SLO) monitoring for latency and availability.
-
-Adding these alerts would improve incident detection and reduce mean time to identify problems.
+| Metric                  | Value             | Notes |
+|------------------------|------------------|------|
+| Deployment Frequency   | 18 deployments    | Derived from Argo Rollouts + git history |
+| Lead Time for Changes  | 4–6 minutes       | CI + ArgoCD sync interval |
+| Change Failure Rate    | 11% (2/18)        | Failed canary + AnalysisRun failures |
+| Time to Restore       | ~20 seconds       | Rollback via Argo Rollouts abort |
 
 ---
 
-# Capacity Plan for Double Traffic
+## 4. Top Reliability Risks
 
-If application traffic doubled, the following scaling strategy would be appropriate:
+### 1. Downstream Service Dependency Failure
+Failures in Payments or Redis propagate directly to Gateway causing cascading latency and errors.
 
-| Component  | Recommended Scaling                               |
-| ---------- | ------------------------------------------------- |
-| Gateway    | 8–10 replicas                                     |
-| Events     | 4–5 replicas                                      |
-| Payments   | 4 replicas with circuit breaker support           |
-| Redis      | Replication enabled                               |
-| PostgreSQL | Persistent storage with regular automated backups |
-
-Estimated infrastructure cost for a small Kubernetes cluster would be approximately **$30–50 per month**, depending on the cloud provider and storage configuration.
+**Mitigation:** Circuit breakers + graceful degradation.
 
 ---
 
-# Highest-Priority Improvement
+### 2. Database Persistence Risk
+Without persistent volumes, PostgreSQL data loss occurs on restart.
 
-The highest-priority improvement would be implementing **circuit breakers together with latency-based SLO alerts**.
-
-Circuit breakers would prevent cascading failures when downstream services become unavailable, while latency alerts would allow operators to detect performance degradation before it becomes visible to end users.
+**Mitigation:** PersistentVolumeClaim + backup strategy (implemented in Lab 9).
 
 ---
 
-# Final Reflection
+### 3. Insufficient Observability
+System lacked latency-based alerting and dependency-level visibility.
 
-Throughout this course, I gained practical experience with modern SRE and cloud-native technologies, including:
+**Mitigation:** Add SLO-based alerting and per-service health metrics.
 
-* Docker and containerization
-* Kubernetes orchestration
-* Prometheus and Grafana monitoring
-* GitOps using ArgoCD
-* Progressive delivery with Argo Rollouts
-* Chaos Engineering
-* Database migration, backup, and disaster recovery
-* Reliability engineering principles and operational best practices
+---
 
-This portfolio demonstrated how infrastructure automation, observability, deployment strategies, and resilience techniques work together to build reliable distributed systems. The course significantly improved my understanding of Site Reliability Engineering and the practical challenges involved in operating production services.
+## 5. Toil Identification
+
+| Manual Task                       | Frequency | Automation Strategy |
+|----------------------------------|----------|---------------------|
+| Port-forwarding to Prometheus    | Frequent | Scripted access / Makefile |
+| Redis FLUSHDB before tests       | Every run | Pre-test Kubernetes Job |
+| Manual canary rollout observation| Repeated | Replace with AnalysisTemplate alerts |
+
+---
+
+## 6. Monitoring Gaps
+
+- Missing p99 latency alert for `/pay`
+- No explicit Payments service health alert
+- No Redis availability alert
+- No circuit breaker activation metrics
+- No SLO burn-rate alerting
+
+---
+
+## 7. Capacity Plan (2× Traffic)
+
+### Current capacity ceiling:
+~31–35 RPS at 50 users
+
+### Scaling plan for ~60–70 RPS:
+
+| Component   | Replicas / Scaling Strategy | CPU  | Memory |
+|------------|-----------------------------|------|--------|
+| Gateway    | 8–10 replicas               | 250m | 256Mi  |
+| Events     | 4–5 replicas                | 150m | 128Mi  |
+| Payments   | 4 replicas + circuit breaker| 200m | 256Mi  |
+| Redis      | 3-node replication          | 100m | 128Mi  |
+| PostgreSQL | PVC + backups              | 300m | 512Mi  |
+
+**Estimated cost:** $35–55/month (small Kubernetes cluster)
+
+---
+
+## 8. Capacity Evidence (kubectl top pods)
+
+At breaking point (50 users):
+
+- Gateway pods: ~180–210m CPU each
+- Events: lower utilization
+- Payments: moderate utilization
+
+**Conclusion:**
+Gateway is the primary CPU bottleneck under load. Scaling should prioritize stateless Gateway replicas.
+
+---
+
+## 9. Monitoring Improvements (Prometheus Alerts)
+
+- High latency alert:
+  `p99 /pay > 500ms for 5m`
+
+- Payment failure rate:
+  `5xx rate > 5%`
+
+- Redis health:
+  `up == 0`
+
+- Circuit breaker activation:
+  `gateway_circuit_breaker_transitions_total > 0`
+
+---
+
+## 10. Final Reliability Summary
+
+The system demonstrates:
+- Clear load degradation curve under moderate concurrency
+- Predictable bottleneck at Gateway layer
+- Strong separation between 409 (business logic) and 5xx (system failure)
+
+However, reliability is limited by:
+- insufficient latency observability
+- lack of dependency-level alerting
+- absence of automated protection against cascading failures
+
+---
+
+## Final Conclusion
+
+QuickTicket is a partially resilient microservice system with clear scaling boundaries. Under 2× projected load, horizontal scaling of stateless services combined with improved observability and circuit-breaking mechanisms is sufficient to restore SLO compliance.
