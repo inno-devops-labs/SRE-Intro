@@ -101,8 +101,36 @@ async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
     See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
     will pick up your implementation automatically.
     """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    base_delay = RETRY_BASE_DELAY_MS / 1000
+    for attempt in range(max_retries):
+        try:
+            result = await func()
+            if attempt > 0:
+                RETRY_TOTAL.labels(target, "succeeded_after_retry").inc()
+            return result
+        except Exception as exc:
+            retryable = False
+            if isinstance(exc, (httpx.TimeoutException, httpx.ConnectError)):
+                retryable = True
+            elif isinstance(exc, httpx.HTTPStatusError):
+                status_code = exc.response.status_code
+                retryable = status_code == 408 or status_code == 429 or 500 <= status_code < 600
+                if not retryable:
+                    RETRY_TOTAL.labels(target, "non_retryable").inc()
+                    raise
+            else:
+                RETRY_TOTAL.labels(target, "non_retryable").inc()
+                raise
+
+            if attempt == max_retries - 1:
+                RETRY_TOTAL.labels(target, "exhausted").inc()
+                raise
+
+            RETRY_TOTAL.labels(target, "retried").inc()
+            delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)
+            await asyncio.sleep(delay)
+
+    raise RuntimeError("retry loop exhausted unexpectedly")
 
 
 class CircuitOpenError(Exception):
@@ -144,8 +172,24 @@ class CircuitBreaker:
         No-op default: just calls func. Lab 11 task 11.7 replaces this with
         the state machine. Raise `CircuitOpenError` when the circuit is open.
         """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == self.OPEN:
+            if time.time() - self.opened_at >= self.cooldown:
+                self._transition(self.HALF_OPEN)
+            else:
+                raise CircuitOpenError(f"circuit[{self.name}] OPEN")
+
+        try:
+            result = await func()
+        except Exception:
+            self.failures += 1
+            self.opened_at = time.time()
+            if self.state == self.HALF_OPEN or self.failures >= self.threshold:
+                self._transition(self.OPEN)
+            raise
+
+        self.failures = 0
+        self._transition(self.CLOSED)
+        return result
 
 
 class RateLimiter:
@@ -166,7 +210,14 @@ class RateLimiter:
 
         No-op default: always True. Lab 11 task 11.8 replaces this body.
         """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        q = self.hits[key]
+        cutoff = now - self.window_s
+        while q and q[0] < cutoff:
+            q.popleft()
+        if len(q) >= self.rps:
+            return False
+        q.append(now)
         return True
 
 
