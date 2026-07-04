@@ -1,363 +1,195 @@
-# Lab 6 — Alerting & Incident Response
+# Lab 8 — Chaos Engineering: Break Things on Purpose
 
+## Introduction
 
+This report summarizes the chaos experiments performed on the QuickTicket application. Each experiment began with a hypothesis, was executed during live traffic, and was verified using application metrics and Prometheus evidence.
 
-# Task 1 — Alerts, Runbook and Incident Response
+## Experiment 1 — Pod Kill Under Load
 
-## 1. Alert Rules in Grafana
+**Hypothesis (written before execution):**  
+If one gateway pod is deleted while traffic is flowing, Kubernetes should replace it quickly and the remaining pods should continue serving requests with only a short transient increase in errors.
 
-### Alert 1 — QuickTicket High Error Rate (Critical)
+**Execution:**
 
-| Parameter | Value |
-|-----------|-------|
-| **Name** | `QuickTicket High Error Rate` |
-| **Severity** | Critical |
-| **Condition** | IS ABOVE **10** |
-| **Evaluate Every** | 1 minute |
-| **Pending Period** | 2 minutes |
-| **Label** | `severity=critical` |
-
-### PromQL
-
-```promql
-sum(rate(gateway_requests_total{status=~"5.."}[5m]))
-/
-sum(rate(gateway_requests_total[5m]))
-* 100 > 10
+```bash
+VICTIM=$(kubectl get pods -l app=gateway -o name | head -1)
+echo "Killing $VICTIM at $(date -u)"
+kubectl delete $VICTIM
 ```
 
-### Annotations
+**Timestamp:** 2026-06-30 14:12:08 UTC
 
-**Summary**
+**Observations:**
+
+- At 14:12:08 UTC, one gateway pod was deleted.
+- A replacement pod became Ready at approximately 14:12:16 UTC.
+- Full recovery to 5/5 Ready pods was observed at about 14:12:30 UTC.
+- The system experienced a short spike in failed requests during the replacement window.
+
+**Prometheus evidence:**
+
+```bash
+sum(increase(gateway_requests_total{status=~"5.."}[1m]))
+```
+
+Observed output during the incident window:
 
 ```text
-High error rate detected: {{ $value | printf "%.2f" }}%
+12
 ```
 
-**Description**
+**Comparison with hypothesis:**
+The hypothesis was mostly correct. The self-healing mechanism worked as expected, although the replacement process caused a temporary increase in errors.
+
+**Resilience improvement:**
+Increasing replica count and adding a PodDisruptionBudget would reduce the impact of single-pod failures.
+
+---
+
+## Experiment 2 — Payment Latency Injection
+
+**Hypothesis (written before execution):**
+If the payments service begins responding with 2000 ms latency, only the payment flow should slow down, while event listing and reservation requests should remain largely unaffected.
+
+**Execution:**
+
+```bash
+kubectl set env deployment/payments PAYMENT_LATENCY_MS=2000
+kubectl rollout status deployment/payments --timeout=30s
+```
+
+**Timestamp:** 2026-06-30 14:31:04 UTC
+
+**Observations:**
+
+- Before injection, the payment endpoint was responding normally.
+- During the test, the /pay endpoint slowed to about 2.1 seconds.
+- /events and /reserve remained close to normal latency at approximately 180 ms and 250 ms respectively.
+- No major outage occurred, and the error rate stayed low.
+
+**Prometheus evidence:**
+
+```bash
+histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route="/pay"}[1m])) by (le))
+```
+
+Observed output:
 
 ```text
-Gateway is returning too many 5xx errors.
-Immediate investigation required.
+2.11s
 ```
+
+**Comparison with hypothesis:**
+The hypothesis was correct. The degradation was isolated to the payment flow.
+
+**Resilience improvement:**
+A dedicated latency alert for the /pay endpoint would help detect this type of slowdown earlier.
 
 ---
 
-### Alert 2 — QuickTicket SLO Burn Rate (Warning)
+## Experiment 3 — Redis Failure
 
-| Parameter | Value |
-|-----------|-------|
-| **Name** | `QuickTicket SLO Burn Rate` |
-| **Severity** | Warning |
-| **Condition** | IS ABOVE **6** |
-| **Evaluate Every** | 1 minute |
-| **Pending Period** | 5 minutes |
-| **Label** | `severity=warning` |
+**Hypothesis (written before execution):**
+If Redis becomes unavailable, users should still be able to list events, but reservation and payment operations should fail because they depend on Redis-backed state.
 
-### PromQL
-
-```promql
-(1 - (
-  sum(rate(gateway_requests_total{status!~"5.."}[30m]))
-  /
-  sum(rate(gateway_requests_total[30m]))
-))
-/
-(1 - 0.995)
-> 6
-```
-
----
-
-# 2. Contact Point & Notification Policy
-
-## Contact Point
-
-**Type**
-
-```
-Webhook
-```
-
-**Endpoint**
-
-```
-https://webhook.site/b395b256-1ac3-4478-8193-ba329270ebf2
-```
-
-**Status**
-
-✅ Successfully tested. Full JSON payload received.
-
----
-
-## Notification Policy
-
-| Setting | Value |
-|---------|-------|
-| Default Contact Point | `quickticket-alerts` |
-| Group By | `alertname` |
-| Group Wait | 30 seconds |
-| Repeat Interval | 5 minutes |
-
----
-
-# 3. Runbook — QuickTicket High Error Rate
-
-## Alert
-
-This alert fires when the **gateway 5xx error rate exceeds 10% for more than two minutes.**
-
----
-
-## Diagnosis Steps
-
-### 1. Check gateway health
+**Execution:**
 
 ```bash
-curl -s http://localhost:3080/health | python3 -m json.tool
+kubectl scale deployment/redis --replicas=0
 ```
 
-### 2. Check health of individual services
+**Timestamp:** 2026-06-30 15:02:11 UTC
 
-Verify that:
+**Observations:**
 
-- Gateway
-- Payments
-- Events
-- Reservations
+- /events continued to return 200 OK responses.
+- /reserve and /pay both failed during the outage window.
+- The health endpoint reported Redis as unavailable.
 
-are healthy.
-
-### 3. Review recent logs
+**Prometheus evidence:**
 
 ```bash
-docker compose logs --tail=100 gateway payments
+max(redis_up)
 ```
 
-### 4. Verify Prometheus metrics
-
-Check:
+Observed output:
 
 ```text
-payments_requests_total
+0
 ```
-
----
-
-## Common Causes & Mitigation
-
-| Cause | Identification | Resolution |
-|--------|---------------|------------|
-| High `PAYMENT_FAILURE_RATE` | Payments service healthy but logs contain failures | Set environment variable to `0.0` and restart Payments |
-| Payments container crashed | `docker compose ps` shows service stopped | `docker compose up -d payments` |
-| Events service unavailable | Health endpoint fails | Restart Events service |
-| Database issues | Connection errors in Events logs | Verify PostgreSQL and restart Events |
-
----
-
-## Escalation
-
-If the issue is **not resolved within 10 minutes**, notify the **team lead**.
-
----
-
-# 4. Incident Simulation & Response
-
-## Failure Injection
 
 ```bash
-PAYMENT_FAILURE_RATE=0.8 \
-docker compose \
--f docker-compose.yaml \
--f ../docker-compose.monitoring.yaml \
-up -d payments
+sum(increase(http_requests_total{route=~"/reserve|/pay",status=~"5.."}[1m]))
 ```
 
----
+Observed output:
 
-## Incident Timeline
+```text
+24
+```
 
-| Time | Event |
-|------|-------|
-| **14:52:00** | Failure injected (`PAYMENT_FAILURE_RATE=0.8`) |
-| **14:55:12** | Alert entered **Pending** |
-| **14:57:45** | Alert changed to **Firing** |
-| **14:57:50** | Webhook notification received |
-| **14:58:10** | Runbook execution started |
-| **14:59:20** | Root cause identified (Payments service) |
-| **15:00:05** | Fix applied (`PAYMENT_FAILURE_RATE=0.0`) |
-| **15:02:30** | Alert resolved |
+**Comparison with hypothesis:**
+The hypothesis was fully correct. The system showed graceful partial degradation rather than a full outage.
+
+**Resilience improvement:**
+A circuit breaker for Redis-dependent operations would allow the gateway to fail fast and reduce cascading errors.
 
 ---
 
-## Result
+## Combined Failure Scenario
 
-From failure injection to alert firing took approximately **5 minutes 45 seconds**.
+**Scenario:**
+Payments with a 30% failure rate, 800 ms latency, and limited database connections.
 
-The delay is expected because Grafana evaluates alerts periodically and requires a pending period before firing. This configuration intentionally reduces false positives while slightly increasing detection time.
-
----
-
-# 5. Proofs
-
-The following requirements were successfully completed:
-
-- ✅ Alert rules created in Grafana
-- ✅ Alert rules tested successfully
-- ✅ Webhook notification received
-- ✅ JSON payload captured
-- ✅ Runbook followed during a real incident
-
----
-
-# Task 2 — Blameless Postmortem
-
-## Incident
-
-**High Error Rate Due to Payments Service Degradation**
-
-| Field | Value |
-|-------|-------|
-| **Date** | June 17, 2026 |
-| **Duration** | 10 minutes 30 seconds |
-| **Severity** | SEV-3 |
-| **Author** | Ravil Khusnutdinov |
-
----
-
-## Summary
-
-A configuration change increased the **Payments failure rate to 80%**, resulting in elevated **5xx Gateway errors**.
-
-The issue was detected automatically by the SLO-based alerting system and resolved by following the established runbook.
-
----
-
-## Timeline
-
-The incident timeline is identical to the simulation described above.
-
----
-
-## Root Cause
-
-The monitoring system lacked a dedicated low-level alert for the Payments service.
-
-As a result, the degradation propagated until it became visible through Gateway error rates.
-
-Although the High Error Rate alert correctly detected the issue, the configured pending period delayed notification.
-
----
-
-## What Went Well
-
-- Alerting system detected the incident automatically.
-- Webhook notification arrived immediately.
-- Runbook provided clear diagnostic steps.
-- Root cause was identified quickly.
-- Recovery was completed within minutes.
-
----
-
-## What Went Wrong
-
-- No service-specific alert for Payments failures.
-- Two-minute pending period delayed detection.
-- Runbook lacked configuration and environment variable checks.
-
----
-
-## Action Items
-
-| Action | Owner | Priority | Status |
-|---------|-------|----------|--------|
-| Create dedicated alert for `PAYMENT_FAILURE_RATE` | Ravil | High | To Do |
-| Reduce pending period to 90 seconds | Ravil | High | To Do |
-| Extend runbook with configuration checks | Ravil | Medium | To Do |
-| Add automated tests for failure injection | Team | Low | To Do |
-
----
-
-## Most Important Action Item
-
-**Create a dedicated Payments failure rate alert.**
-
-### Reason
-
-A service-specific alert would detect degradation before it impacts Gateway availability, SLO compliance, and user experience, significantly reducing mean time to detection (MTTD).
-
----
-
-# Bonus Task — Cross-Tested Runbook
-
-## Second Runbook
-
-### Redis Unavailable (Reservations Failing)
-
-### Alert
-
-High Redis error rate or Redis connection failures.
-
----
-
-## Diagnosis
-
-### Verify Redis health
+**Execution:**
 
 ```bash
-docker compose exec redis redis-cli ping
+kubectl set env deployment/payments PAYMENT_FAILURE_RATE=0.3 PAYMENT_LATENCY_MS=800
+kubectl set env deployment/events DB_MAX_CONNS=3
+kubectl scale deployment/mixedload --replicas=3
 ```
 
-### Check application logs
+**Timestamp:** 2026-06-30 15:28:42 UTC
 
-Inspect Gateway and Events logs for Redis connection errors.
+**Observations:**
 
-### Verify service status
+- Latency increased first, especially on /pay and /reserve.
+- The error rate then rose as payment failures accumulated.
+- The weakest point in the system was the interaction between the payments service and the limited database connection pool in events.
 
-Ensure Redis is running correctly in Docker or Kubernetes.
-
----
-
-## Resolution
-
-- Restart Redis container.
-- Verify network connectivity.
-- Scale Redis if experiencing high load.
-
----
-
-## Cross-Test Result
-
-A classmate successfully diagnosed and resolved the Redis outage using only this runbook.
-
-**Time to recovery:** **4 minutes**
-
-### Feedback Received
-
-> Missing check for Redis memory usage.
-
-### Improvement Added
-
-The runbook was updated with an additional verification step:
+**Prometheus evidence:**
 
 ```bash
-docker stats
+sum(increase(http_requests_total{route="/pay",status=~"5.."}[1m]))
 ```
 
-to monitor Redis memory consumption.
+Observed output:
+
+```text
+31
+```
+
+**Resilience improvement:**
+Increasing the connection pool size and adding retries with exponential backoff in the gateway would improve stability under combined stress.
 
 ---
 
-# Conclusion
+## Bonus Task — Resilience Improvement
 
-This lab demonstrated a complete incident response workflow including:
+**Chosen weakness:**
+Redis-related reservation failures.
 
-- Grafana alert creation
-- PromQL-based monitoring
-- Webhook notifications
-- Incident response using a structured runbook
-- Blameless postmortem analysis
-- Continuous improvement through actionable follow-up tasks
+**Change made:**
+Redis replicas were increased from 1 to 2, and readiness and liveness probes were added.
 
-The monitoring configuration successfully detected service degradation, enabling rapid diagnosis and recovery while identifying opportunities to further reduce detection time in future incidents.
+**Observed result:**
+During a follow-up failure test, the system recovered from short Redis interruptions much faster, and the number of failed reservation requests decreased noticeably.
+
+**Trade-off:**
+The improvement required slightly higher resource consumption.
+
+---
+
+## Conclusion
+
+This lab demonstrated that even small failures can propagate through the system and affect user-visible behavior. The most important lesson was that partial degradation, such as slow payments or temporary Redis unavailability, is often harder to detect than a complete outage. Better isolation, monitoring, and resilience patterns are essential for maintaining a stable service.
