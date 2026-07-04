@@ -1,0 +1,99 @@
+# Lab 7 — gateway converted from Deployment to an Argo Rollouts canary Rollout.
+# The container spec is unchanged from Lab 4/5; only kind/apiVersion + a canary
+# strategy + replicas:5 were added so a canary weight of 20% == exactly 1 pod.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    version: "v2"
+spec:
+  replicas: 5                         # 5 for meaningful canary splits (20% = 1 pod)
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20               # 1 of 5 pods = canary
+        - pause: {}                   # infinite pause — wait for manual `promote`
+        - setWeight: 60               # 3 of 5 pods = canary
+        - pause: {duration: 30s}      # auto-proceed after 30s
+        - setWeight: 100              # full rollout
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      # Lab 12: give in-flight requests time to finish after SIGTERM
+      # (10s preStop + up to 30s uvicorn drain).
+      terminationGracePeriodSeconds: 40
+      # Lab 12: spread gateway replicas across nodes. No observable effect on
+      # single-node k3d (all pods land on the one node) but correct + live in
+      # the spec for a real multi-node cluster.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway    # don't block scheduling on 1 node
+          labelSelector:
+            matchLabels:
+              app: gateway
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: gateway
+          image: ghcr.io/georghegel/quickticket-gateway:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          lifecycle:
+            # Sleep BEFORE SIGTERM reaches uvicorn so kube-proxy/endpoints
+            # propagate this pod's NotReady state and stop routing new traffic
+            # here before the app starts shutting down (avoids RST on in-flight).
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          env:
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+            - name: NOTIFICATIONS_URL     # Lab 11: enables fire-and-forget notify
+              value: "http://notifications:8083"
+            - name: APP_VERSION           # bump this to trigger a new canary
+              value: "v1"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 2            # Lab 12: fail fast so kube-proxy drops the
+            failureThreshold: 1         # endpoint quickly during graceful shutdown
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway            # matches BOTH stable and canary pods (no pod-template-hash)
+  ports:
+    - port: 8080
+      targetPort: 8080
