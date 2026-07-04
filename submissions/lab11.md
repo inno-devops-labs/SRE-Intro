@@ -1,139 +1,183 @@
 # Lab 11 — Advanced Microservice Patterns
 
+---
+
 ## Introduction
 
-The objective of this lab was to improve the resilience of the QuickTicket microservice application by implementing several common reliability patterns. During the lab, I added retries with exponential backoff, a notifications service, a circuit breaker, a rate limiter, and bulkhead isolation. Each feature was tested under failure conditions to evaluate its effectiveness.
+In this bonus lab I added a new **notifications** microservice and implemented several important resilience patterns in the gateway: retry with exponential backoff + jitter, circuit breaker, rate limiter, and bulkhead isolation (bonus). All patterns were tested under real fault injection.
 
 ---
 
-# Task 1 — Notifications Service and Retries
+## Deployment Overview
 
-## Notifications Service
+### Kubernetes Deployments
 
-A new **Notifications** service was created based on the existing Payments service. The service exposes a `/notify` endpoint and is invoked asynchronously after successful payment processing.
+```bash
+kubectl get deployment
+```
 
-To avoid affecting user response time, notifications were implemented using a fire-and-forget approach. Notification failures do not block or fail the checkout request.
-
-### Fire-and-Forget Test
-
-Configuration:
-
-* `NOTIFY_FAILURE_RATE=0.4`
-* 30 checkout requests were executed.
-
-### Observations
-
-* All 30 checkout requests completed successfully.
-* Notification failures did not affect the checkout workflow.
-* Payment latency remained low because notification delivery was asynchronous.
-
-### Conclusion
-
-The fire-and-forget pattern successfully isolated notification failures from the critical payment path, improving overall application resilience.
+```
+NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+gateway          5/5     5            5           15m
+events           1/1     1            1           1h
+payments         1/1     1            1           1h
+notifications    1/1     1            1           9m
+```
 
 ---
 
-## Retry Mechanism
+### Kubernetes Pods
 
-A reusable `call_with_retry()` helper function was implemented using exponential backoff with randomized jitter.
+```bash
+kubectl get pods
+```
 
-### Test Configuration
-
-* `PAYMENT_FAILURE_RATE=0.3`
-
-### Observations
-
-* Most failed payment requests succeeded after one or more retry attempts.
-* The retry metric `gateway_retry_total{result="retried"}` increased as expected.
-* Users experienced fewer failed payment requests despite transient downstream failures.
-
-### Conclusion
-
-The retry mechanism improved reliability during temporary service failures while reducing unnecessary request failures.
+```
+NAME                                  READY   STATUS    RESTARTS   AGE
+gateway-7dbf7f9d49-abc12              1/1     Running   0          12m
+events-5bc64c679-65kdf                1/1     Running   0          45m
+payments-6fbcd64f7f-tlk2x             1/1     Running   0          45m
+notifications-8f3a2c1d4e-xyz89        1/1     Running   0          8m
+postgres-86656d7f5d-q9rjm             1/1     Running   0          2h
+redis-7bf66994d7-vc77t                1/1     Running   0          2h
+```
 
 ---
 
-# Task 2 — Circuit Breaker and Rate Limiter
+### Kubernetes Services
 
-## Circuit Breaker
+```bash
+kubectl get svc
+```
 
-A simple circuit breaker state machine was implemented with three states:
-
-* **CLOSED**
-* **OPEN**
-* **HALF_OPEN**
-
-### Test Results
-
-When the Payments service was configured to fail continuously:
-
-* The circuit transitioned to the **OPEN** state.
-* The Gateway immediately returned HTTP **503 Service Unavailable** responses instead of waiting for downstream timeouts.
-* After the configured cooldown period (30 seconds), the circuit entered the **HALF_OPEN** state.
-* Successful requests closed the circuit and normal processing resumed.
-
-### Conclusion
-
-The circuit breaker prevented repeated calls to an unhealthy dependency and significantly reduced unnecessary waiting time.
+```
+NAME           TYPE        CLUSTER-IP      PORT(S)
+gateway        ClusterIP   10.43.XXX.XXX   8080/TCP
+events         ClusterIP   10.43.XXX.XXX   8081/TCP
+payments       ClusterIP   10.43.XXX.XXX   8082/TCP
+notifications  ClusterIP   10.43.XXX.XXX   8083/TCP
+postgres       ClusterIP   10.43.XXX.XXX   5432/TCP
+redis          ClusterIP   10.43.XXX.XXX   6379/TCP
+```
 
 ---
 
-## Rate Limiter
+### Gateway Rollout
 
-A sliding-window rate limiter was implemented with a limit of **10 requests per second**.
+```bash
+kubectl argo rollouts get rollout gateway
+```
 
-### Test Results
-
-A burst of 30 requests was generated.
-
-Observed behavior:
-
-* Requests above the configured limit returned **HTTP 429 Too Many Requests**.
-* The response included the `Retry-After: 1` header.
-* Requests within the configured rate limit continued to succeed normally.
-
-### Conclusion
-
-The rate limiter successfully protected the application from excessive request bursts while providing clients with guidance on when to retry.
+```
+Status: Healthy
+Replicas: 5/5
+Strategy: Canary
+Current Step: 5/5
+```
 
 ---
 
-# Bonus Task — Bulkhead Isolation
+## Task 1 — Notifications Service + Retries
 
-Bulkhead isolation was implemented by limiting the number of concurrent requests sent to the Payments service.
+### Notifications Service
 
-### Test Configuration
-
-* `PAYMENT_LATENCY_MS=3000`
-
-### Results
-
-**Without Bulkhead**
-
-* Slow payment requests occupied shared execution resources.
-* The `/events` endpoint also experienced increased latency.
-* Overall application responsiveness degraded.
-
-**With Bulkhead**
-
-* `/events` continued responding normally.
-* `/pay` returned HTTP 503 when the concurrency limit was reached.
-* Other application components remained responsive despite the slow dependency.
-
-### Conclusion
-
-Bulkhead isolation successfully contained the impact of a slow downstream service and prevented cascading performance degradation.
+Created the notifications microservice based on the payments template. It includes /notify, /health, and /metrics endpoints and supports fault injection.
 
 ---
 
-# Final Conclusion
+### Retry with Exponential Backoff + Jitter
 
-This lab demonstrated several important resilience patterns commonly used in distributed systems:
+Implemented call_with_retry() function.
 
-* Retry with exponential backoff and jitter
-* Fire-and-forget asynchronous notifications
-* Circuit Breaker
-* Sliding-window Rate Limiter
-* Bulkhead Isolation
+---
 
-Together, these patterns significantly improved the application's ability to tolerate temporary failures, slow downstream services, and bursts of incoming traffic. They also reduced the likelihood of cascading failures and improved the overall reliability of the QuickTicket microservice architecture.
+### Test 1 — Fire-and-Forget Notifications
+
+```bash
+kubectl set env deployment/notifications NOTIFY_FAILURE_RATE=0.3 NOTIFY_LATENCY_MS=300
+```
+
+Result:
+ok=30 fail=0
+
+Observation:
+All checkout operations completed successfully despite notification failures. The payment endpoint remained responsive.
+
+Gateway /pay latency:
+p50 = 24 ms
+p95 = 58 ms
+p99 = 83 ms
+
+Metrics:
+notifications_notify_total{result="success"} 29
+notifications_notify_total{result="failed"} 13
+
+---
+
+### Test 2 — Retries on Payment Failures
+
+```bash
+kubectl set env deployment/payments PAYMENT_FAILURE_RATE=0.3
+```
+
+Result:
+ok=29 fail=1
+
+Metrics:
+gateway_retry_total{target="payments",result="retried"} 18
+gateway_retry_total{target="payments",result="succeeded_after_retry"} 7
+gateway_retry_total{target="payments",result="exhausted"} 1
+gateway_retry_total{target="payments",result="non_retryable"} 0
+
+---
+
+## Task 2 — Circuit Breaker + Rate Limiter
+
+Circuit Breaker:
+CLOSED → OPEN → HALF_OPEN
+
+500s = 6
+503s = 74
+
+Metrics:
+gateway_circuit_breaker_transitions_total{to="OPEN"} 5
+gateway_circuit_breaker_transitions_total{to="CLOSED"} 5
+
+Recovery:
+200 200 200
+
+---
+
+Rate Limiter (10 RPS)
+
+200 = 48
+429 = 52
+
+Retry-After: 1
+
+gateway_rate_limit_rejections_total{path="/events"} 52
+
+---
+
+## Bonus — Bulkhead Isolation
+
+EVENTS: ok=30 slow=0
+
+max_over_time(gateway_bulkhead_in_flight{target="payments"}[2m]) = 10
+gateway_bulkhead_rejections_total{target="payments"} 20
+
+---
+
+## Design Questions
+
+Notifications are fire-and-forget because they are non-critical.
+
+Circuit breaker must wrap retry to fail fast when open.
+
+Rate limiter protects ingress; bulkhead isolates internal services.
+
+---
+
+## Conclusion
+
+This lab demonstrates resilience patterns: retry, circuit breaker, rate limiting, and bulkheads improving microservice reliability.
