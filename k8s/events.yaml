@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: events
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -16,8 +16,8 @@ spec:
         - name: ghcr-secret
       containers:
         - name: events
-          image: ghcr.io/mmagia/quickticket-events:1211a725d68379417e63e3200b6d6ec0c8cfdff2
-          imagePullPolicy: Always
+          image: quickticket-events:v1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           env:
