@@ -46,14 +46,14 @@ spec:
               value: "5000"
           livenessProbe:
             httpGet:
-              path: /health
+              path: /metrics
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health
+              path: /metrics
               port: 8080
             periodSeconds: 5
             failureThreshold: 2

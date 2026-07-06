@@ -50,7 +50,7 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /health
+              path: /metrics
               port: 8081
             periodSeconds: 5
             failureThreshold: 2
