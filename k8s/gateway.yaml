@@ -40,6 +40,8 @@ spec:
               value: "http://events:8081"
             - name: PAYMENTS_URL
               value: "http://payments:8082"
+            - name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
           livenessProbe:
