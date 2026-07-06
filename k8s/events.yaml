@@ -16,7 +16,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: events
-          image: ghcr.io/mmagia/quickticket-events:1211a725d68379417e63e3200b6d6ec0c8cfdff2
+          image: ghcr.io/mmagia/quickticket-events:19fe2dca64b402b6e8079bec6be3e4cc7e94f08b
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
