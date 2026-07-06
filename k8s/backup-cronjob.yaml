@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-dump
+              image: postgres:17-alpine
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: quickticket
+                - name: PGDATABASE
+                  value: quickticket
+                - name: PGPASSWORD
+                  value: quickticket
+              command:
+                - sh
+                - -c
+                - |
+                  set -eu
+                  cd /backups
+                  file="quickticket_$(date -u +%Y%m%dT%H%M%SZ).dump"
+                  pg_dump -Fc -f "$file"
+                  ls -1t quickticket_*.dump | tail -n +6 | xargs -r rm -v
+                  ls -lh "$file"
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
