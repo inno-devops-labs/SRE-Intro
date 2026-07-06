@@ -1,14 +1,3 @@
-# Lab 2 — Containerization: Inspect, Understand, Optimize
-
-![difficulty](https://img.shields.io/badge/difficulty-beginner-success)
-![topic](https://img.shields.io/badge/topic-Containers-blue)
-![points](https://img.shields.io/badge/points-10%2B2-orange)
-![tech](https://img.shields.io/badge/tech-Docker-informational)
-
-> **Goal:** Understand how QuickTicket containers work under the hood — images, layers, networking, operational commands — and optimize them.
-
----
-
 ## Task 1 — Docker Inspection & Operations
 
 ### 2.1: Image inspection
