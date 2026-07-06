@@ -1,7 +1,7 @@
 # Lab 1 — SRE Philosophy: Deploy, Break, Understand
 
 ## Made by: 
-### Nurmukhametov Denis (d.nurmuhametov@innopolis.university)
+### Nurmuhametov Denis (d.nurmuhametov@innopolis.university)
 ## Task 1 — Deploy & Break QuickTicket (6 pts)
 
 ### 1.1 Deploy QuickTicket
