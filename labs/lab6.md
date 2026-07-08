@@ -165,6 +165,7 @@ PAYMENT_FAILURE_RATE=0.5 docker compose -f docker-compose.yaml -f ../docker-comp
 
 **Paste into `submissions/lab6.md`:**
 1. Your alert rule PromQL queries (both rules)
+
 2. Contact point type and evidence of notification received (webhook URL output or screenshot)
 3. Your runbook (full text)
 4. Alert firing evidence: Grafana alert rule status showing "Firing"
