@@ -31,15 +31,32 @@ spec:
     spec:
       containers:
         - name: gateway
-          image: ghcr.io/jakefish18/quickticket-gateway:44a1520645acc7a36347ccd333e64543801011ad
-          imagePullPolicy: Always
+          image: quickticket-gateway:v1     # Lab 11: locally-built image (k3d image import)
+          imagePullPolicy: Never
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
             - name: PAYMENTS_URL
               value: "http://payments:8082"
+            - name: NOTIFICATIONS_URL      # Lab 11: enables fire-and-forget notify
+              value: "http://notifications:8083"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            # Resilience-pattern tunables (change via `kubectl set env`, no rebuild):
+            - name: RETRY_MAX
+              value: "3"
+            - name: RETRY_BASE_DELAY_MS
+              value: "100"
+            - name: CB_FAILURE_THRESHOLD
+              value: "5"
+            - name: CB_COOLDOWN_S
+              value: "30"
+            - name: RATE_LIMIT_RPS
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_MAX
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+              value: "0.5"
             - name: APP_VERSION        # bump this to trigger a canary rollout
               value: "v6"
           ports:
