@@ -29,6 +29,19 @@ spec:
       labels:
         app: gateway
     spec:
+      # Cover the 10s preStop + up to 30s in-flight drain before SIGKILL.
+      terminationGracePeriodSeconds: 40
+      # Spread gateway replicas across nodes so losing one node can't take out a
+      # majority. No observable effect on single-node k3d (one node), but the spec
+      # is correct for a real multi-node cluster. ScheduleAnyway = preferred, not
+      # mandatory (DoNotSchedule would leave pods Pending on a single node).
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
       containers:
         - name: gateway
           image: quickticket-gateway:v1     # Lab 11: locally-built image (k3d image import)
@@ -69,17 +82,26 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
-          # Lab 8 bonus fix: readiness is a SHALLOW TCP check, not the
-          # dependency-aware /health. A Redis/events outage no longer flips every
-          # gateway pod to NotReady (which previously removed the whole gateway from
-          # the Service and caused a total outage). Now the gateway stays in rotation
-          # and keeps serving the paths that still work (e.g. /events); only the
-          # Redis-dependent path (/reserve) degrades.
+          # Lab 12: readiness uses /health (period 2s, failureThreshold 1) so a
+          # terminating pod flips NotReady fast and kube-proxy pulls its endpoint
+          # before uvicorn stops — paired with the preStop sleep for a zero-drop
+          # rolling restart. (Trade-off vs Lab 8's shallow TCP readiness: /health is
+          # dependency-aware; a prod answer would expose a dedicated shallow /livez
+          # for readiness. Discussed in submissions/lab12.md.)
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health
               port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
+          # preStop sleeps BEFORE SIGTERM reaches the app so endpoint removal
+          # propagates to every node's iptables while the pod is still serving —
+          # closing the SIGTERM-vs-incoming-traffic race that would otherwise RST
+          # in-flight requests during a rolling restart.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           resources:
             requests:
               cpu: 50m

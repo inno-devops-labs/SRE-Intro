@@ -5,7 +5,7 @@ metadata:
   labels:
     app: events
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: events
-          image: ghcr.io/jakefish18/quickticket-events:44a1520645acc7a36347ccd333e64543801011ad
-          imagePullPolicy: Always
+          image: quickticket-events:v1     # Lab 12 bonus: local image for the expand-and-contract deploys
+          imagePullPolicy: Never
           env:
             - name: DB_HOST
               value: "postgres"
