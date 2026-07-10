@@ -94,7 +94,7 @@ After restore: events = 5, orders = 50
 
 **7. RPO Analysis:**
 **Answer:** 
-При использовании pg_dump вручную один раз в день наш RPO (Recovery Point Objective) равен 24 часам. Это значит, что при сбое мы потеряем все данные (заказы, билеты), которые появились с момента последнего бэкапа. Чтобы это улучшить, нужно автоматизировать создание бэкапов с помощью CronJob (чтобы делать их, например, каждые 5-10 минут) или настроить непрерывную архивацию WAL-логов (Continuous Archiving), что позволит снизить RPO почти до нуля.
+Currently, our RPO (Recovery Point Objective) is 24 hours, as we perform manual pg_dump backups once a day. This means that in the event of a failure, we would lose all data (orders, tickets) generated since the last backup. To improve this, we need to automate backups using a CronJob (to run them, for example, every 5–10 minutes) or set up continuous WAL log archiving, which would bring our RPO down to near zero.
 
 ---
 
@@ -126,7 +126,7 @@ Lost orders (RPO gap): 0
 ```
 
 **5. Root Cause Analysis:**
-**Answer:** Новый под запустился с пустой базой, потому что в `k8s/postgres.yaml` не был настроен PersistentVolumeClaim (PVC). База использовала временное хранилище пода (ephemeral storage), которое полностью удаляется при его завершении. Чтобы устранить эту уязвимость, необходимо добавить PVC и примонтировать его в директорию с данными PostgreSQL, что мы и сделаем в бонусном задании.
+**Answer:** The new pod started with an empty database because a PersistentVolumeClaim (PVC) was not configured in k8s/postgres.yaml. The database was using the pod's ephemeral storage, which is completely wiped upon termination. To eliminate this vulnerability, we need to add a PVC and mount it to the PostgreSQL data directory, which we will do in the bonus task.
 
 ---
 

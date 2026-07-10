@@ -5,40 +5,40 @@
 ## 1. SLO Compliance
 | SLO | Target | Observed | Status |
 | :--- | :--- | :--- | :--- |
-| Availability (5xx rate) | < 0.5% | [X]% | [OK/FAIL] |
-| Latency (p99) | < 500ms | [X]ms | [OK/FAIL] |
+| Availability (5xx rate) | < 0.5% | 9.47% | FAIL |
+| Latency (p99) | < 500ms | 1400ms | FAIL |
 
 ## 2. Load Test Results
 | Users | Ramp | RPS | p50 | p95 | p99 | 5xx error rate | 409 (inventory) |
 |------:|-----:|----:|----:|----:|----:|---------------:|----------------:|
-| 10    | 2/s  |   7.75  |  9ms   |     |     |                |                 |
-| 50    | 5/s  |  32.43   |   78ms  |     |     |                |                 |
-| 100   | 10/s |   40.07  |  750ms   |     |     |                |                 |
-| 50   | 5/s|  32.43   |   78ms  |     |     |                |                 |
+| 10    | 2/s  | 7.75 | 9ms | 18ms | 28ms | 0% | 0 |
+| 50    | 5/s  | 32.43 | 78ms | 660ms | 1400ms | 9.47% | 4 |
+| 100   | 10/s | 40.07 | 750ms | 5000ms | 5000ms | 64.07% | 0 |
+| 50    | 5/s  | 32.43 | 78ms | 660ms | 1400ms | 9.47% | 4 |
 
 ## 3. DORA Metrics
 | Metric | Value |
 | :--- | :--- |
-| Deployment Frequency | [X] per week |
-| Lead Time for Changes | [X] minutes |
-| Change Failure Rate | [X]% |
-| Time to Restore Service | [X] minutes |
+| Deployment Frequency | 1 per week |
+| Lead Time for Changes | ~7 minutes |
+| Change Failure Rate | 20% |
+| Time to Restore Service | ~3 minutes |
 
 ## 4. Top 3 Reliability Risks
-1. **[Risk Name]** — [Impact] — [Fix]
-2. **[Risk Name]** — [Impact] — [Fix]
-3. **[Risk Name]** — [Impact] — [Fix]
+1. **CPU Bottleneck in `events` Service** — The service runs as a single pod and becomes CPU-constrained under high load, causing connection timeouts (504) and 502 Bad Gateway errors. — *Fix: Implement Horizontal Pod Autoscaler (HPA) and increase resource limits.*
+2. **Postgres Single Point of Failure** — Currently, the database lacks read/write replicas, creating a risk of data unavailability if the underlying node or pod fails. — *Fix: Transition to a Managed Database or deploy a highly available StatefulSet with synchronous replication.*
+3. **Lack of Rate Limiting** — The system is vulnerable to traffic spikes from individual clients, which can saturate resources and lead to cascading failures. — *Fix: Implement request rate limiting at the Gateway (Ingress) level to protect downstream services.*
 
 ## 5. Toil Identification
 | Task | Frequency | Automate via | Time Saved |
 | :--- | :--- | :--- | :--- |
-| [Task 1] | [X] times | [Method] | [X] min/week |
-| [Task 2] | [X] times | [Method] | [X] min/week |
-| [Task 3] | [X] times | [Method] | [X] min/week |
+| Postgres manual seeding | >5 times | PVC/VolumeMounts | 5 min/week |
+| Manual port-forwarding | >10 times | In-cluster LoadTesting | 2 min/week |
+| Watching Rollouts | >3 times | AnalysisTemplates | 10 min/week |
 
 ## 6. Monitoring Gaps
-- [Gap 1]
-- [Gap 2]
+- **Lack of Latency-based Alerting:** Our existing alerts focus solely on error rates (5xx). This creates a "blind spot" where service performance degrades significantly (high latency) before the service actually crashes. We need alerts for p99 latency thresholds.
+- **Resource Saturation Visibility:** During load testing, we lacked real-time dashboards for per-pod CPU/Memory saturation. We need to integrate Grafana dashboards visualizing resource request vs. usage to identify bottlenecks before they impact user traffic.
 
 ## 7. Capacity Plan (incl. Task 2)
 **Per-pod CPU at breaking point:**
