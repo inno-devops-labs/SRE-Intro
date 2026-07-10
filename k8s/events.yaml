@@ -16,7 +16,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: events
-          image: ghcr.io/kostya2505/quickticket-events:8b02e0982d274cc357fc09ebeedb6be121964ee6
+          image: ghcr.io/kostya2505/quickticket-events:32be90506c364da4d5b17e9b8479968e43b188bc
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
