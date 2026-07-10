@@ -1,0 +1,30 @@
+# Alert rules for Lab 8 bonus task - Latency SLO
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alert-rules
+  namespace: monitoring
+data:
+  latency-slo.yml: |
+    groups:
+      - name: gateway_latency_slo
+        rules:
+          - alert: HighLatencyPayEndpoint
+            expr: |
+              histogram_quantile(0.99, 
+                sum by (le, path) (rate(gateway_request_duration_seconds_bucket{path="/events/{id}/reserve"}[5m]))
+              ) > 2
+            for: 2m
+            annotations:
+              summary: "High p99 latency on /events/{id}/reserve endpoint"
+              description: "p99 latency is {{ $value }}s, exceeding 2s SLO"
+          
+          - alert: HighLatencyEventsEndpoint
+            expr: |
+              histogram_quantile(0.99, 
+                sum by (le, path) (rate(gateway_request_duration_seconds_bucket{path="/events"}[5m]))
+              ) > 0.5
+            for: 2m
+            annotations:
+              summary: "High p99 latency on /events endpoint"
+              description: "p99 latency is {{ $value }}s, exceeding 0.5s SLO"

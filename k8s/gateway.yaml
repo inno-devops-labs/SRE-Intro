@@ -1,12 +1,20 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
     app: gateway
     version: "v2"
 spec:
-  replicas: 1
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {}
+        - setWeight: 60
+        - pause: {duration: 30s}
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -15,12 +23,10 @@ spec:
       labels:
         app: gateway
     spec:
-      imagePullSecrets:
-        - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/doshqq/quickticket-gateway:3a4935e7795d1c97f4aa5bfa0ee34ee94d3c3a4d
-          imagePullPolicy: Always
+          image: quickticket-gateway:v1
+          imagePullPolicy: Never
           env:
             - name: EVENTS_URL
               value: "http://events:8081"
@@ -28,6 +34,8 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: APP_VERSION
+              value: "v2"
           ports:
             - containerPort: 8080
           livenessProbe:
