@@ -51,9 +51,15 @@ graph TD
 
 ## Incident Response
 
-**SEV-2 High Error Rate:** Check `/health` → payments/events health → logs. Fixes: restart payments/service, set PAYMENT_FAILURE_RATE=0, restart Redis, scale events + PgBouncer. Escalate: SRE → Lead (10m).
+**SEV-2 High Error Rate:** 
+* Check `/health` → payments/events health → logs. 
+* Fixes: restart payments/service, set PAYMENT_FAILURE_RATE=0, restart Redis, scale events + PgBouncer. 
+* Escalate: SRE Team (10m).
 
-**SEV-3 Reservation Failures:** Check `redis-cli ping` → memory → logs. Fixes: restart Redis, increase memory limit. Escalate: SRE (15m).
+**SEV-3 Reservation Failures:** 
+* Check `redis-cli ping` → memory → logs. 
+* Fixes: restart Redis, increase memory limit. 
+* Escalate: SRE Team (15m).
 
 **Post-Incident:** Write blameless postmortem, create action items, update runbooks, review thresholds.
 
