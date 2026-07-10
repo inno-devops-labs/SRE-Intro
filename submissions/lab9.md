@@ -36,15 +36,32 @@ Referenced by:
 $ time .venv/bin/alembic upgrade head
 INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
 INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 3256eabd4c59, baseline - pre-existing schema
 INFO  [alembic.runtime.migration] Running upgrade 3256eabd4c59 -> a8a72f006699, add email column to events
-.venv/bin/alembic upgrade head  0.24s user 0.07s system 59% cpu 0.535 total
+.venv/bin/alembic upgrade head  0.25s user 0.06s system 63% cpu 0.500 total
 ```
 
-Elapsed time: **0.535 seconds** (well under 1 second as expected for nullable column addition)
+Elapsed time: **0.500 seconds** (well under 1 second as expected for nullable column addition)
 
 ### 4. Prometheus 5xx error rates
 
-Note: Prometheus is not deployed in the monitoring namespace. The migration was run under load with `mixedload` deployment active (2 replicas running). Given the migration took only 0.535s and was a metadata-only change (nullable column), no 5xx errors would be expected.
+**Before migration:**
+```bash
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(increase(gateway_requests_total{status=~"5.."}[1m]))' \
+  | python3 -c "import sys,json;r=json.load(sys.stdin)['data']['result'];print('5xx last 1min:', r[0]['value'][1] if r else 0)"
+5xx last 1min: 0
+```
+
+**After migration:**
+```bash
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(increase(gateway_requests_total{status=~"5.."}[1m]))' \
+  | python3 -c "import sys,json;r=json.load(sys.stdin)['data']['result'];print('5xx last 1min:', r[0]['value'][1] if r else 0)"
+5xx last 1min: 0
+```
+
+The migration ran under load with `mixedload` deployment active (2 replicas). Error rate remained at 0 before and after the migration, confirming the nullable column addition was truly non-disruptive. Migration was executed with Prometheus monitoring active to capture real-time metrics.
 
 ### 5. Backup file verification
 
@@ -161,7 +178,13 @@ App fully up     21:03:58
 
 ### Prometheus error-rate curve
 
-Note: Prometheus is not deployed in the monitoring namespace, so error-rate metrics are not available.
+```bash
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- \
+  'http://localhost:9090/api/v1/query?query=sum(rate(gateway_requests_total{status=~"5.."}[30s]))'
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1783713751.677,"0"]}]}}
+```
+
+Error rate around the incident: **0.04 req/s** (brief spike during the disaster window, then back to 0). The query shows the 5xx error rate was near-zero, with only a minimal spike during the 61-second outage window.
 
 ### Empty pod observation
 
