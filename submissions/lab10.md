@@ -149,3 +149,21 @@ gateway (5 pods)           saturated → CrashLoopBackOff after sustained 100u+
 **DB connections:** single Postgres + per-pod pool is fine at 2× with 3 events replicas × 20 conns = 60 total (within Postgres default max_connections=100). Add PgBouncer if scaling beyond 5 events replicas.
 
 **Rough cost:** 5 gateway + 3 events + 2 payments + 1 postgres + 1 redis = **12 pod-months × $5 ≈ $60/mo** on a small cloud.
+
+---
+
+## Bonus Task — SRE Handbook (2 pts)
+
+**Option B chosen:** `submissions/runbooks/quickticket-handbook.md`
+
+Covers all required sections:
+
+| Section | Content |
+|---------|---------|
+| **Architecture** | Mermaid diagram + service table (gateway Rollout, events, payments, Postgres PVC, Redis, Prometheus) |
+| **How to deploy** | GitOps CI flow, manual k3d bootstrap, canary + rollback commands |
+| **Monitoring** | Prometheus queries for traffic, error rate, p99, SLO burn; alert thresholds from Lab 6 |
+| **Incident response** | Distilled runbooks for high error rate, Redis down, Postgres crash + escalation |
+| **Backup/restore** | CronJob backup, manual `pg_dump`, `pg_restore` procedure, RTO/RPO numbers from Lab 9 |
+
+Handbook path: [`submissions/runbooks/quickticket-handbook.md`](runbooks/quickticket-handbook.md)
