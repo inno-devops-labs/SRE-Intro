@@ -1,3 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,11 +30,38 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              value: "quickticket"
+              value: quickticket
             - name: POSTGRES_USER
-              value: "quickticket"
+              value: quickticket
             - name: POSTGRES_PASSWORD
-              value: "quickticket"
+              value: quickticket
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "quickticket"]
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "quickticket"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
 ---
 apiVersion: v1
 kind: Service
