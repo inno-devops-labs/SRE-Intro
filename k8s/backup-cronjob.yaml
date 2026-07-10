@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pg-backup
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres:17-alpine
+            env:
+            - name: PGPASSWORD
+              value: quickticket
+            command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting backup..."
+              pg_dump -h postgres -U quickticket -Fc quickticket > /backup/backup-$(date +%s).dump
+              echo "Rotating old backups (keeping last 5)..."
+              ls -t /backup/*.dump | tail -n +6 | xargs -r rm -f
+              echo "Current backup directory contents:"
+              ls -la /backup
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-data
