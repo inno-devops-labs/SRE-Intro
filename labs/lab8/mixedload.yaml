@@ -34,10 +34,10 @@ spec:
                 curl -s http://gateway:8080/events > /dev/null
 
                 # Full checkout chain (exercises events+postgres+redis+payments)
-                RES=$(curl -s -X POST http://gateway:8080/events/1/reserve \
+                RES=$(curl -s -X POST http://gateway:8080/events/3/reserve \
                         -H "Content-Type: application/json" \
                         -d '{"quantity":1}')
-                RID=$(echo "$RES" | sed -n 's/.*reservation_id":"\([^"]*\).*/\1/p')
+                RID=$(echo "$RES" | grep -oE '"reservation_id":"[^"]+' | cut -d'"' -f4)
                 if [ -n "$RID" ]; then
                   curl -s -X POST http://gateway:8080/reserve/$RID/pay > /dev/null
                 fi
