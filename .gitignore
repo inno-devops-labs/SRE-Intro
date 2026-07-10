@@ -3,7 +3,6 @@
 refs/
 
 # Load generator locustfile is copied from labs/lab10/locustfile.py
-# into repo root in lab 10 and should be committed.
 !/locustfile.py
 
 # Dry-run / local tooling
