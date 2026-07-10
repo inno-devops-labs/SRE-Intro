@@ -11,7 +11,7 @@ graph TD
     Gateway --> Payments[Payments :8082<br/>- Payment processing<br/>- Fault injection]
     Events --> Redis[Redis :6379<br/>- Reservation holds<br/>- 5min TTL]
     Events --> Postgres[PostgreSQL :5432<br/>- Persistent data]
-    Postgres -.-> PgBouncer[PgBouncer<br/>Connection Pooler<br/>- (Production only)]
+    Postgres -.-> PgBouncer[PgBouncer<br/>Connection Pooler<br/>- Production only]
     style Gateway fill:#e1f5ff
     style Events fill:#fff4e1
     style Payments fill:#ffe1e1
