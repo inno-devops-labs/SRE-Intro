@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres                    # имя деплоймента
+  name: postgres
 spec:
-  replicas: 1                       # сколько копий (подов)
+  replicas: 1
   selector:
     matchLabels:
-      app: postgres                 # "управляй подами с этим лейблом"
-  template:                         # шаблон пода
+      app: postgres
+  template:
     metadata:
       labels:
-        app: postgres               # лейбл пода — должен совпадать с selector
+        app: postgres
     spec:
       containers:
         - name: postgres
@@ -24,14 +24,33 @@ spec:
               value: "quickticket"
             - name: POSTGRES_PASSWORD
               value: "quickticket"
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres                    # это имя станет DNS-именем внутри кластера
+  name: postgres
 spec:
   selector:
-    app: postgres                   # "направляй трафик на поды с этим лейблом"
+    app: postgres
   ports:
-    - port: 5432                    # порт сервиса
-      targetPort: 5432              # порт контейнера
+    - port: 5432
+      targetPort: 5432
