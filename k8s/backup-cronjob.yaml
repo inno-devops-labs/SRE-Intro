@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: default
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: postgres-backup-worker
+            image: postgres:17-alpine
+            env:
+            - name: PGHOST
+              value: "postgres"
+            - name: PGUSER
+              value: "quickticket"
+            - name: PGDATABASE
+              value: "quickticket"
+            - name: PGPASSWORD
+              value: "quickticket"
+            workingDir: /backups
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              TIMESTAMP=$(date -u +%Y%m%d_%H%M%S)
+              FILENAME="quickticket_${TIMESTAMP}.dump"
+
+              echo "Starting database backup to ${FILENAME}..."
+              pg_dump -Fc -f "${FILENAME}"
+              echo "Backup created successfully."
+
+              echo "Running retention policy (keeping only 5 newest dumps)..."
+              ls -1t quickticket_*.dump 2>/dev/null | tail -n +6 | xargs -r rm -v
+              echo "Retention policy applied."
+            volumeMounts:
+            - name: backups-storage-volume
+              mountPath: /backups
+          volumes:
+          - name: backups-storage-volume
+            persistentVolumeClaim:
+              claimName: postgres-backups
