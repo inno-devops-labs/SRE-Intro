@@ -47,7 +47,7 @@ services:
       - POSTGRES_USER=quickticket
       - POSTGRES_PASSWORD=quickticket
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./seed.sql:/docker-entrypoint-initdb.d/01-seed.sql
@@ -60,7 +60,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "16379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
