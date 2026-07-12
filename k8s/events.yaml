@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: events
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -12,6 +12,7 @@ spec:
       labels:
         app: events
     spec:
+      terminationGracePeriodSeconds: 40
       imagePullSecrets:
         - name: ghcr-secret
       containers:
@@ -54,6 +55,10 @@ spec:
               port: 8081
             periodSeconds: 5
             failureThreshold: 2
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           resources:
             requests:
               cpu: 50m

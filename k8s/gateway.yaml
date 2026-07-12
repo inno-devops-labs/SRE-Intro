@@ -29,6 +29,14 @@ spec:
       labels:
         app: gateway
     spec:
+      terminationGracePeriodSeconds: 40
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
       containers:
         - name: gateway
           image: quickticket-gateway:v3-good
@@ -69,10 +77,14 @@ spec:
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /metrics
+              path: /health
               port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           resources:
             requests:
               cpu: 50m
