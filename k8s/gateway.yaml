@@ -42,8 +42,24 @@ spec:
               value: http://events:8081
             - name: PAYMENTS_URL
               value: http://payments:8082
+            - name: NOTIFICATIONS_URL
+              value: http://notifications:8083
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: RETRY_MAX
+              value: "3"
+            - name: RETRY_BASE_DELAY_MS
+              value: "100"
+            - name: CB_FAILURE_THRESHOLD
+              value: "5"
+            - name: CB_COOLDOWN_S
+              value: "30"
+            - name: RATE_LIMIT_RPS
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_MAX
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+              value: "0.5"
           livenessProbe:
             httpGet:
               path: /metrics
