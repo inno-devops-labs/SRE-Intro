@@ -92,17 +92,40 @@ def _normalize_path(path: str) -> str:
 
 
 async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
-    """Call `func` with retry-on-transient-error.
+    """Call `func` with retry-on-transient-error."""
+    base_delay = RETRY_BASE_DELAY_MS / 1000.0
+    last_exception = None
 
-    No-op default: calls func once and returns. Lab 11 task 11.4 replaces this
-    body with exponential backoff + jitter, retryable/non-retryable branching,
-    and Prometheus counters on the `gateway_retry_total{target,result}` metric.
+    for attempt in range(max_retries + 1):
+        try:
+            result = await func()
+            if attempt > 0:
+                RETRY_TOTAL.labels(target=target, result="succeeded_after_retry").inc()
+            return result
+        except Exception as e:
+            last_exception = e
+            is_retryable = False
 
-    See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
-    will pick up your implementation automatically.
-    """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+            # Retryable: timeout, connection errors, 5xx, 408, 429
+            if isinstance(e, (httpx.TimeoutException, httpx.ConnectError)):
+                is_retryable = True
+            elif isinstance(e, httpx.HTTPStatusError):
+                status = e.response.status_code
+                if status >= 500 or status in (408, 429):
+                    is_retryable = True
+                else:
+                    RETRY_TOTAL.labels(target=target, result="non_retryable").inc()
+                    raise
+
+            if is_retryable and attempt < max_retries:
+                RETRY_TOTAL.labels(target=target, result="retried").inc()
+                delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)
+                await asyncio.sleep(delay)
+            else:
+                RETRY_TOTAL.labels(target=target, result="exhausted").inc()
+                raise
+
+    raise last_exception
 
 
 class CircuitOpenError(Exception):
@@ -144,8 +167,24 @@ class CircuitBreaker:
         No-op default: just calls func. Lab 11 task 11.7 replaces this with
         the state machine. Raise `CircuitOpenError` when the circuit is open.
         """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == self.OPEN:
+            if time.time() - self.opened_at >= self.cooldown:
+                self._transition(self.HALF_OPEN)
+            else:
+                raise CircuitOpenError(f"circuit[{self.name}] OPEN")
+
+        try:
+            result = await func()
+            self.failures = 0
+            if self.state != self.CLOSED:
+                self._transition(self.CLOSED)
+            return result
+        except Exception as e:
+            self.failures += 1
+            self.opened_at = time.time()
+            if self.state == self.HALF_OPEN or self.failures >= self.threshold:
+                self._transition(self.OPEN)
+            raise
 
 
 class RateLimiter:
@@ -153,7 +192,7 @@ class RateLimiter:
 
     No-op default: .allow always returns True. Replace it with a sliding
     1-second window that tracks request timestamps per key and rejects
-    once `len(window) >= self.rps`.
+     once `len(window) >= self.rps`.
     """
 
     def __init__(self, rps: int):
@@ -166,7 +205,18 @@ class RateLimiter:
 
         No-op default: always True. Lab 11 task 11.8 replaces this body.
         """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        q = self.hits[key]
+        cutoff = now - self.window_s
+
+        # Drop expired entries
+        while q and q[0] < cutoff:
+            q.popleft()
+
+        if len(q) >= self.rps:
+            return False
+
+        q.append(now)
         return True
 
 
@@ -286,7 +336,11 @@ async def reserve_tickets(event_id: int, request: Request):
     except httpx.TimeoutException:
         raise HTTPException(504, "Events service timeout")
     except httpx.HTTPStatusError as e:
-        raise HTTPException(e.response.status_code, e.response.json())
+        try:
+            error_detail = e.response.json()
+        except Exception:
+            error_detail = e.response.text or "Unknown error"
+        raise HTTPException(e.response.status_code, detail=error_detail)
     except Exception as e:
         log.error(f"reserve error: {e}")
         raise HTTPException(502, "Events service unavailable")
@@ -332,13 +386,28 @@ async def pay_reservation(reservation_id: str):
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
         raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
-    except httpx.TimeoutException:
-        raise HTTPException(504, "Payment service timeout")
+    except httpx.TimeoutException as e:
+        log.error(f"payment timeout: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held — try again in a few minutes.",
+                "reservation_id": reservation_id
+            }
+        )
     except httpx.HTTPStatusError as e:
         raise HTTPException(e.response.status_code, "Payment failed")
     except Exception as e:
         log.error(f"payment error: {e}")
-        raise HTTPException(502, "Payment service unavailable")
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held — try again in a few minutes.",
+                "reservation_id": reservation_id
+            }
+        )
 
     # 2. Confirm reservation in events.
     try:
