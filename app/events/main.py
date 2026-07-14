@@ -140,11 +140,16 @@ def list_events():
     conn = db_pool.getconn()
     try:
         cur = conn.cursor()
+        # Deploy B (Lab 12 expand-and-contract): scheduled_at is backfilled and
+        # NOT NULL, so read it directly. Still aliased as event_date to keep the
+        # /events response shape byte-for-byte backward-compatible.
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue,
+                   e.scheduled_at AS event_date,
+                   e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
-            GROUP BY e.id ORDER BY e.event_date
+            GROUP BY e.id ORDER BY e.scheduled_at
         """)
         rows = cur.fetchall()
         cur.close()
@@ -165,8 +170,11 @@ def get_event(event_id: int):
     conn = db_pool.getconn()
     try:
         cur = conn.cursor()
+        # Deploy B: read scheduled_at directly for the single-event read.
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue,
+                   e.scheduled_at AS event_date,
+                   e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
             WHERE e.id = %s GROUP BY e.id
