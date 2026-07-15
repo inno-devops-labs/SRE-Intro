@@ -13,8 +13,8 @@ refs/
 # k8s/
 
 # Database migrations (students run `alembic init` in lab 9)
-migrations/
-alembic.ini
+# migrations/
+# alembic.ini
 
 # CI workflow (students add this in lab 5 to their fork)
 # .github/
