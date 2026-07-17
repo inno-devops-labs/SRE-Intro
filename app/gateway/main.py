@@ -101,8 +101,29 @@ async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
     See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
     will pick up your implementation automatically.
     """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    last_exc = None
+    for attempt in range(max_retries + 1):
+        try:
+            result = await func()
+            if attempt > 0:
+                RETRY_TOTAL.labels(target, "retried").inc()
+            return result
+        except (httpx.ConnectError, httpx.TimeoutException) as e:
+            last_exc = e
+            RETRY_TOTAL.labels(target, "retry").inc()
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (500, 502, 503, 408, 429):
+                last_exc = e
+                RETRY_TOTAL.labels(target, "retry").inc()
+            else:
+                raise
+        if attempt < max_retries:
+            base_delay = RETRY_BASE_DELAY_MS / 1000 * (2 ** attempt)
+            jitter = random.uniform(0, base_delay)
+            await asyncio.sleep(jitter)
+            log.info(f"retry {attempt+1}/{max_retries} for {target}")
+    RETRY_TOTAL.labels(target, "exhausted").inc()
+    raise last_exc
 
 
 class CircuitOpenError(Exception):
@@ -144,8 +165,25 @@ class CircuitBreaker:
         No-op default: just calls func. Lab 11 task 11.7 replaces this with
         the state machine. Raise `CircuitOpenError` when the circuit is open.
         """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == self.OPEN:
+            if time.time() - self.opened_at >= self.cooldown:
+                self._transition(self.HALF_OPEN)
+            else:
+                raise CircuitOpenError(f"circuit {self.name} is OPEN")
+        try:
+            result = await func()
+            if self.state == self.HALF_OPEN:
+                self.failures = 0
+                self._transition(self.CLOSED)
+            elif self.state == self.CLOSED:
+                self.failures = 0
+            return result
+        except Exception as e:
+            self.failures += 1
+            if self.failures >= self.threshold:
+                self._transition(self.OPEN)
+                self.opened_at = time.time()
+            raise
 
 
 class RateLimiter:
@@ -166,12 +204,63 @@ class RateLimiter:
 
         No-op default: always True. Lab 11 task 11.8 replaces this body.
         """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        window = self.hits[key]
+        while window and window[0] <= now - self.window_s:
+            window.popleft()
+        if len(window) >= self.rps:
+            return False
+        window.append(now)
         return True
 
 
 payments_cb = CircuitBreaker(CB_FAILURE_THRESHOLD, CB_COOLDOWN_S, name="payments")
 rate_limiter = RateLimiter(RATE_LIMIT_RPS)
+
+class BulkheadFullError(Exception):
+    """Raised when all bulkhead slots are occupied."""
+
+
+BULKHEAD_PAYMENTS_MAX = int(os.getenv("BULKHEAD_PAYMENTS_MAX", "10"))
+BULKHEAD_PAYMENTS_TIMEOUT = float(os.getenv("BULKHEAD_PAYMENTS_TIMEOUT", "0.5"))
+
+BULKHEAD_REJECTIONS = Counter(
+    "gateway_bulkhead_rejections_total", "Bulkhead rejections", ["target"]
+)
+BULKHEAD_IN_FLIGHT = Histogram(
+    "gateway_bulkhead_in_flight", "Bulkhead in-flight gauge", ["target"]
+)
+
+
+class Bulkhead:
+    def __init__(self, max_concurrent: int, timeout: float, name: str = "default"):
+        self.name = name
+        self.timeout = timeout
+        self._sem = None
+        self._max = max_concurrent
+
+    def _get_sem(self):
+        if self._sem is None:
+            self._sem = asyncio.Semaphore(self._max)
+        return self._sem
+
+    async def call(self, func):
+        sem = self._get_sem()
+        try:
+            acquired = await asyncio.wait_for(sem.acquire(), timeout=self.timeout)
+        except asyncio.TimeoutError:
+            BULKHEAD_REJECTIONS.labels(self.name).inc()
+            raise BulkheadFullError(f"bulkhead {self.name} full")
+        try:
+            in_flight = self._max - sem._value
+            BULKHEAD_IN_FLIGHT.labels(self.name).observe(in_flight)
+            return await func()
+        finally:
+            sem.release()
+
+
+payments_bulkhead = Bulkhead(BULKHEAD_PAYMENTS_MAX, BULKHEAD_PAYMENTS_TIMEOUT, name="payments")
+
 
 
 # --- Middleware ---
@@ -327,8 +416,13 @@ async def pay_reservation(reservation_id: str):
         return resp
 
     try:
-        pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        pay_resp = await payments_bulkhead.call(
+            lambda: payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        )
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
+    except BulkheadFullError:
+        log.error("bulkhead full, rejecting payment")
+        raise HTTPException(503, "Payment service at capacity (bulkhead full)")
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
         raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
@@ -336,6 +430,15 @@ async def pay_reservation(reservation_id: str):
         raise HTTPException(504, "Payment service timeout")
     except httpx.HTTPStatusError as e:
         raise HTTPException(e.response.status_code, "Payment failed")
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held — try again in a few minutes.",
+                "reservation_id": reservation_id,
+            },
+        )
     except Exception as e:
         log.error(f"payment error: {e}")
         raise HTTPException(502, "Payment service unavailable")
