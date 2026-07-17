@@ -28,3 +28,13 @@ def downgrade() -> None:
     )
     op.execute("UPDATE events SET event_date = scheduled_at")
     op.alter_column('events', 'event_date', nullable=False)
+    # Restore the concurrent index created in 341a3f732deb (dropped with the column).
+    with op.get_context().autocommit_block():
+        op.create_index(
+            'idx_events_event_date',
+            'events',
+            ['event_date'],
+            unique=False,
+            postgresql_concurrently=True,
+            if_not_exists=True,
+        )

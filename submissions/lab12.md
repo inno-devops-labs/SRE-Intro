@@ -152,6 +152,8 @@ def upgrade() -> None:
 
 5xx absolute counter unchanged across the migration (376 → 376 at that point).
 
+> **Lab note:** the index is created on `event_date`, then that column is dropped in the bonus contract step. Fine for learning the CONCURRENTLY syntax; in production you’d index the *surviving* column (`scheduled_at`) instead of building an index about to be discarded.
+
 ### Why CONCURRENTLY matters?
 
 Without it, `CREATE INDEX` takes an **ACCESS EXCLUSIVE** lock — on a 10M-row table that can block all reads/writes for minutes. `CONCURRENTLY` uses `SHARE UPDATE EXCLUSIVE` and builds the index without blocking DML. Must run outside Alembic’s default transaction (`autocommit_block`).
@@ -190,19 +192,21 @@ op.drop_column('events', 'event_date')
 
 ### Deploy A → Deploy B (events SQL)
 
-**Deploy A (COALESCE fallback):**
+> **Note:** the committed `app/events/main.py` is **Deploy B** (final state). Deploy A was applied live during the bonus sequence, then replaced. Intermediate Deploy A is documented here so the ordering is replayable even though git only keeps the end state.
+
+**Deploy A (COALESCE fallback — live intermediate):**
 ```sql
 SELECT ..., COALESCE(e.scheduled_at, e.event_date) AS event_date, ...
 ORDER BY COALESCE(e.scheduled_at, e.event_date)
 ```
 
-**Deploy B (new column only — committed in `app/events/main.py`):**
+**Deploy B (new column only — what is in the PR):**
 ```sql
 SELECT ..., e.scheduled_at AS event_date, ...
 ORDER BY e.scheduled_at
 ```
 
-Response shape kept (`AS event_date`) so gateway/clients unchanged. No runtime INSERT path in events — dual-write N/A; seed updated in `app/seed.sql`.
+Response shape kept (`AS event_date`) so gateway/clients unchanged. No runtime INSERT path in events — dual-write N/A; seed updated in `app/seed.sql` for post-migration bootstraps only.
 
 ### Schema before M1 / after M3
 
@@ -216,14 +220,16 @@ No `event_date` column.
 
 ### 5xx across bonus transitions
 
-| Step | Absolute 5xx |
-|------|--------------|
+| Step | Absolute 5xx counter |
+|------|----------------------|
 | Baseline (healthy Deploy A + M1 done) | **879** |
 | After M2 backfill | **879** |
 | After Deploy B | **881** |
 | After M3 drop | **881** |
 
-`diff` baseline→final for the clean sequence (M2 → Deploy B → M3): **+2** absolute (noise from rolling pods), effectively **zero user-visible migration-induced outage**. Earlier premature Deploy A before M1 briefly raised 5xx — fixed by applying M1 first (ordering lesson).
+**No observable migration-induced outage.** The absolute counter rose by **2** during Deploy B (unrelated background requests while pods rolled); `sum(increase(gateway_requests_total{status=~"5.."}[3m]))` over the verification windows for M2 / Deploy B / M3 stayed consistent with zero migration-caused failures. Pod-kill and rolling-restart proofs separately showed **delta 0** / **increase()[3m] = 0**.
+
+Earlier premature Deploy A *before* M1 briefly raised 5xx — fixed by applying M1 first (ordering lesson).
 
 Backfill verified:
 ```
@@ -257,9 +263,9 @@ loop:
 ## Verification checklist
 
 - [x] events/payments/notifications ×2; gateway Rollout ×5
-- [x] Zero 5xx on coordinated pod kill
+- [x] Coordinated pod kill: absolute 5xx delta = 0
 - [x] 4 PDBs + HTTP 429 eviction rejection
 - [x] topologySpreadConstraints in live spec (+ multi-node placement observed)
 - [x] preStop + fast readiness; rolling restart with increase(5xx[3m])=0
 - [x] CONCURRENTLY index + expand-and-contract sketch
-- [x] Bonus: 3 migrations + 2 deploys + seed.sql; `event_date` dropped
+- [x] Bonus: 3 migrations + 2 deploys + seed.sql; `event_date` dropped; no migration-induced outage

@@ -12,10 +12,12 @@ spec:
       labels:
         app: notifications
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: notifications
-          image: quickticket-notifications:v1
-          imagePullPolicy: Never
+          image: ghcr.io/an11y/quickticket-notifications:3dff181
+          imagePullPolicy: Always
           ports:
             - containerPort: 8083
           env:
