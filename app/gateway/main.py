@@ -24,7 +24,7 @@ from collections import defaultdict, deque
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 # --- Config ---
 EVENTS_URL = os.getenv("EVENTS_URL", "http://events:8081")
@@ -70,6 +70,44 @@ RATE_LIMIT_REJECTIONS = Counter(
     "gateway_rate_limit_rejections_total", "Requests rejected by rate limiter", ["path"]
 )
 
+BULKHEAD_PAYMENTS_MAX = int(os.getenv("BULKHEAD_PAYMENTS_MAX", "10"))
+BULKHEAD_PAYMENTS_TIMEOUT_S = float(os.getenv("BULKHEAD_PAYMENTS_TIMEOUT_S", "0.5"))
+
+class BulkheadFullError(Exception):
+    pass
+
+class Bulkhead:
+    def __init__(self, name: str, max_concurrent: int, acquire_timeout_s: float):
+        self.name = name
+        self.sem = asyncio.Semaphore(max_concurrent)
+        self.acquire_timeout_s = acquire_timeout_s
+        self.in_flight = Gauge(
+            "gateway_bulkhead_in_flight",
+            "Currently in-flight requests per bulkhead",
+            ["target"]
+        )
+        self.rejections = Counter(
+            "gateway_bulkhead_rejections_total",
+            "Rejected requests because bulkhead full",
+            ["target"]
+        )
+
+    async def call(self, func):
+        try:
+            await asyncio.wait_for(self.sem.acquire(), timeout=self.acquire_timeout_s)
+        except asyncio.TimeoutError:
+            self.rejections.labels(target=self.name).inc()
+            raise BulkheadFullError(f"bulkhead[{self.name}] full after {self.acquire_timeout_s}s")
+
+        self.in_flight.labels(target=self.name).inc()
+        try:
+            return await func()
+        finally:
+            self.in_flight.labels(target=self.name).dec()
+            self.sem.release()
+
+payments_bulkhead = Bulkhead("payments", BULKHEAD_PAYMENTS_MAX, BULKHEAD_PAYMENTS_TIMEOUT_S)
+
 client = httpx.AsyncClient(timeout=GATEWAY_TIMEOUT_MS / 1000)
 
 
@@ -101,8 +139,40 @@ async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
     See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
     will pick up your implementation automatically.
     """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    last_exc = None
+    for attempt in range(max_retries):
+        try:
+            result = await func()
+            if attempt > 0:
+                RETRY_TOTAL.labels(target=target, result="succeeded_after_retry").inc()
+            return result
+        except Exception as e:
+            last_exc = e
+            if isinstance(e, httpx.TimeoutException) or isinstance(e, httpx.ConnectError):
+                retryable = True
+            elif isinstance(e, httpx.HTTPStatusError):
+                status = e.response.status_code
+                if status >= 500 or status in (408, 429):
+                    retryable = True
+                else:
+                    RETRY_TOTAL.labels(target=target, result="non_retryable").inc()
+                    raise
+            else:
+                RETRY_TOTAL.labels(target=target, result="non_retryable").inc()
+                raise
+
+            if not retryable:
+                RETRY_TOTAL.labels(target=target, result="non_retryable").inc()
+                raise
+
+            if attempt == max_retries - 1:
+                RETRY_TOTAL.labels(target=target, result="exhausted").inc()
+                raise last_exc
+
+            delay = (RETRY_BASE_DELAY_MS / 1000.0) * (2 ** attempt) + random.uniform(0, RETRY_BASE_DELAY_MS / 1000.0)
+            RETRY_TOTAL.labels(target=target, result="retried").inc()
+            await asyncio.sleep(delay)
+    raise last_exc
 
 
 class CircuitOpenError(Exception):
@@ -144,8 +214,22 @@ class CircuitBreaker:
         No-op default: just calls func. Lab 11 task 11.7 replaces this with
         the state machine. Raise `CircuitOpenError` when the circuit is open.
         """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == "OPEN":
+            if time.time() - self.opened_at >= self.cooldown:
+                self._transition("HALF_OPEN")
+            else:
+                raise CircuitOpenError(f"circuit[{self.name}] OPEN")
+        try:
+            result = await func()
+            self.failures = 0
+            self._transition("CLOSED")
+            return result
+        except Exception as e:
+            self.failures += 1
+            self.opened_at = time.time()
+            if self.state == "HALF_OPEN" or self.failures >= self.threshold:
+                self._transition("OPEN")
+            raise
 
 
 class RateLimiter:
@@ -166,7 +250,14 @@ class RateLimiter:
 
         No-op default: always True. Lab 11 task 11.8 replaces this body.
         """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        q = self.hits[key]
+        cutoff = now - self.window_s
+        while q and q[0] < cutoff:
+            q.popleft()
+        if len(q) >= self.rps:
+            return False
+        q.append(now)
         return True
 
 
@@ -293,7 +384,7 @@ async def reserve_tickets(event_id: int, request: Request):
 
 
 async def _notify_order_confirmed(reservation_id: str):
-    """Fire-and-forget notification; failure MUST NOT break the user flow.
+    """Fire-and-forget notifications; failure MUST NOT break the user flow.
 
     No-op when NOTIFICATIONS_URL is unset (labs 1-10). When configured (Lab 11+)
     POSTs to /notify and swallows errors with a warning.
@@ -327,8 +418,15 @@ async def pay_reservation(reservation_id: str):
         return resp
 
     try:
-        pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        pay_resp = await payments_bulkhead.call(
+            lambda: payments_cb.call(
+                lambda: call_with_retry(_charge, target="payments")
+            )
+        )
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
+    except BulkheadFullError:
+        log.error("bulkhead full, skipping payments call")
+        raise HTTPException(503, "Payment service temporarily overloaded (bulkhead full)")
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
         raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")

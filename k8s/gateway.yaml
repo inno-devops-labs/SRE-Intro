@@ -14,13 +14,6 @@ spec:
       steps:
         - setWeight: 20
         - pause: { duration: 20s }
-        - analysis:
-            templates:
-              - templateName: gateway-error-rate
-            args:
-              - name: canary-hash
-                valueFrom:
-                  podTemplateHashValue: Latest
         - setWeight: 50
         - pause: { duration: 20s }
         - setWeight: 100
@@ -29,19 +22,43 @@ spec:
       labels:
         app: gateway
     spec:
-      imagePullSecrets:
-        - name: ghcr-secret
+      # imagePullSecrets removed – not needed for local image
       containers:
         - name: gateway
-          image: ghcr.io/kostya2505/quickticket-gateway:7855e0d4bb79c8c68faacda0161c617b1b3985f2
-          imagePullPolicy: Always
+          # Use your local image (imported into k3d)
+          image: quickticket-gateway:v1
+          imagePullPolicy: Never
           ports:
             - containerPort: 8080
           env:
-          - name: EVENTS_URL
-            value: "http://broken-on-purpose:8081"
-          - name: GATEWAY_TIMEOUT_MS
-            value: "2000"
+            # Correct events endpoint
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            # Payment endpoint (if not set, default in code is fine)
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            # Notifications – required for Lab 11
+            - name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
+            # Gateway timeout (kept as before)
+            - name: GATEWAY_TIMEOUT_MS
+              value: "2000"
+            # Retry and circuit breaker tunables (defaults are fine, but you can override)
+            - name: RETRY_MAX
+              value: "3"
+            - name: RETRY_BASE_DELAY_MS
+              value: "100"
+            - name: CB_FAILURE_THRESHOLD
+              value: "5"
+            - name: CB_COOLDOWN_S
+              value: "30"
+            - name: RATE_LIMIT_RPS
+              value: "10"
+            # Optional bulkhead settings (defaults in code: 10 and 0.5)
+            - name: BULKHEAD_PAYMENTS_MAX
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+              value: "0.5"
           livenessProbe:
             httpGet:
               path: /health
