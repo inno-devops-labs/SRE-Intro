@@ -1,0 +1,97 @@
+apiVersion: argoproj.io/v1alpha1     # ← Changed
+kind: Rollout                         # ← Changed
+metadata:
+  name: gateway
+spec:
+  replicas: 5                         # ← Need 5 for meaningful canary splits
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: { duration: 20s }
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: { duration: 20s }
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        version: "v2"
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway     # don't block scheduling on single-node
+          labelSelector:
+            matchLabels:
+              app: gateway
+      # Give in-flight requests time to finish after SIGTERM (10s preStop + up to 30s drain).
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: gateway
+          image: quickticket-gateway:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          lifecycle:
+            # Sleep BEFORE SIGTERM reaches the app so kube-proxy / endpoints controllers
+            # propagate this pod's NotReady state to every node's iptables, stopping new
+            # traffic here BEFORE uvicorn shuts down (closes the SIGTERM+traffic RST window).
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          env:
+            - name: APP_VERSION
+              value: "v7"
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 2
+            failureThreshold: 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
