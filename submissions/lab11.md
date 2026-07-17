@@ -1,3 +1,5 @@
+# Lab 11 — Advanced Microservice Patterns
+
 ## Task 1 — Notifications Service + Retries (4 pts)
 
 ### 11.1 – Notifications service
