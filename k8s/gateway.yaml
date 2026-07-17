@@ -29,6 +29,14 @@ spec:
       labels:
         app: gateway
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
+      terminationGracePeriodSeconds: 40
       imagePullSecrets:
         - name: ghcr-secret
       containers:
@@ -42,6 +50,10 @@ spec:
             value: "http://broken-on-purpose:8081"
           - name: GATEWAY_TIMEOUT_MS
             value: "2000"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           livenessProbe:
             httpGet:
               path: /health
@@ -54,9 +66,9 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 60
-            periodSeconds: 5
-            failureThreshold: 30
+            initialDelaySeconds: 10
+            periodSeconds: 2
+            failureThreshold: 1
           resources:
             requests:
               cpu: 50m
