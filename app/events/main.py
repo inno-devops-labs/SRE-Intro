@@ -1,74 +1,54 @@
 """QuickTicket Events — Ticket management, reservations, orders."""
 
 import os
+import json
 import uuid
 import time
-import json
-import logging
 
 import psycopg2
-import psycopg2.pool
-import redis
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from starlette.responses import JSONResponse
+from psycopg2 import pool
 
-# --- Config ---
-DB_HOST = os.getenv("DB_HOST", "postgres")
-DB_PORT = int(os.getenv("DB_PORT", "5432"))
-DB_NAME = os.getenv("DB_NAME", "quickticket")
-DB_USER = os.getenv("DB_USER", "quickticket")
-DB_PASS = os.getenv("DB_PASS", "quickticket")
-DB_MAX_CONNS = int(os.getenv("DB_MAX_CONNS", "10"))
+app = FastAPI()
 
-REDIS_HOST = os.getenv("REDIS_HOST", "redis")
-REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
-REDIS_TIMEOUT_MS = int(os.getenv("REDIS_TIMEOUT_MS", "1000"))
-RESERVATION_TTL = int(os.getenv("RESERVATION_TTL", "300"))  # 5 minutes
+# Prometheus metrics
+REQUEST_COUNT = Counter('events_requests_total', 'Total requests', ['method', 'endpoint', 'status'])
+REQUEST_DURATION = Histogram('events_request_duration_seconds', 'Request duration', ['method', 'endpoint'])
+RESERVATIONS_ACTIVE = Gauge('events_reservations_active', 'Active reservations')
+ORDERS_TOTAL = Counter('events_orders_total', 'Total orders confirmed')
+DB_POOL_SIZE = Gauge('events_db_pool_size', 'DB pool size')
 
-# --- Logging ---
-logging.basicConfig(
-    format='{"time":"%(asctime)s","level":"%(levelname)s","service":"events","msg":"%(message)s"}',
-    level=logging.INFO,
-)
-log = logging.getLogger("events")
-
-# --- App ---
-app = FastAPI(title="QuickTicket Events", version="1.0.0")
-
-# --- Prometheus metrics ---
-REQUEST_COUNT = Counter("events_requests_total", "Total requests", ["method", "path", "status"])
-REQUEST_DURATION = Histogram("events_request_duration_seconds", "Request duration", ["method", "path"])
-RESERVATIONS_ACTIVE = Gauge("events_reservations_active", "Active reservations in Redis")
-ORDERS_TOTAL = Counter("events_orders_total", "Total confirmed orders")
-DB_POOL_SIZE = Gauge("events_db_pool_size", "Current DB connection pool size")
-
-# --- DB pool ---
+# DB pool
 db_pool = None
 redis_client = None
+
+RESERVATION_TTL = 300  # 5 minutes
 
 
 @app.on_event("startup")
 def startup():
     global db_pool, redis_client
-    for attempt in range(10):
-        try:
-            db_pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn=2, maxconn=DB_MAX_CONNS,
-                host=DB_HOST, port=DB_PORT, dbname=DB_NAME, user=DB_USER, password=DB_PASS,
-            )
-            log.info(f"DB pool created (max={DB_MAX_CONNS})")
-            break
-        except Exception as e:
-            log.warning(f"DB connection attempt {attempt+1}/10 failed: {e}")
-            time.sleep(2)
-    else:
-        log.error("Could not connect to database after 10 attempts")
+    try:
+        db_pool = pool.SimpleConnectionPool(
+            minconn=1,
+            maxconn=10,
+            host="postgres",
+            port=5432,
+            database="quickticket",
+            user="quickticket",
+            password="quickticket",
+        )
+        log.info("DB pool created")
+    except Exception as e:
+        log.error(f"DB pool creation failed: {e}")
 
     try:
+        import redis
         redis_client = redis.Redis(
-            host=REDIS_HOST, port=REDIS_PORT,
-            socket_timeout=REDIS_TIMEOUT_MS / 1000,
+            host="redis",
+            port=6379,
             socket_connect_timeout=0.5,
             decode_responses=True,
         )
@@ -141,10 +121,10 @@ def list_events():
     try:
         cur = conn.cursor()
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue, e.scheduled_at, e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
-            GROUP BY e.id ORDER BY e.event_date
+            GROUP BY e.id ORDER BY e.scheduled_at
         """)
         rows = cur.fetchall()
         cur.close()
@@ -166,7 +146,7 @@ def get_event(event_id: int):
     try:
         cur = conn.cursor()
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue, e.scheduled_at, e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
             WHERE e.id = %s GROUP BY e.id
@@ -326,3 +306,6 @@ def _check_redis():
     except Exception:
         _redis_ok = False
     return _redis_ok
+
+import logging
+log = logging.getLogger(__name__)

@@ -1,5 +1,5 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: gateway
   labels:
@@ -7,14 +7,6 @@ metadata:
     version: "v2"
 spec:
   replicas: 5
-  strategy:
-    canary:
-      steps:
-        - setWeight: 20
-        - pause: {}
-        - setWeight: 60
-        - pause: {duration: 30s}
-        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -23,6 +15,14 @@ spec:
       labels:
         app: gateway
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
+      terminationGracePeriodSeconds: 40
       containers:
         - name: gateway
           image: quickticket-gateway:v1
@@ -38,6 +38,10 @@ spec:
               value: "v2"
           ports:
             - containerPort: 8080
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           livenessProbe:
             httpGet:
               path: /health
@@ -49,8 +53,8 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
           resources:
             requests:
               cpu: 50m
