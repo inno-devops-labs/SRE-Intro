@@ -39,6 +39,8 @@ spec:
             - name: PAYMENTS_URL
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
+            - name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
               value: "5000"
             - name: APP_VERSION
               value: "v2"
