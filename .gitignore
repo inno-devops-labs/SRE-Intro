@@ -1,11 +1,11 @@
+
 # Instructor-only reference submissions (dry-run results, not student deliverables)
 refs/
 
-# Local tooling
+# Load generator locustfile is copied from labs/lab10/locustfile.py
+!/locustfile.py
+
+# Dry-run / local tooling
 .venv/
 __pycache__/
 *.pyc
-
-# Student deliverables (submissions/, k8s/, migrations/, .github/, locustfile.py,
-# monitoring/prometheus/) are intentionally NOT ignored — labs require committing
-# them to your fork and opening a PR.
