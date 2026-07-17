@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: notifications
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: notifications
@@ -12,6 +12,7 @@ spec:
       labels:
         app: notifications
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
       - name: notifications
         image: quickticket-notifications:v1

@@ -26,14 +26,26 @@ spec:
       labels:
         app: gateway
     spec:
+      terminationGracePeriodSeconds: 30
       imagePullSecrets:
         - name: ghcr-secret
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: gateway
       containers:
       - name: gateway
         image: ghcr.io/viadimirsoiovev/quickticket-gateway:28a91268965beceb94e2f78aba5f30c50bb6ba6c
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 3"]
         env:
         - name: EVENTS_URL
           value: "http://events:8081"
