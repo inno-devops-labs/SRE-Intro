@@ -1,0 +1,94 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  replicas: 5
+  strategy:
+    canary:                      
+      steps:
+        - setWeight: 20
+        - pause: {duration: 60s}    
+        - setWeight: 40
+        - pause: {duration: 60s}
+        - setWeight: 60
+        - pause: {duration: 60s}
+        - setWeight: 80
+        - pause: {duration: 30s}
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      terminationGracePeriodSeconds: 30
+      imagePullSecrets:
+        - name: ghcr-secret
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: gateway
+      containers:
+      - name: gateway
+        image: ghcr.io/viadimirsoiovev/quickticket-gateway:28a91268965beceb94e2f78aba5f30c50bb6ba6c
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 3"]
+        env:
+        - name: EVENTS_URL
+          value: "http://events:8081"
+        - name: PAYMENTS_URL
+          value: "http://payments:8082"
+        - name: GATEWAY_TIMEOUT_MS
+          value: "5000"
+        - name: APP_VERSION
+          value: "v5-multi"
+        - name: NOTIFICATIONS_URL
+          value: "http://notifications:8083"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
