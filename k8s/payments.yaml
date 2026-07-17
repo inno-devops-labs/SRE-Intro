@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: payments
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: payments
@@ -15,7 +15,7 @@ spec:
       containers:
         - name: payments
           image: ghcr.io/aaammi/quickticket-payments:358b8527d0a9c14e1ef79e13ea3ac3c41fa406a1
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8082
           env:

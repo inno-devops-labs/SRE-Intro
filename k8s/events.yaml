@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: events
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -15,7 +15,7 @@ spec:
       containers:
         - name: events
           image: ghcr.io/aaammi/quickticket-events:358b8527d0a9c14e1ef79e13ea3ac3c41fa406a1
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           ports:
             - containerPort: 8081
           env:

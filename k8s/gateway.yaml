@@ -9,15 +9,8 @@ spec:
       steps:
         - setWeight: 20
         - pause: {duration: 20s}
-        - analysis:
-            templates:
-              - templateName: gateway-error-rate
-            args:
-              - name: canary-hash
-                valueFrom:
-                  podTemplateHashValue: Latest
-        - setWeight: 50
-        - pause: {duration: 20s}
+        - setWeight: 60
+        - pause: {duration: 30s}
         - setWeight: 100
   selector:
     matchLabels:
@@ -27,6 +20,14 @@ spec:
       labels:
         app: gateway
     spec:
+      terminationGracePeriodSeconds: 40
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
       containers:
         - name: gateway
           image: quickticket-gateway:v1
@@ -40,8 +41,14 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            - name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
             - name: APP_VERSION
               value: "v2"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           livenessProbe:
             httpGet:
               path: /health
