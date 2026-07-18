@@ -9,3 +9,5 @@ __pycache__/
 # Student deliverables (submissions/, k8s/, migrations/, .github/, locustfile.py,
 # monitoring/prometheus/) are intentionally NOT ignored — labs require committing
 # them to your fork and opening a PR.
+.direnv
+*/.obsidian
