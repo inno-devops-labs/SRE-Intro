@@ -1,0 +1,6 @@
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 71bb81f90644, baseline - pre-existing schema
+INFO  [alembic.runtime.migration] Running upgrade 71bb81f90644 -> 80e41ae35bfd, add email column to events
+INFO  [alembic.runtime.migration] Running upgrade 80e41ae35bfd -> a06ff4ace509, index events.event_date concurrently
+alembic upgrade head  0.17s user 0.04s system 73% cpu 0.279 total

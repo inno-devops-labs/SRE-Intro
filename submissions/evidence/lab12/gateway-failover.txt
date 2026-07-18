@@ -1,0 +1,8 @@
+NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+gateway   5         5         5            5           31h
+NAME                       READY   STATUS    RESTARTS   AGE     IP            NODE                       NOMINATED NODE   READINESS GATES
+gateway-64f8c55856-cb9bb   1/1     Running   0          2m42s   10.42.0.99    k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-gxfh7   1/1     Running   0          2m42s   10.42.0.98    k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-j9v9t   1/1     Running   0          2m59s   10.42.0.96    k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-mmd68   1/1     Running   0          2m59s   10.42.0.95    k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-nmz75   1/1     Running   0          41s     10.42.0.101   k3d-quickticket-server-0   <none>           <none>
