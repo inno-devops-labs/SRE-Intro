@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules.yml"
+
+scrape_configs:
+  # YOUR TASK: Add scrape targets for all 3 QuickTicket services
+  # Each target needs:
+  #   - job_name: a label identifying the service
+  #   - static_configs.targets: ["hostname:port"]
+  #
+  # Hint: Docker Compose service names work as hostnames
+  # Hint: Use the internal port (not the published port)
+  - job_name: 'gateway-metrics'
+    static_configs:
+      - targets: ['gateway:8080']
+  - job_name: 'events-metrics'
+    static_configs:
+      - targets: ['events:8081']
+  - job_name: 'payments-metrics'
+    static_configs:
+      - targets: ['payments:8082']
