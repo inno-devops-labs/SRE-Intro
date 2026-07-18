@@ -1,0 +1,5 @@
+NAME     READY   UP-TO-DATE   AVAILABLE   AGE
+events   2/2     2            2           31h
+NAME                     READY   STATUS    RESTARTS   AGE     IP            NODE                       NOMINATED NODE   READINESS GATES
+events-675d86c77-kwf4m   1/1     Running   0          2m17s   10.42.0.92    k3d-quickticket-server-0   <none>           <none>
+events-675d86c77-ws7bk   1/1     Running   0          34s     10.42.0.100   k3d-quickticket-server-0   <none>           <none>
