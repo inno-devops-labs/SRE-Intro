@@ -1,0 +1,41 @@
+gateway-1   | 2026-09-13T16:43:11.132120924Z INFO:     Started server process [1]
+payments-1  | 2026-09-13T16:43:05.472617213Z INFO:     Started server process [1]
+payments-1  | 2026-09-13T16:43:05.472632796Z INFO:     Waiting for application startup.
+payments-1  | 2026-09-13T16:43:05.472703838Z INFO:     Application startup complete.
+gateway-1   | 2026-09-13T16:43:11.132140965Z INFO:     Waiting for application startup.
+gateway-1   | 2026-09-13T16:43:11.132142257Z INFO:     Application startup complete.
+payments-1  | 2026-09-13T16:43:05.472816254Z INFO:     Uvicorn running on http://0.0.0.0:8082 (Press CTRL+C to quit)
+gateway-1   | 2026-09-13T16:43:11.132226965Z INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+payments-1  | 2026-09-13T16:43:43.295506675Z {"time":"2026-09-13 16:43:43,295","level":"INFO","service":"payments","msg":"Payment success: PAY-D33A4F79 for 556d3f26-cdae-45cc-b08c-c54f8a0a0fdf"}
+payments-1  | 2026-09-13T16:43:43.296132800Z INFO:     172.25.0.6:54406 - "POST /charge HTTP/1.1" 200 OK
+events-1    | 2026-09-13T16:43:11.094558757Z INFO:     Started server process [1]
+events-1    | 2026-09-13T16:43:11.094574132Z INFO:     Waiting for application startup.
+gateway-1   | 2026-09-13T16:43:19.786122845Z {"time":"2026-09-13 16:43:19,785","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/1/reserve "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-13T16:43:19.786823845Z INFO:     192.168.65.1:40181 - "POST /events/1/reserve HTTP/1.1" 200 OK
+gateway-1   | 2026-09-13T16:43:43.296957050Z {"time":"2026-09-13 16:43:43,296","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://payments:8082/charge "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-13T16:43:43.305912758Z {"time":"2026-09-13 16:43:43,305","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/reservations/556d3f26-cdae-45cc-b08c-c54f8a0a0fdf/confirm "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-13T16:43:43.306547966Z INFO:     192.168.65.1:23223 - "POST /reserve/556d3f26-cdae-45cc-b08c-c54f8a0a0fdf/pay HTTP/1.1" 200 OK
+events-1    | 2026-09-13T16:43:11.101049382Z {"time":"2026-09-13 16:43:11,100","level":"INFO","service":"events","msg":"DB pool created (max=10)"}
+postgres-1  | 2026-09-13T16:43:05.271236379Z 
+events-1    | 2026-09-13T16:43:11.102441340Z {"time":"2026-09-13 16:43:11,102","level":"INFO","service":"events","msg":"Redis connected"}
+events-1    | 2026-09-13T16:43:11.102499215Z INFO:     Application startup complete.
+events-1    | 2026-09-13T16:43:11.102579090Z INFO:     Uvicorn running on http://0.0.0.0:8081 (Press CTRL+C to quit)
+events-1    | 2026-09-13T16:43:19.785192428Z {"time":"2026-09-13 16:43:19,785","level":"INFO","service":"events","msg":"Reserved 1 tickets for event 1: 556d3f26-cdae-45cc-b08c-c54f8a0a0fdf"}
+events-1    | 2026-09-13T16:43:19.785549970Z INFO:     172.25.0.6:36536 - "POST /events/1/reserve HTTP/1.1" 200 OK
+redis-1     | 2026-09-13T16:43:05.274852963Z 1:C 13 Sep 2026 16:43:05.274 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+redis-1     | 2026-09-13T16:43:05.274880004Z 1:C 13 Sep 2026 16:43:05.274 * Redis version=7.4.11, bits=64, commit=00000000, modified=0, pid=1, just started
+redis-1     | 2026-09-13T16:43:05.274882296Z 1:C 13 Sep 2026 16:43:05.274 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+redis-1     | 2026-09-13T16:43:05.275003421Z 1:M 13 Sep 2026 16:43:05.274 * monotonic clock: POSIX clock_gettime
+redis-1     | 2026-09-13T16:43:05.275456546Z 1:M 13 Sep 2026 16:43:05.275 * Running mode=standalone, port=6379.
+postgres-1  | 2026-09-13T16:43:05.271247046Z PostgreSQL Database directory appears to contain a database; Skipping initialization
+postgres-1  | 2026-09-13T16:43:05.271248463Z 
+redis-1     | 2026-09-13T16:43:05.275610213Z 1:M 13 Sep 2026 16:43:05.275 * Server initialized
+redis-1     | 2026-09-13T16:43:05.275614879Z 1:M 13 Sep 2026 16:43:05.275 * Ready to accept connections tcp
+postgres-1  | 2026-09-13T16:43:05.284597713Z 2026-09-13 16:43:05.284 UTC [1] LOG:  starting PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+postgres-1  | 2026-09-13T16:43:05.284616963Z 2026-09-13 16:43:05.284 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+postgres-1  | 2026-09-13T16:43:05.284619046Z 2026-09-13 16:43:05.284 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+postgres-1  | 2026-09-13T16:43:05.286562629Z 2026-09-13 16:43:05.286 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+postgres-1  | 2026-09-13T16:43:05.289105254Z 2026-09-13 16:43:05.289 UTC [29] LOG:  database system was shut down at 2026-09-13 16:42:57 UTC
+postgres-1  | 2026-09-13T16:43:05.291137379Z 2026-09-13 16:43:05.291 UTC [1] LOG:  database system is ready to accept connections
+events-1    | 2026-09-13T16:43:43.305296758Z {"time":"2026-09-13 16:43:43,305","level":"INFO","service":"events","msg":"Order confirmed: 556d3f26-cdae-45cc-b08c-c54f8a0a0fdf"}
+events-1    | 2026-09-13T16:43:43.305563258Z INFO:     172.25.0.6:58602 - "POST /reservations/556d3f26-cdae-45cc-b08c-c54f8a0a0fdf/confirm HTTP/1.1" 200 OK
