@@ -194,3 +194,61 @@ content-type: application/json
 ## Task 3 — GitHub Community
 
 Stars help developers bookmark useful open-source projects and increase their visibility in the community. Following developers makes it easier to discover their work, stay aware of teammates' activity, and maintain professional connections for future collaboration.
+
+---
+
+## Bonus Task — Resource Usage Under Load
+
+### Idle
+
+```text
+NAME             CPU %     MEM USAGE / LIMIT      NET I/O           PIDS
+app-gateway-1    0.26%     38.04MiB / 15.33GiB   3.58kB / 2.28kB   2
+app-events-1     0.22%     43.24MiB / 15.33GiB   415kB / 560kB     2
+app-postgres-1   4.25%     25.02MiB / 15.33GiB   224kB / 261kB     8
+app-payments-1   0.22%     32.46MiB / 15.33GiB   1.22kB / 126B     1
+app-redis-1      5.02%     4.559MiB / 15.33GiB   65.5kB / 26.9kB   6
+```
+
+### Under Load
+
+Load generator: 10 requests/second for 30 seconds.
+
+```text
+NAME             CPU %     MEM USAGE / LIMIT      NET I/O           PIDS
+app-gateway-1    5.07%     38.41MiB / 15.33GiB   145kB / 140kB     2
+app-events-1     2.65%     43.27MiB / 15.33GiB   537kB / 727kB     2
+app-postgres-1   0.78%     24.94MiB / 15.33GiB   292kB / 340kB     8
+app-payments-1   0.23%     33.6MiB / 15.33GiB    5.27kB / 2.91kB   2
+app-redis-1      1.12%     4.109MiB / 15.33GiB   83.8kB / 34.6kB   6
+```
+
+### Under Stress With Payment Fault Injection
+
+Payments was restarted with:
+
+```text
+PAYMENT_FAILURE_RATE=0.3
+PAYMENT_LATENCY_MS=500
+```
+
+The same 10 RPS load was then applied.
+
+```text
+NAME             CPU %     MEM USAGE / LIMIT      NET I/O           PIDS
+app-payments-1   0.25%     35.13MiB / 15.33GiB   3.03kB / 2.06kB   2
+app-gateway-1    3.62%     38.54MiB / 15.33GiB   458kB / 441kB     2
+app-events-1     1.76%     43.34MiB / 15.33GiB   798kB / 1.08MB    2
+app-postgres-1   0.45%     24.84MiB / 15.33GiB   440kB / 517kB     8
+app-redis-1      0.99%     4.359MiB / 15.33GiB   110kB / 46.4kB    6
+```
+
+### Analysis
+
+The `events` service used the most memory in all three scenarios, staying at about 43 MiB. Its memory usage remained almost unchanged under load, so the test did not show significant memory growth caused by traffic.
+
+Under normal load, `gateway` had the highest observed CPU usage at 5.07%, increasing from 0.26% at idle. This is expected because all external requests pass through the gateway and it performs routing and calls to downstream services.
+
+With payment fault injection enabled, gateway memory increased slightly from 38.41 MiB to 38.54 MiB, while its observed CPU usage was 3.62%. The injected 500 ms payment latency makes payment requests remain active in the gateway for longer. In this single snapshot this did not produce a large memory increase, but it demonstrates how slow downstream dependencies can cause the gateway to hold requests and connections for longer.
+
+The `payments` service also increased from 32.46 MiB at idle to 35.13 MiB during the fault-injection scenario. Overall, the measurements show that the gateway is the most CPU-sensitive component under request load, while the events service consistently consumes the most memory.
