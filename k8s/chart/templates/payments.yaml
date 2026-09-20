@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.payments.replicas }}
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      containers:
+        - name: payments
+          image: {{ .Values.payments.image | quote }}
+          imagePullPolicy: {{ .Values.payments.imagePullPolicy }}
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: {{ .Values.payments.failureRate | quote }}
+            - name: PAYMENT_LATENCY_MS
+              value: {{ .Values.payments.latencyMs | quote }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.payments.port }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.payments.port }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.payments.port }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  selector:
+    app: payments
+  ports:
+    - name: http
+      port: {{ .Values.payments.port }}
+      targetPort: {{ .Values.payments.port }}
