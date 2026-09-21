@@ -1,33 +1,14 @@
 # Lab 3 — Monitoring, Observability & SLOs
 
-## Стенд
+Test date: 21 September 2026. All timestamps below are UTC.
 
-Проверка выполнена 21 сентября 2026 года. Время в отчете — UTC (Москва: UTC+3).
+Docker Hub was unavailable, so the test used cached Prometheus 2.54.0 and Grafana 12.2.0 images through [compose.local.yaml](../lab3-results/compose.local.yaml). The main Compose file keeps the versions provided in the lab.
 
-Настроены Prometheus, шесть панелей Grafana и три recording rules. Проверены остановка payments и сбой с вероятностью ошибки 50% и задержкой 1000 мс.
+## Task 1 — Monitoring and dashboard
 
-Docker Hub при запуске вернул `network is unreachable`. Поэтому для проверки использованы локальные образы Prometheus 2.54.0 и Grafana 12.2.0. Версии из задания в основном compose-файле сохранены; локальные версии указаны в `lab3-results/compose.local.yaml`.
+Prometheus scrapes gateway, events and payments every 15 seconds.
 
-Запуск из корня репозитория:
-
-```bash
-docker compose -f app/docker-compose.yaml \
-  -f docker-compose.monitoring.yaml \
-  -f lab3-results/compose.local.yaml up -d --no-build --pull never
-```
-
-Образы приложения уже были собраны в предыдущей лабораторной. Для новой машины сначала нужно собрать приложение. Обычный запуск с версиями из задания:
-
-```bash
-cd app
-docker compose -f docker-compose.yaml -f ../docker-compose.monitoring.yaml up -d --build
-```
-
-## Task 1. Monitoring и Golden Signals
-
-Prometheus опрашивает `gateway:8080`, `events:8081` и `payments:8082` раз в 15 секунд. Конфигурация: [prometheus.yml](../monitoring/prometheus/prometheus.yml).
-
-### Запущенные сервисы
+### Compose services
 
 ```text
 NAME               IMAGE                     COMMAND                  SERVICE      CREATED          STATUS                    PORTS
@@ -40,7 +21,7 @@ app-prometheus-1   prom/prometheus:v2.54.0   "/bin/prometheus --c…"   promethe
 app-redis-1        redis:7-alpine            "docker-entrypoint.s…"   redis        7 days ago       Up 14 minutes (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
 ```
 
-### Targets
+### Prometheus targets
 
 ```text
 events       up       http://events:8081/metrics
@@ -48,9 +29,7 @@ gateway      up       http://gateway:8080/metrics
 payments     up       http://payments:8082/metrics
 ```
 
-### Метрики
-
-Список метрик приложения из `/api/v1/label/__name__/values` после нагрузки:
+### Custom metrics
 
 ```text
 events_db_pool_size
@@ -79,21 +58,21 @@ payments_requests_created
 payments_requests_total
 ```
 
-### Нагрузка и запросы
+### Request rate
 
-Использован стандартный `app/loadgen/run.sh` с аргументом 5 req/s. Генератор работает последовательно и делает паузу после запроса, поэтому фактическая скорость ниже заданной. Один сценарий покупки включает два HTTP-запроса. При длительной нагрузке появились также 409 из-за нехватки доступных для бронирования билетов. Генератор считает их ошибками, но Error Rate и availability в этой работе учитывают только 5xx; поэтому проценты в выводе генератора и на дашборде различаются.
+The standard load generator was run with a target of 5 requests/s. Measured rate after the five-minute window filled:
 
 ```promql
 sum(rate(gateway_requests_total[5m]))
 ```
 
-В конце проверки, после прогрева пятиминутного окна:
-
 ```text
 Request rate: 4.51 req/s
 ```
 
-Панель Latency: Time series, единица — секунды.
+### Dashboard panels
+
+Latency: Time series, unit: seconds.
 
 ```promql
 histogram_quantile(0.50, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))
@@ -101,57 +80,42 @@ histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[1m])) 
 histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))
 ```
 
-Панель Saturation: Gauge, запрос `events_db_pool_size`, минимум 0, максимум 10. Цвет по умолчанию зеленый, с 7 — желтый, с 9 — красный. Метрика показывает занятые соединения в момент scrape, поэтому при коротких запросах может быть 0.
-
-Панель Error Rate использует `or vector(0)`, чтобы до первой ошибки показывать 0%, а не No data. Конфигурация всех панелей: [golden-signals.json](../monitoring/grafana/dashboards/golden-signals.json).
-
-### Остановка payments
-
-Нагрузка шла 200 секунд. Через 60 секунд payments был остановлен на 120 секунд, затем запущен снова. Более длинная нагрузка позволяет видеть весь сбой.
-
-| Состояние | Error Rate | p50 | p95 | p99 | DB pool |
-|---|---:|---:|---:|---:|---:|
-| Перед остановкой | 0% | 6.97 мс | 19.13 мс | 24.18 мс | 0 |
-| В конце остановки | 5.21% | 6.68 мс | 9.73 мс | 10.00 мс | 0 |
-
-Максимальная доля ошибок во время остановки — 7.44%. Чтение событий продолжало работать. Задержка не выросла: gateway быстро получал ошибку соединения с payments и возвращал 502. Перегрузки пула БД не было.
-
-Payments остановлен в **07:27:33 UTC**. Среди четырех Golden Signals первым сбой показал **Error Rate**: в 07:27:51 (примерно через **18 секунд**) значение стало 2.12%. Отдельная панель Service Health показала `up{job="payments"}=0` уже в 07:27:35, через 2 секунды. Service Health не относится к четырем Golden Signals.
-
-Время зафиксировано опросом тех же PromQL-запросов каждые 2 секунды. Grafana обновляется каждые 5 секунд, поэтому визуальное появление может немного отставать. На задержку влияют scrape раз в 15 секунд и необходимость двух точек для `rate()` новой серии ошибок.
-
-Payments запущен снова в **07:29:34 UTC**.
-
-![Дашборд после остановки payments](../lab3-results/dashboard-stopped.png)
-
-На скриншотах Grafana время московское (UTC+3).
-
-## Task 2. SLI, SLO и error budget
-
-**Availability SLI:** доля ответов gateway без 5xx. Цель — не менее 99.5% за 7 дней. Ответы 4xx считаются доступными по определению задания.
-
-**Latency SLI:** доля запросов gateway с длительностью до 500 мс (бакет `le="0.5"`, то есть ≤ 500 мс). Цель — не менее 95%; для долгосрочной оценки используется то же окно 7 дней.
-
-При 1000 запросов в день за неделю будет `1000 × 7 = 7000` запросов. Бюджет ошибок availability: `7000 × (1 − 0.995) = 35` ответов 5xx в неделю. Для latency допустимо до `7000 × 0.05 = 350` запросов дольше 500 мс.
-
-Три правила в [rules.yml](../monitoring/prometheus/rules.yml) вычисляются каждые 30 секунд:
+Saturation: Gauge, min 0, max 10; green by default, yellow at 7, red at 9.
 
 ```promql
-# gateway:sli_availability:ratio_rate5m
-sum(rate(gateway_requests_total{status!~"5.."}[5m]))
-/ sum(rate(gateway_requests_total[5m]))
-
-# gateway:sli_latency_500ms:ratio_rate5m
-sum(rate(gateway_request_duration_seconds_bucket{le="0.5"}[5m]))
-/ sum(rate(gateway_request_duration_seconds_count[5m]))
-
-# gateway:error_budget_burn_rate:ratio_rate5m
-(1 - gateway:sli_availability:ratio_rate5m) / (1 - 0.995)
+events_db_pool_size
 ```
 
-Burn rate > 1 означает, что при сохранении такой доли ошибок недельный бюджет будет потрачен раньше срока. Эти правила показывают последние 5 минут, а не итог за 7 дней. Короткий эксперимент демонстрирует реакцию SLI на сбой; данных для проверки недельного SLO пока нет.
+### Payments failure
 
-Правила подключены через `rule_files`, файл смонтирован в контейнер. Проверка `promtool check config /etc/prometheus/prometheus.yml` успешна: конфигурация валидна, найдены три правила.
+Traffic ran for 200 seconds. Payments was stopped after 60 seconds and restarted about two minutes later.
+
+| State | Error rate | p50 | p95 | p99 | DB pool |
+|---|---:|---:|---:|---:|---:|
+| Before failure | 0% | 6.97 ms | 19.13 ms | 24.18 ms | 0 |
+| End of outage | 5.21% | 6.68 ms | 9.73 ms | 10.00 ms | 0 |
+
+The error rate peaked at 7.44%. Event reads continued working. Latency did not increase because gateway quickly returned 502 when it could not connect to payments. The DB pool showed no saturation.
+
+**The first golden signal was Error Rate.** Payments stopped at 07:27:33; the error-rate query showed 2.12% at 07:27:51, about **18 seconds later**. Service Health showed `up=0` after 2 seconds, but it is not one of the four golden signals. These timings come from polling the panel queries every 2 seconds; Grafana refreshes every 5 seconds.
+
+Payments restarted at 07:29:34.
+
+## Task 2 — SLOs and recording rules
+
+- **Availability SLI:** percentage of gateway responses that are not 5xx. **SLO:** at least 99.5% over 7 days.
+- **Latency SLI:** percentage of gateway requests within 500 ms, using the `le="0.5"` bucket. **SLO:** at least 95%.
+
+At 1,000 requests/day, the weekly availability error budget is:
+
+```text
+1,000 × 7 = 7,000 requests/week
+7,000 × (1 - 0.995) = 35 allowed failures/week
+```
+
+The three rules in [rules.yml](../monitoring/prometheus/rules.yml) evaluate every 30 seconds. They track five-minute SLIs and burn rate, rather than the full seven-day SLO.
+
+Rules loaded successfully:
 
 ```text
 gateway:sli_availability:ratio_rate5m         = ok
@@ -159,38 +123,26 @@ gateway:sli_latency_500ms:ratio_rate5m        = ok
 gateway:error_budget_burn_rate:ratio_rate5m   = ok
 ```
 
-Панель Availability SLO: Gauge, запрос `gateway:sli_availability:ratio_rate5m * 100`, диапазон 99–100%, порог 99.5%. Используется текущее значение. При падении ниже 99% дуга находится на минимуме, но числовое значение показывает реальный процент.
+The availability Gauge uses `gateway:sli_availability:ratio_rate5m * 100`, min 99, max 100, threshold 99.5.
 
-До сбоя availability была 100%, burn rate — 0. В 07:28:07 UTC Gauge впервые опустился ниже цели: 97.59%, через 34 секунды после остановки. За время остановки минимальная availability составила **95.97%**, максимальный burn rate — **8.06**. Latency SLI оставался 100%: быстрые ошибки тоже укладываются в 500 мс. Поэтому проверять только задержку недостаточно.
+During the outage, availability fell from 100% to **95.97%**, and burn rate reached **8.06**. The Gauge first dropped below the target at 07:28:07, about 34 seconds after payments stopped. After recovery, old errors remained in the five-minute window before availability returned to 100%.
 
-После запуска payments ошибки перестают поступать, но Gauge возвращается к норме постепенно: в расчете остаются предыдущие пять минут.
+## Bonus — Correlating metrics and logs
 
-## Bonus. Корреляция метрик и логов
+Traffic ran for 180 seconds. After 30 seconds, payments was recreated with `PAYMENT_FAILURE_RATE=0.5` and `PAYMENT_LATENCY_MS=1000`. The failure was observed for two minutes.
 
-Нагрузка: `bash app/loadgen/run.sh 5 180`. Через 30 секунд payments пересоздан с настройками сбоя:
-
-```bash
-PAYMENT_FAILURE_RATE=0.5 PAYMENT_LATENCY_MS=1000 \
-  docker compose -f app/docker-compose.yaml \
-  -f docker-compose.monitoring.yaml -f lab3-results/compose.local.yaml \
-  up -d --no-deps --no-build --pull never --force-recreate payments
-```
-
-Наблюдение после пересоздания длилось 120 секунд. Именно пересоздание, а не `restart`, применяет новые переменные окружения.
-
-| Время UTC | Событие |
+| Time (UTC) | Event |
 |---|---|
-| 07:32:23 | Пересоздание payments с failure rate 0.5 и latency 1000 мс |
-| 07:32:45.216 | Первая запись `Injecting 1000ms latency` |
-| 07:32:52 | p99 в Prometheus вырос до 1.045 с |
-| 07:33:02.685 | Первая искусственная ошибка в payments |
-| 07:33:02.689 | Gateway вернул 500 для той же брони |
-| 07:33:22 | Error Rate в Prometheus стал 1.34% |
-| 07:34:25 | Payments пересоздан с нормальными настройками |
-| 07:34:29.345 | Первый успешный платеж после восстановления |
-| 07:35:07 | Error Rate вернулся к 0% |
+| 07:32:23 | Fault settings applied to payments |
+| 07:32:52 | p99 rose to 1.045 s |
+| 07:33:02.685 | First injected payment error |
+| 07:33:02.689 | Gateway returned 500 for the same reservation |
+| 07:33:22 | Error Rate showed 1.34% |
+| 07:34:25 | Normal payment settings restored |
+| 07:34:29.345 | First successful payment after recovery |
+| 07:35:07 | Error Rate returned to 0% |
 
-Фрагмент `docker compose logs --timestamps`:
+Log excerpts (formatting shortened):
 
 ```text
 payments 2026-09-21T07:33:01.685004258Z Injecting 1000ms latency for 1d3578f9-ed0b-4380-a084-5e28546b1e7f
@@ -200,34 +152,6 @@ gateway  2026-09-21T07:33:02.687519041Z HTTP Request: POST http://payments:8082/
 gateway  2026-09-21T07:33:02.689340366Z POST /reserve/1d3578f9-ed0b-4380-a084-5e28546b1e7f/pay HTTP/1.1 500 Internal Server Error
 ```
 
-Для читаемости убраны служебные поля; [исходный фрагмент](../lab3-results/failure-excerpt.txt) сохранен отдельно.
+**Root cause:** payments delayed requests by one second and injected 500 responses. Gateway passed the error to the client; the matching reservation ID connects both logs. Slow successful payments occurred before the first failure, so p99 rose before Error Rate. All targets remained `up` because their metrics endpoints were still reachable.
 
-Причина сбоя — настройки payments. Сервис сначала задержал обработку на секунду, затем вернул 500. Gateway передал эту ошибку клиенту. Одинаковый идентификатор брони связывает оба лога. Позже ошибка попала в scrape и стала видна в Error Rate. Перед первой ошибкой уже были успешные, но медленные платежи, поэтому p99 вырос раньше Error Rate.
-
-В этом опыте Error Rate достиг 2.01%, p99 — 2.053 с, а p95 оставался ниже 10 мс: платежей было мало относительно всех запросов. `histogram_quantile` оценивает перцентиль по бакетам; для задержек чуть выше 1 с широкий бакет до 2.5 с дает завышенную оценку p99. Это не означает, что настроенная задержка стала 2 секунды.
-
-Все targets оставались `up`: `/metrics` был доступен даже при ошибках бизнес-запросов. Минимальный latency SLI за этот этап — 99.28%, выше цели 95%. Общий SLI может скрывать проблему редкого платежного маршрута. Availability в начале бонуса еще учитывала ошибки предыдущего опыта, поэтому ее изменение нельзя целиком приписывать бонусному сбою.
-
-![Дашборд при задержках и ошибках payments](../lab3-results/dashboard-injected.png)
-
-После эксперимента payments пересоздан с `PAYMENT_FAILURE_RATE=0` и `PAYMENT_LATENCY_MS=0`. Затем нагрузка продолжалась еще 330 секунд для выхода ошибок из пятиминутного окна.
-
-Итоговая проверка: все 7 контейнеров работают, все 3 targets — `up`, правила — `ok`. Payments сообщает `failure_rate: 0.0`, `latency_ms: 0`.
-
-| Метрика | После восстановления |
-|---|---:|
-| Error Rate | 0.00% |
-| Availability SLI | 100.00% |
-| Latency SLI ≤ 500 мс | 100.00% |
-| Burn rate | 0.00 |
-| p99 | 17.35 мс |
-
-![Восстановленный стенд](../lab3-results/dashboard-recovered.png)
-
-[Замеры раз в 2 секунды](../lab3-results/measurements.csv), [время действий](../lab3-results/timeline.jsonl) и [вывод проверки конфигурации](../lab3-results/promtool.txt) сохранены вместе с отчетом. `NaN` в начале замеров означает, что еще не было двух scrape для расчета скорости.
-
-## Результат
-
-- [x] Task 1: Prometheus, три targets, Golden Signals, проверка остановки payments.
-- [x] Task 2: SLI/SLO, error budget, три recording rules и SLO Gauge.
-- [x] Bonus: управляемые ошибки и задержка, сопоставление времени в метриках и логах.
+After restoring both fault settings to zero and allowing the five-minute window to clear, Error Rate was 0%, availability and latency SLIs were 100%, and burn rate was 0. All seven services were running.

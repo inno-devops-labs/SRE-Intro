@@ -1,8 +1,0 @@
-NAME               IMAGE                     COMMAND                  SERVICE      CREATED          STATUS                    PORTS
-app-events-1       app-events                "uvicorn main:app --…"   events       7 days ago       Up 14 minutes             0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
-app-gateway-1      app-gateway               "uvicorn main:app --…"   gateway      7 days ago       Up 14 minutes             0.0.0.0:3080->8080/tcp, [::]:3080->8080/tcp
-app-grafana-1      grafana/grafana:12.2.0    "/run.sh"                grafana      14 minutes ago   Up 14 minutes             0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
-app-payments-1     app-payments              "uvicorn main:app --…"   payments     5 minutes ago    Up 5 minutes              0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
-app-postgres-1     postgres:17-alpine        "docker-entrypoint.s…"   postgres     7 days ago       Up 14 minutes (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
-app-prometheus-1   prom/prometheus:v2.54.0   "/bin/prometheus --c…"   prometheus   14 minutes ago   Up 14 minutes             0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp
-app-redis-1        redis:7-alpine            "docker-entrypoint.s…"   redis        7 days ago       Up 14 minutes (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp
