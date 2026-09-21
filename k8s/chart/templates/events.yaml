@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+spec:
+  replicas: {{ .Values.events.replicas }}
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      containers:
+      - name: events
+        image: {{ .Values.events.image | quote }}
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081
+        env:
+        - name: DB_HOST
+          value: {{ .Values.events.env.DB_HOST | quote }}
+        - name: DB_PORT
+          value: {{ .Values.events.env.DB_PORT | quote }}
+        - name: DB_NAME
+          value: {{ .Values.events.env.DB_NAME | quote }}
+        - name: DB_USER
+          value: {{ .Values.events.env.DB_USER | quote }}
+        - name: DB_PASS
+          value: {{ .Values.events.env.DB_PASS | quote }}
+        - name: DB_MAX_CONNS
+          value: {{ .Values.events.env.DB_MAX_CONNS | quote }}
+        - name: REDIS_HOST
+          value: {{ .Values.events.env.REDIS_HOST | quote }}
+        - name: REDIS_PORT
+          value: {{ .Values.events.env.REDIS_PORT | quote }}
+        - name: REDIS_TIMEOUT_MS
+          value: {{ .Values.events.env.REDIS_TIMEOUT_MS | quote }}
+        - name: RESERVATION_TTL
+          value: {{ .Values.events.env.RESERVATION_TTL | quote }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          periodSeconds: 5
+          failureThreshold: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  type: ClusterIP
+  selector:
+    app: events
+  ports:
+  - port: 8081
+    targetPort: 8081
