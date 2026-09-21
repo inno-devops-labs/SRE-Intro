@@ -1,0 +1,6 @@
+# Locally cached images: Docker Hub was unavailable during this run.
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.0
+  grafana:
+    image: grafana/grafana:12.2.0

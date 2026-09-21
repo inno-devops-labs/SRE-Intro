@@ -1,0 +1,63 @@
+payments-1  | 2026-09-21T07:34:25.923899621Z INFO:     Started server process [1]
+payments-1  | 2026-09-21T07:34:25.923941011Z INFO:     Waiting for application startup.
+payments-1  | 2026-09-21T07:34:25.924005974Z INFO:     Application startup complete.
+payments-1  | 2026-09-21T07:34:25.924126570Z INFO:     Uvicorn running on http://0.0.0.0:8082 (Press CTRL+C to quit)
+payments-1  | 2026-09-21T07:34:29.345138002Z {"time":"2026-09-21 07:34:29,344","level":"INFO","service":"payments","msg":"Payment success: PAY-892A8419 for 3adb3cb1-5c1d-4ea2-b47e-a22780b7b3e3"}
+payments-1  | 2026-09-21T07:34:29.345492004Z INFO:     172.20.0.8:48434 - "POST /charge HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:25.081163319Z {"time":"2026-09-21 07:34:25,081","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:25.082058049Z INFO:     172.20.0.1:49490 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:25.295510959Z {"time":"2026-09-21 07:34:25,295","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:25.296548945Z INFO:     172.20.0.1:49506 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:25.510252500Z {"time":"2026-09-21 07:34:25,510","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:25.511439409Z INFO:     172.20.0.1:49520 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:25.725273169Z {"time":"2026-09-21 07:34:25,725","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:25.726195535Z INFO:     172.20.0.1:49524 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:25.940593129Z {"time":"2026-09-21 07:34:25,940","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:25.941583073Z INFO:     172.20.0.1:49528 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:26.163564337Z {"time":"2026-09-21 07:34:26,163","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:26.164522350Z INFO:     172.20.0.1:49534 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:26.387553967Z {"time":"2026-09-21 07:34:26,387","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:26.389023066Z INFO:     172.20.0.1:49550 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:26.611910011Z {"time":"2026-09-21 07:34:26,611","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:26.612624724Z INFO:     172.20.0.1:49554 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:26.837679658Z {"time":"2026-09-21 07:34:26,837","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:26.840944115Z INFO:     172.20.0.1:49568 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:27.065335827Z {"time":"2026-09-21 07:34:27,064","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:27.066754096Z INFO:     172.20.0.1:49584 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:27.288762845Z {"time":"2026-09-21 07:34:27,288","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:27.289400713Z INFO:     172.20.0.1:49600 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:27.510035748Z {"time":"2026-09-21 07:34:27,509","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:27.511433344Z INFO:     172.20.0.1:49614 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:27.734930899Z {"time":"2026-09-21 07:34:27,734","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:27.736202017Z INFO:     172.20.0.1:49622 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:27.959203346Z {"time":"2026-09-21 07:34:27,958","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/4/reserve "HTTP/1.1 409 Conflict""}
+gateway-1   | 2026-09-21T07:34:27.960697774Z INFO:     172.20.0.1:49632 - "POST /events/4/reserve HTTP/1.1" 409 Conflict
+gateway-1   | 2026-09-21T07:34:28.181260615Z {"time":"2026-09-21 07:34:28,181","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:28.182538909Z INFO:     172.20.0.1:49648 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:28.404751465Z {"time":"2026-09-21 07:34:28,404","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:28.406184676Z INFO:     172.20.0.1:49652 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:28.628190793Z {"time":"2026-09-21 07:34:28,627","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:28.629013912Z INFO:     172.20.0.1:49668 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:28.854300307Z {"time":"2026-09-21 07:34:28,853","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/2/reserve "HTTP/1.1 409 Conflict""}
+gateway-1   | 2026-09-21T07:34:28.855733105Z INFO:     172.20.0.1:49682 - "POST /events/2/reserve HTTP/1.1" 409 Conflict
+gateway-1   | 2026-09-21T07:34:29.080338869Z {"time":"2026-09-21 07:34:29,080","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/4/reserve "HTTP/1.1 409 Conflict""}
+gateway-1   | 2026-09-21T07:34:29.082123747Z INFO:     172.20.0.1:49690 - "POST /events/4/reserve HTTP/1.1" 409 Conflict
+gateway-1   | 2026-09-21T07:34:29.308860383Z {"time":"2026-09-21 07:34:29,308","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/3/reserve "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:29.310625348Z INFO:     172.20.0.1:49692 - "POST /events/3/reserve HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:29.346076459Z {"time":"2026-09-21 07:34:29,345","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://payments:8082/charge "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:29.367314886Z {"time":"2026-09-21 07:34:29,366","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/reservations/3adb3cb1-5c1d-4ea2-b47e-a22780b7b3e3/confirm "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:29.368627822Z INFO:     172.20.0.1:49708 - "POST /reserve/3adb3cb1-5c1d-4ea2-b47e-a22780b7b3e3/pay HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:29.593085303Z {"time":"2026-09-21 07:34:29,592","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/4/reserve "HTTP/1.1 409 Conflict""}
+gateway-1   | 2026-09-21T07:34:29.594358564Z INFO:     172.20.0.1:49720 - "POST /events/4/reserve HTTP/1.1" 409 Conflict
+gateway-1   | 2026-09-21T07:34:29.823790311Z {"time":"2026-09-21 07:34:29,823","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/2/reserve "HTTP/1.1 409 Conflict""}
+gateway-1   | 2026-09-21T07:34:29.825356986Z INFO:     172.20.0.1:49722 - "POST /events/2/reserve HTTP/1.1" 409 Conflict
+gateway-1   | 2026-09-21T07:34:30.052215520Z {"time":"2026-09-21 07:34:30,051","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:30.054204705Z INFO:     172.20.0.1:49736 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:30.277649246Z {"time":"2026-09-21 07:34:30,277","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:30.279155537Z INFO:     172.20.0.1:49752 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:30.505225741Z {"time":"2026-09-21 07:34:30,505","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/5/reserve "HTTP/1.1 409 Conflict""}
+gateway-1   | 2026-09-21T07:34:30.506868806Z INFO:     172.20.0.1:49766 - "POST /events/5/reserve HTTP/1.1" 409 Conflict
+gateway-1   | 2026-09-21T07:34:30.728536631Z {"time":"2026-09-21 07:34:30,728","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:30.729805109Z INFO:     172.20.0.1:49768 - "GET /events HTTP/1.1" 200 OK
+gateway-1   | 2026-09-21T07:34:30.952304890Z {"time":"2026-09-21 07:34:30,951","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-21T07:34:30.954362742Z INFO:     172.20.0.1:49776 - "GET /events HTTP/1.1" 200 OK

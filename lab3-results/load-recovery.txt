@@ -1,0 +1,53 @@
+QuickTicket Load Generator
+Target: http://localhost:3080 | RPS: 5 | Duration: 120s
+---
+[10s] requests=45 success=38 fail=7 error_rate=15.5%
+[10s] requests=46 success=38 fail=8 error_rate=17.3%
+[10s] requests=47 success=39 fail=8 error_rate=17.0%
+[10s] requests=48 success=40 fail=8 error_rate=16.6%
+[20s] requests=89 success=74 fail=15 error_rate=16.8%
+[20s] requests=90 success=75 fail=15 error_rate=16.6%
+[20s] requests=91 success=75 fail=16 error_rate=17.5%
+[20s] requests=92 success=75 fail=17 error_rate=18.4%
+[30s] requests=133 success=111 fail=22 error_rate=16.5%
+[30s] requests=134 success=112 fail=22 error_rate=16.4%
+[30s] requests=135 success=113 fail=22 error_rate=16.2%
+[30s] requests=136 success=113 fail=23 error_rate=16.9%
+[30s] requests=137 success=114 fail=23 error_rate=16.7%
+[40s] requests=177 success=146 fail=31 error_rate=17.5%
+[40s] requests=178 success=147 fail=31 error_rate=17.4%
+[40s] requests=179 success=148 fail=31 error_rate=17.3%
+[40s] requests=180 success=149 fail=31 error_rate=17.2%
+[40s] requests=181 success=150 fail=31 error_rate=17.1%
+[50s] requests=222 success=184 fail=38 error_rate=17.1%
+[50s] requests=223 success=185 fail=38 error_rate=17.0%
+[50s] requests=224 success=185 fail=39 error_rate=17.4%
+[50s] requests=225 success=186 fail=39 error_rate=17.3%
+[60s] requests=266 success=217 fail=49 error_rate=18.4%
+[60s] requests=267 success=218 fail=49 error_rate=18.3%
+[60s] requests=268 success=219 fail=49 error_rate=18.2%
+[60s] requests=269 success=220 fail=49 error_rate=18.2%
+[70s] requests=310 success=254 fail=56 error_rate=18.0%
+[70s] requests=311 success=255 fail=56 error_rate=18.0%
+[70s] requests=312 success=256 fail=56 error_rate=17.9%
+[70s] requests=313 success=257 fail=56 error_rate=17.8%
+[70s] requests=314 success=258 fail=56 error_rate=17.8%
+[80s] requests=355 success=291 fail=64 error_rate=18.0%
+[80s] requests=356 success=292 fail=64 error_rate=17.9%
+[80s] requests=357 success=293 fail=64 error_rate=17.9%
+[80s] requests=358 success=293 fail=65 error_rate=18.1%
+[90s] requests=400 success=323 fail=77 error_rate=19.2%
+[90s] requests=401 success=324 fail=77 error_rate=19.2%
+[90s] requests=402 success=325 fail=77 error_rate=19.1%
+[90s] requests=403 success=326 fail=77 error_rate=19.1%
+[100s] requests=444 success=360 fail=84 error_rate=18.9%
+[100s] requests=445 success=361 fail=84 error_rate=18.8%
+[100s] requests=446 success=362 fail=84 error_rate=18.8%
+[100s] requests=447 success=362 fail=85 error_rate=19.0%
+[110s] requests=488 success=392 fail=96 error_rate=19.6%
+[110s] requests=489 success=393 fail=96 error_rate=19.6%
+[110s] requests=490 success=393 fail=97 error_rate=19.7%
+[110s] requests=491 success=394 fail=97 error_rate=19.7%
+[110s] requests=492 success=394 fail=98 error_rate=19.9%
+---
+Done. total=531 success=426 fail=105 error_rate=19.7%

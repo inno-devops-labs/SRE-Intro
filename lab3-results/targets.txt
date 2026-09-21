@@ -1,0 +1,3 @@
+events       up       http://events:8081/metrics
+gateway      up       http://gateway:8080/metrics
+payments     up       http://payments:8082/metrics

@@ -1,0 +1,3 @@
+gateway:sli_availability:ratio_rate5m         = ok
+gateway:sli_latency_500ms:ratio_rate5m        = ok
+gateway:error_budget_burn_rate:ratio_rate5m   = ok

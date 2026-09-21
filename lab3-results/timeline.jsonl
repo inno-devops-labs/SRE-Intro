@@ -1,0 +1,9 @@
+{"event": "baseline_start", "time": 1789975592.5317302, "utc": "2026-09-21T07:26:32Z"}
+{"event": "stop_requested", "time": 1789975653.1016653, "utc": "2026-09-21T07:27:33Z"}
+{"event": "payments_stopped", "time": 1789975653.525475, "utc": "2026-09-21T07:27:33Z"}
+{"event": "payments_started", "time": 1789975774.7127337, "utc": "2026-09-21T07:29:34Z"}
+{"event": "bonus_baseline", "time": 1789975913.1181865, "utc": "2026-09-21T07:31:53Z"}
+{"event": "injection_requested", "time": 1789975943.379958, "utc": "2026-09-21T07:32:23Z"}
+{"event": "injection_ready", "time": 1789975943.9287584, "utc": "2026-09-21T07:32:23Z"}
+{"event": "normal_settings_restored", "time": 1789976065.5994468, "utc": "2026-09-21T07:34:25Z"}
+{"event": "finished", "time": 1789976424.0740001, "utc": "2026-09-21T07:40:24Z"}
