@@ -26,10 +26,20 @@ spec:
         prometheus.io/port: "8082"
         prometheus.io/path: "/metrics"
     spec:
+      # ghcr.io packages are private by default; this secret holds a classic PAT
+      # with read:packages. Inert while imagePullPolicy is Never (no pull is
+      # attempted) — required as soon as the policy flips to Always.
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: payments
-          image: quickticket-payments:v1
-          imagePullPolicy: Never # locally built image, imported with `k3d image import`
+          image: ghcr.io/vanady39/quickticket-payments:ae1a4579f016fd3e7b68ad97a4b998660af38d3c
+          # Lab 5 §5.3: the manifests now carry the ghcr.io reference that CI
+          # writes on every push. The registry copy does not exist yet (the fork
+          # has not been pushed), so the image in the cluster is the locally
+          # built one re-tagged with this name and loaded via `k3d image import`,
+          # and the policy stays Never. Flip to Always once CI has published.
+          imagePullPolicy: Never
           env:
             - name: PAYMENT_FAILURE_RATE
               value: "0.0"
