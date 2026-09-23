@@ -3,9 +3,21 @@
 # Translated from the `gateway` service in app/docker-compose.yaml.
 # There is no Ingress yet: reach it with
 #   kubectl port-forward svc/gateway 3080:8080
+#
+# Lab 7 §7.2 — this is no longer a Deployment. It is an Argo Rollout with a
+# canary strategy. Everything below `template:` is byte-for-byte the Lab 5
+# pod spec; only `apiVersion`, `kind`, `replicas` and `strategy` changed.
+#
+# Operational consequences for later labs:
+#   * `kubectl get deployment gateway` returns NotFound. Use
+#     `kubectl get rollout gateway` / `kubectl argo rollouts get rollout gateway`.
+#   * `kubectl rollout status deployment/gateway` does not work either;
+#     `kubectl argo rollouts status gateway` is the equivalent.
+#   * A Rollout implements the `scale` subresource, so HPAs and
+#     `kubectl scale rollout/gateway` work normally.
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
@@ -15,7 +27,46 @@ metadata:
     # in Git only, never with kubectl, and ArgoCD reconciled it into the cluster.
     version: "v2"
 spec:
-  replicas: 1
+  # Lab 7: 5 replicas so a canary weight of 20% is exactly 1 pod. With
+  # replicas: 1 the only achievable weights are 0% and 100%.
+  replicas: 5
+  # Lab 7 bonus §B.3 — canary gated by automated analysis.
+  #
+  # There is no service mesh / ingress traffic-shaping provider here, so Argo
+  # Rollouts approximates `setWeight: N` by replica count: it scales the canary
+  # ReplicaSet to round(N% * 5) pods and the Service (selector `app: gateway`,
+  # which matches stable *and* canary pods) spreads traffic over them via
+  # kube-proxy. 20% => 1 of 5 pods.
+  #
+  # Earlier iterations of this file used, in order:
+  #   §7.2  [20, pause{}, 60, pause 30s, 100]                 — manual promotion
+  #   §7.8  [20, 60s, 40, 60s, 60, 60s, 80, 30s, 100]         — multi-step observation
+  # Both are reproduced in submissions/lab7.md. The version kept here is the
+  # one with the automated gate, because it is the only one that can abort a
+  # bad release without a human watching.
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        # Settle window before analysis starts. The AnalysisTemplate adds its
+        # own `initialDelay: 60s` on top, so Prometheus has time to discover
+        # (SD refresh ~10s) and scrape (5s interval) the new canary pod before
+        # the first measurement is taken.
+        - pause: {duration: 20s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              # Passes the canary ReplicaSet's pod-template-hash to the
+              # template, which the Prometheus query uses as rs_hash="…" so it
+              # measures canary replicas only. Prometheus gets that label from
+              # the rollouts-pod-template-hash pod label via a relabel rule.
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -50,6 +101,11 @@ spec:
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+            # Lab 7 §7.3 — the only thing that distinguishes "v1" from "v2" in
+            # this lab. Changing it changes the pod template hash, which is
+            # what actually triggers a new canary.
+            - name: APP_VERSION
+              value: "v2"
           ports:
             - name: http
               containerPort: 8080
@@ -90,6 +146,9 @@ metadata:
     app.kubernetes.io/part-of: quickticket
 spec:
   type: ClusterIP
+  # Selector deliberately matches ONLY `app: gateway` — no pod-template-hash —
+  # so both stable and canary pods are endpoints and kube-proxy performs the
+  # traffic split. (Lab 7 common pitfall.)
   selector:
     app: gateway
   ports:
