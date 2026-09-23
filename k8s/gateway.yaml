@@ -87,7 +87,11 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/vanady39/quickticket-gateway:ae1a4579f016fd3e7b68ad97a4b998660af38d3c
+          # Lab 11 §11.4/§11.7/§11.8/§11.9 — the gateway source now contains
+          # real retry / circuit-breaker / rate-limiter / bulkhead bodies, so
+          # the image had to be rebuilt. New tag => new pod template hash =>
+          # the change goes through the canary strategy above.
+          image: ghcr.io/vanady39/quickticket-gateway:lab11
           # Lab 5 §5.3: the manifests now carry the ghcr.io reference that CI
           # writes on every push. The registry copy does not exist yet (the fork
           # has not been pushed), so the image in the cluster is the locally
@@ -106,6 +110,33 @@ spec:
             # what actually triggers a new canary.
             - name: APP_VERSION
               value: "v2"
+            # --- Lab 11 ---------------------------------------------------
+            # Pointing this at a real URL is what switches the fire-and-forget
+            # notify helper on; while it is empty the helper returns
+            # immediately (that is how labs 1-10 stayed quiet).
+            - name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
+            # Every resilience tunable is set explicitly, at its code default,
+            # so it can be changed with `kubectl set env rollout/gateway ...`
+            # during an experiment without rebuilding the image.
+            - name: RETRY_MAX
+              value: "3"
+            - name: RETRY_BASE_DELAY_MS
+              value: "100"
+            - name: CB_FAILURE_THRESHOLD
+              value: "5"
+            - name: CB_COOLDOWN_S
+              value: "30"
+            - name: RATE_LIMIT_RPS
+              value: "10"
+            # Bonus §11.9 — bounded concurrency towards payments. MAX is the
+            # number of simultaneous /pay calls allowed to be in flight per
+            # gateway pod; TIMEOUT_S is how long request 11+ waits for a slot
+            # before being shed with 503.
+            - name: BULKHEAD_PAYMENTS_MAX
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+              value: "0.5"
           ports:
             - name: http
               containerPort: 8080

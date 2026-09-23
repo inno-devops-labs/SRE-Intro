@@ -113,6 +113,24 @@ data:
             replacement: ${1}:8082
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: pod
+      # Lab 11 — 4th service. Discovery here is explicit per-job (not
+      # annotation-driven), so a new service is invisible until it gets its
+      # own job, however many prometheus.io/scrape annotations its pod carries.
+      - job_name: notifications
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [default]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: notifications
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_ip]
+            regex: (.+)
+            target_label: __address__
+            replacement: ${1}:8083
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
 ---
 apiVersion: apps/v1
 kind: Deployment
