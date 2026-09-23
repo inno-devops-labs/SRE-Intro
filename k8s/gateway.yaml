@@ -109,12 +109,33 @@ spec:
           ports:
             - name: http
               containerPort: 8080
-          # Readiness = "should this pod receive traffic?". The gateway's
-          # /health returns 503 when events or payments is unreachable, so a
-          # downstream outage pulls this pod out of the Service endpoints.
+          # Readiness = "should THIS POD receive traffic?".
+          #
+          # Lab 8 §Bonus — this used to be `httpGet /health`, and Lab 8's
+          # Experiment 3 proved that to be the single worst resilience defect in
+          # the system. /health is a DEEP check: it calls events and payments.
+          # events' own /health is deep too and returns 503 when Redis is down.
+          # So scaling Redis to 0 produced, in 19 seconds:
+          #     redis gone -> events /health 503 -> events NotReady
+          #     -> events removed from its Service -> gateway /health sees
+          #        "events: down" -> 503 -> all 5 gateway pods NotReady
+          #     -> gateway Service has ZERO endpoints -> total outage.
+          # Measured: 18.4 rps -> 0 rps of user traffic, `curl` got HTTP 000
+          # (connection refused), while every one of those pods was still
+          # perfectly capable of serving GET /events (verified by hitting the
+          # pod IPs directly: 200 in 5 ms).
+          #
+          # /metrics is a SHALLOW check: it is served by the same uvicorn
+          # worker and the same middleware stack as every real request, touches
+          # no downstream service, and therefore answers exactly the question
+          # readiness is supposed to answer. A dependency outage now degrades
+          # individual requests (502/504 with a real body) instead of removing
+          # the whole service from DNS. /health is unchanged and still the
+          # right endpoint for alerting and for humans — it is just no longer
+          # wired to a control loop that can amplify an outage.
           readinessProbe:
             httpGet:
-              path: /health
+              path: /metrics
               port: 8080
             periodSeconds: 5
             failureThreshold: 2

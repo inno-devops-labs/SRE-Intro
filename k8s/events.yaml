@@ -66,12 +66,26 @@ spec:
           ports:
             - name: http
               containerPort: 8081
-          # Readiness = "should this pod receive traffic?".
-          # /health returns 503 when Postgres or Redis is unreachable, so a
-          # dependency outage takes this pod out of the Service endpoints.
+          # Readiness = "should THIS POD receive traffic?".
+          #
+          # Lab 8 §Bonus — this used to be `httpGet /health`. /health is 503
+          # when *either* Postgres or Redis is down, and Redis is NOT a hard
+          # dependency of this service: GET /events and GET /events/{id} read
+          # Postgres only. Lab 8 Experiment 3 measured the consequence — with
+          # Redis at 0 replicas this pod was pulled out of the events Service
+          # even though `curl http://<podIP>:8081/events` still returned 200 in
+          # 5 ms, which in turn cascaded into the gateway and took the whole
+          # application down.
+          #
+          # GET /events is the correct readiness signal for this service: it is
+          # a real read that exercises the psycopg2 pool and Postgres (the hard
+          # dependency, without which nothing here works) and does not touch
+          # Redis (the soft dependency, whose loss should only degrade
+          # /reserve). Cost is one small GROUP BY every 5 s.
+          # /health is unchanged — still deep, still the right thing to alert on.
           readinessProbe:
             httpGet:
-              path: /health
+              path: /events
               port: 8081
             periodSeconds: 5
             failureThreshold: 2
