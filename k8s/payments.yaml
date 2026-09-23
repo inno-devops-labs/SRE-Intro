@@ -1,0 +1,78 @@
+# QuickTicket — payments service (charge simulator, no backing store)
+#
+# Translated from the `payments` service in app/docker-compose.yaml.
+# PAYMENT_FAILURE_RATE / PAYMENT_LATENCY_MS are the fault-injection knobs used
+# from Lab 1 onwards; flip them with `kubectl set env deployment/payments ...`.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+  labels:
+    app: payments
+    app.kubernetes.io/part-of: quickticket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+        app.kubernetes.io/part-of: quickticket
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: payments
+          image: quickticket-payments:v1
+          imagePullPolicy: Never # locally built image, imported with `k3d image import`
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: "0.0"
+            - name: PAYMENT_LATENCY_MS
+              value: "0"
+          ports:
+            - name: http
+              containerPort: 8082
+          # payments has no downstream dependencies, so /health is a pure
+          # self-check — safe for both liveness and readiness.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+  labels:
+    app: payments
+    app.kubernetes.io/part-of: quickticket
+spec:
+  type: ClusterIP
+  selector:
+    app: payments
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
