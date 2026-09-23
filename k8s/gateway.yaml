@@ -85,6 +85,43 @@ spec:
       # attempted) — required as soon as the policy flips to Always.
       imagePullSecrets:
         - name: ghcr-secret
+      # Lab 12 §12.4 — spread the 5 replicas across nodes.
+      #
+      # Running 5 replicas buys nothing if the scheduler packs all 5 onto one
+      # node: a single node failure is then still a total outage, and the
+      # gateway-pdb (minAvailable: 2) would block the drain of that node
+      # forever because there is nowhere else for the pods to go.
+      #
+      # maxSkew: 1 over topologyKey kubernetes.io/hostname means: after
+      # scheduling, |count(most-loaded node) - count(least-loaded node)| <= 1
+      # among nodes that match the selector. 5 pods over 3 nodes therefore
+      # becomes 2/2/1, never 4/1/0 or 5/0/0.
+      #
+      # whenUnsatisfiable: ScheduleAnyway makes this a *preference*: the
+      # scheduler scores nodes by skew but will still place a pod when no node
+      # satisfies the constraint. DoNotSchedule would make it a hard predicate,
+      # which on this single-node k3d cluster would leave 4 of the 5 pods
+      # Pending forever.
+      #
+      # ⚠️ On this cluster the constraint is provably inert — there is exactly
+      # one node (k3d-quickticket-server-0), so every distribution trivially
+      # has skew 0. The YAML is still correct and is what would take effect
+      # unchanged on a real multi-node cluster.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
+      # Lab 12 §12.6 — graceful shutdown budget.
+      #
+      # 10s preStop sleep + up to 30s for uvicorn to finish in-flight requests
+      # = 40s. This MUST be >= preStop duration + worst-case drain, otherwise
+      # the kubelet sends SIGKILL while preStop is still sleeping and the whole
+      # exercise is pointless. The default of 30s would leave only 20s of
+      # actual drain time.
+      terminationGracePeriodSeconds: 40
       containers:
         - name: gateway
           # Lab 11 §11.4/§11.7/§11.8/§11.9 — the gateway source now contains
@@ -140,6 +177,25 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # Lab 12 §12.6 — preStop hook.
+          #
+          # Pod deletion fans out to two independent control loops that race:
+          #   (a) the kubelet, which runs preStop and then sends SIGTERM;
+          #   (b) the endpoints/EndpointSlice controller -> every node's
+          #       kube-proxy, which rewrites iptables so this pod stops
+          #       receiving new connections.
+          # Nothing in Kubernetes orders (b) before (a). Without a preStop
+          # hook, uvicorn typically gets SIGTERM and closes its listener before
+          # kube-proxy on every node has caught up, and the connections that
+          # arrive in that window are RST -> the client sees a 502.
+          #
+          # `sleep 10` does not "do" anything except hold SIGTERM back long
+          # enough for (b) to finish everywhere. The container keeps serving
+          # normally for those 10 seconds — that is the point.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           # Readiness = "should THIS POD receive traffic?".
           #
           # Lab 8 §Bonus — this used to be `httpGet /health`, and Lab 8's
@@ -164,12 +220,29 @@ spec:
           # the whole service from DNS. /health is unchanged and still the
           # right endpoint for alerting and for humans — it is just no longer
           # wired to a control loop that can amplify an outage.
+          #
+          # Lab 12 §12.6 — TIMING tightened, PATH deliberately NOT changed.
+          #
+          # The lab text asks for `httpGet /health` here. That is exactly the
+          # configuration Lab 8 Experiment 3 proved to be the worst resilience
+          # defect in this system (the 19-second total outage described above),
+          # and the Lab 8 fix is load-bearing for Lab 11's soft `notifications`
+          # dependency as well. Reverting it to satisfy a code sample would
+          # trade a real, measured availability property for a cosmetic match.
+          # The path stays `/metrics`.
+          #
+          # What the lab actually needs from this block is *speed*: a pod that
+          # is going away must leave the Service endpoints fast, or the preStop
+          # sleep above is wasted. 5s x 2 failures = up to 10s of detection.
+          # 2s x 1 failure = up to 2s, which is inside the 10s preStop window.
+          # Cost is one extra /metrics scrape per pod every 2s, which is local
+          # and touches no downstream service.
           readinessProbe:
             httpGet:
               path: /metrics
               port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
           # Liveness = "is this process wedged?". Measured in lab 4 §4.10: with
           # `httpGet /health` here, a 2-minute Redis outage restarted the
           # gateway 5 times — /health checks downstreams, and restarting the

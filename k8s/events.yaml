@@ -14,7 +14,13 @@ metadata:
     app: events
     app.kubernetes.io/part-of: quickticket
 spec:
-  replicas: 1
+  # Lab 12 §12.1 — 2 replicas. One replica means every pod eviction (node
+  # drain, rolling update, OOM kill) is a full outage of this service for as
+  # long as the replacement takes to become Ready. Two replicas is the minimum
+  # count at which a PodDisruptionBudget can express anything at all:
+  # `minAvailable: 1` over 2 pods allows exactly one voluntary disruption at a
+  # time, which is what makes a rolling node drain both possible and safe.
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -33,9 +39,17 @@ spec:
       # attempted) — required as soon as the policy flips to Always.
       imagePullSecrets:
         - name: ghcr-secret
+      # Lab 12 §12.6 — same graceful-shutdown budget as the gateway Rollout.
+      # The lab only asks for this on the gateway, but §12.2's coordinated
+      # pod-kill measured 2 x HTTP 502 at the gateway caused by killing an
+      # *events* pod: without a preStop hook the app closes its listener
+      # before kube-proxy has removed it from the Service, and the in-flight
+      # connections are reset. Fixing only the gateway would leave that hole
+      # open on every other service.
+      terminationGracePeriodSeconds: 40
       containers:
         - name: events
-          image: ghcr.io/vanady39/quickticket-events:ae1a4579f016fd3e7b68ad97a4b998660af38d3c
+          image: ghcr.io/vanady39/quickticket-events:lab12b
           # Lab 5 §5.3: the manifests now carry the ghcr.io reference that CI
           # writes on every push. The registry copy does not exist yet (the fork
           # has not been pushed), so the image in the cluster is the locally
@@ -66,6 +80,13 @@ spec:
           ports:
             - name: http
               containerPort: 8081
+          # Lab 12 §12.6 — hold SIGTERM back for 10s so the endpoints /
+          # kube-proxy removal of this pod completes before the app stops
+          # accepting connections. See k8s/gateway.yaml for the full rationale.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           # Readiness = "should THIS POD receive traffic?".
           #
           # Lab 8 §Bonus — this used to be `httpGet /health`. /health is 503

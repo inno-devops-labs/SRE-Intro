@@ -24,7 +24,11 @@ metadata:
     app: notifications
     app.kubernetes.io/part-of: quickticket
 spec:
-  replicas: 1
+  # Lab 12 §12.1 — 2 replicas. notifications is fire-and-forget (Lab 11: the
+  # gateway swallows its errors and it is deliberately NOT in `critical_ok`),
+  # so the second replica buys availability of a best-effort path, not of the
+  # critical path. Its PDB is correspondingly softer: `maxUnavailable: 1`.
+  replicas: 2
   selector:
     matchLabels:
       app: notifications
@@ -43,6 +47,14 @@ spec:
       # ready for the day CI publishes the image.
       imagePullSecrets:
         - name: ghcr-secret
+      # Lab 12 §12.6 — same graceful-shutdown budget as the gateway Rollout.
+      # The lab only asks for this on the gateway, but §12.2's coordinated
+      # pod-kill measured 2 x HTTP 502 at the gateway caused by killing an
+      # *events* pod: without a preStop hook the app closes its listener
+      # before kube-proxy has removed it from the Service, and the in-flight
+      # connections are reset. Fixing only the gateway would leave that hole
+      # open on every other service.
+      terminationGracePeriodSeconds: 40
       containers:
         - name: notifications
           image: ghcr.io/vanady39/quickticket-notifications:lab11
@@ -55,6 +67,13 @@ spec:
           ports:
             - name: http
               containerPort: 8083
+          # Lab 12 §12.6 — hold SIGTERM back for 10s so the endpoints /
+          # kube-proxy removal of this pod completes before the app stops
+          # accepting connections. See k8s/gateway.yaml for the full rationale.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           # Probe rule from Lab 4's handoff: readiness may test dependencies,
           # liveness must not. notifications has NO downstream dependencies at
           # all (no DB, no Redis, no HTTP fan-out), so /health is a pure

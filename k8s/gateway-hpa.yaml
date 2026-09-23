@@ -1,0 +1,46 @@
+# QuickTicket — HorizontalPodAutoscaler for the gateway (Lab 12 §12.9, optional)
+#
+# An HPA does not target a Deployment; it targets anything that implements the
+# `scale` subresource. Argo Rollouts does, which is why `scaleTargetRef` names
+# `argoproj.io/v1alpha1 / Rollout` here instead of `apps/v1 / Deployment`
+# (Lab 7's handoff rule). Getting this wrong is silent: the HPA is created
+# happily and then reports `<unknown>/70%` forever because it cannot resolve
+# the target.
+#
+# ⚠️ What this can and cannot demonstrate on k3d. This is a single-node
+# cluster, so "scale out" means more pods on the same node competing for the
+# same cores — the HPA controller's decision loop is real, the added capacity
+# is not. Real elasticity needs a second node, i.e. cluster-autoscaler or
+# Karpenter adding one, which is the other half of Reading 12.
+#
+# Apply:  kubectl apply -f k8s/gateway-hpa.yaml
+# Watch:  kubectl get hpa gateway -w
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    app.kubernetes.io/part-of: quickticket
+spec:
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: gateway
+  # Never below the Lab 7 base of 5: the canary strategy sets weights by
+  # replica count (20% == 1 of 5), so dropping under 5 would make the canary
+  # steps unrepresentable.
+  minReplicas: 5
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          # Utilisation is measured against the container's *request*
+          # (50m here), not its limit (200m). 70% of 50m = 35m of real CPU per
+          # pod before the HPA starts adding replicas. Idle steady state on
+          # this cluster is ~18-20m, i.e. ~38%.
+          type: Utilization
+          averageUtilization: 70
