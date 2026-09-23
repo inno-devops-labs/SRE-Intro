@@ -14,7 +14,7 @@ services:
   events:
     build: ./events
     ports:
-      - "8081:8081"
+      - "8091:8081"
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
