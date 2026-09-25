@@ -1,0 +1,124 @@
+# This file defines the QuickTicket Payments service in Kubernetes.
+# It contains two resources:
+# 1. A Deployment, which keeps the Payments application Pod running.
+# 2. A Service, which gives the Payments API a stable internal DNS name and port.
+
+# Deployments use the apps/v1 API.
+apiVersion: apps/v1
+
+# A Deployment keeps the desired number of Pods running.
+kind: Deployment
+
+metadata:
+  # The Deployment name is "payments".
+  # Example: kubectl get deployment payments
+  name: payments
+
+spec:
+  # One replica is enough for this lab.
+  replicas: 1
+
+  # selector tells the Deployment which Pods it owns.
+  selector:
+    matchLabels:
+      app: payments
+
+  # template defines the Pod created by this Deployment.
+  template:
+    metadata:
+      labels:
+        # This label links the Pod to the Deployment selector and the Service selector.
+        app: payments
+
+    spec:
+      containers:
+        # The Payments Pod contains one application container.
+        - name: payments
+
+          # This is the local image built from app/payments and imported into k3d.
+          image: quickticket-payments:v1
+
+          # The image is local to the k3d cluster, so Kubernetes must not try to pull it.
+          imagePullPolicy: Never
+
+          # The Payments FastAPI application listens on port 8082.
+          ports:
+            - containerPort: 8082
+
+          # livenessProbe tells Kubernetes whether the container process is alive.
+          # If this check fails repeatedly, Kubernetes restarts the container.
+          # It uses /metrics as a lightweight process-level endpoint.
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8082
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # readinessProbe tells Kubernetes whether this Pod can receive traffic.
+          # If this check fails, Kubernetes keeps the Pod running but removes it
+          # from the Service endpoints until the check passes again.
+          # Payments has no database dependency in this lab, so readiness mainly
+          # confirms that the HTTP application is ready to answer requests.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+
+          # resources declares the amount of CPU and memory requested by the Pod
+          # and the maximum amount the container is allowed to use.
+          # requests are used by the scheduler to place the Pod on a node.
+          # limits protect the node from a container consuming too many resources.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+          # env configures the fault-injection behavior used in previous labs.
+          env:
+            # PAYMENT_FAILURE_RATE controls the probability of injected payment failures.
+            # "0.0" means no artificial failures.
+            - name: PAYMENT_FAILURE_RATE
+              value: "0.0"
+
+            # PAYMENT_LATENCY_MS controls artificial latency added before payment responses.
+            # "0" means no artificial latency.
+            - name: PAYMENT_LATENCY_MS
+              value: "0"
+
+---
+
+# This Service gives the Payments Pods a stable in-cluster address.
+# The gateway will call the Payments API using http://payments:8082.
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  # This name becomes the Kubernetes DNS hostname "payments".
+  name: payments
+
+spec:
+  # ClusterIP exposes the Service only inside the cluster.
+  # Payments is an internal backend dependency for the gateway.
+  type: ClusterIP
+
+  # The Service routes traffic to Pods labeled app=payments.
+  selector:
+    app: payments
+
+  ports:
+    # port is the Service port used by other Pods.
+    - port: 8082
+
+      # targetPort is the port on the Payments container.
+      targetPort: 8082
