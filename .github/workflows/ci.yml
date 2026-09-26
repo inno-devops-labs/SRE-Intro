@@ -15,6 +15,9 @@ on:
 jobs:
   # Job name shown in the GitHub Actions UI.
   build:
+    
+    if: "!startsWith(github.event.head_commit.message, 'ci:')"
+    
     # Use GitHub's latest Ubuntu runner image for Docker builds.
     runs-on: ubuntu-latest
     # Permissions granted to the automatically provided GITHUB_TOKEN.
