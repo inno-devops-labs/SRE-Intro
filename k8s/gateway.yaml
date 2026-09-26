@@ -29,6 +29,7 @@ spec:
       labels:
         # This label links the Pod to the Deployment selector and the Service selector.
         app: gateway
+        version: "v2"
 
     spec:
       containers:
