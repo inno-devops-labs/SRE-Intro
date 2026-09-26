@@ -157,6 +157,7 @@ v2
 The change went live **~2 min 48 s** after the push with zero manual intervention — the GitOps loop (push → ArgoCD poll → sync) works end to end.
 
 ### 5.7 — Question
+https://github.com/kvakz/SRE-Intro/actions/runs/36251422686
 
 **What happens if someone manually runs `kubectl edit` on a resource managed by ArgoCD?**
 
