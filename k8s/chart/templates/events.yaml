@@ -1,0 +1,76 @@
+# This template renders the Events Deployment and Service.
+# Helm replaces template expressions with values from values.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+spec:
+  replicas: {{ .Values.events.replicas }}
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      containers:
+        - name: events
+          image: {{ .Values.events.image | quote }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.events.port }}
+          # Liveness checks the process-level endpoint so dependency outages do not restart the app.
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.events.probes.livenessPath | quote }}
+              port: {{ .Values.events.port }}
+            initialDelaySeconds: {{ .Values.global.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.global.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.global.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.global.probes.liveness.failureThreshold }}
+          # Readiness checks /health because Events reports PostgreSQL and Redis availability there.
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.events.probes.readinessPath | quote }}
+              port: {{ .Values.events.port }}
+            initialDelaySeconds: {{ .Values.global.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.global.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.global.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.global.probes.readiness.failureThreshold }}
+          resources:
+{{ toYaml .Values.global.resources | indent 12 }}
+          env:
+            - name: DB_HOST
+              value: {{ .Values.events.db.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.events.db.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.events.db.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.events.db.user | quote }}
+            - name: DB_PASS
+              value: {{ .Values.events.db.password | quote }}
+            - name: DB_MAX_CONNS
+              value: {{ .Values.events.db.maxConns | quote }}
+            - name: REDIS_HOST
+              value: {{ .Values.events.redis.host | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.events.redis.port | quote }}
+            - name: REDIS_TIMEOUT_MS
+              value: {{ .Values.events.redis.timeoutMs | quote }}
+            - name: RESERVATION_TTL
+              value: {{ .Values.events.reservationTtl | quote }}
+---
+# The Service keeps the stable in-cluster DNS name events.
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  type: {{ .Values.global.serviceType }}
+  selector:
+    app: events
+  ports:
+    - port: {{ .Values.events.port }}
+      targetPort: {{ .Values.events.port }}
