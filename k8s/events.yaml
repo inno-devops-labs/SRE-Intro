@@ -35,6 +35,8 @@ spec:
         app: events
 
     spec:
+      # imagePullSecrets tells Kubernetes which registry credentials to use
+      # when it pulls private images from GitHub Container Registry.
       imagePullSecrets:
         - name: ghcr-secret
 
@@ -42,13 +44,13 @@ spec:
         # The Events Pod contains one application container.
         - name: events
 
-          # This is the local image built from app/events and imported into k3d.
-          # image: quickticket-events:v1  # first version
+          # This image is built by GitHub Actions and pushed to ghcr.io.
+          # The tag is the commit SHA from the CI run, which makes the deployed
+          # container traceable to the exact source revision.
           image: ghcr.io/rmcavalcante7/quickticket-events:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
 
-          # imagePullPolicy: Never tells Kubernetes not to pull this image from a registry.
-          # This is required in the lab because the image was built locally and imported into k3d.
-          # imagePullPolicy: Never  # first version -> it uses the image that already exists in cluster/k3d
+          # Always makes Kubernetes pull the image from the registry whenever
+          # a new Pod is created, which matches the Lab 5 GHCR workflow.
           imagePullPolicy: Always
 
           # The Events FastAPI application listens on port 8081.

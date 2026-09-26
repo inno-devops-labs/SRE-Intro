@@ -3,9 +3,9 @@
 # Each template accesses these values through the .Values object.
 #
 # Example:
-#   values.yaml:  gateway.image: quickticket-gateway:v1
+#   values.yaml:  gateway.image: ghcr.io/rmcavalcante7/quickticket-gateway:<commit-sha>
 #   template:     image: {{ .Values.gateway.image | quote }}
-#   rendered:     image: "quickticket-gateway:v1"
+#   rendered:     image: "ghcr.io/rmcavalcante7/quickticket-gateway:<commit-sha>"
 #
 # The goal of this file is to keep configuration in one place, so we can change
 # replicas, images, ports, probes, resources, and environment values without
@@ -13,10 +13,9 @@
 
 global:
   # imagePullPolicy is shared by the QuickTicket application containers.
-  # The app images are built locally and imported into the k3d cluster, so the
-  # Kubernetes nodes already have them available. With Never, Kubernetes will
-  # not try to pull quickticket-* images from Docker Hub.
-  # imagePullPolicy: Never     # first version -> it uses the image that already exists in cluster/k3d
+  # Lab 5 uses images built by GitHub Actions and pushed to ghcr.io.
+  # Always tells Kubernetes to pull the registry image whenever it creates
+  # a new Pod, instead of relying on a locally imported k3d image.
   imagePullPolicy: Always
 
   # serviceType is used by all Services rendered by the chart.
@@ -86,7 +85,8 @@ events:
   # Events is the backend service responsible for event listing, reservations,
   # and order persistence.
   replicas: 1
-  image: quickticket-events:v1
+  # This image tag must match a successful GitHub Actions build pushed to GHCR.
+  image: ghcr.io/rmcavalcante7/quickticket-events:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
   port: 8081
 
   db:
@@ -121,7 +121,8 @@ events:
 gateway:
   # Gateway is the public entry point for QuickTicket requests.
   replicas: 1
-  image: quickticket-gateway:v1
+  # This image tag must match a successful GitHub Actions build pushed to GHCR.
+  image: ghcr.io/rmcavalcante7/quickticket-gateway:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
   port: 8080
 
   # These URLs point to internal Kubernetes Services.
@@ -142,7 +143,8 @@ gateway:
 payments:
   # Payments is the mock payment processor used by the Gateway payment flow.
   replicas: 1
-  image: quickticket-payments:v1
+  # This image tag must match a successful GitHub Actions build pushed to GHCR.
+  image: ghcr.io/rmcavalcante7/quickticket-payments:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
   port: 8082
 
   # failureRate and latencyMs keep the fault-injection behavior configurable.
