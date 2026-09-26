@@ -14,10 +14,12 @@ spec:
       labels:
         app: events
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: events
-          image: quickticket-events:v1
-          imagePullPolicy: Never
+          image: ghcr.io/kvakz/quickticket-events:629d0ade591cd52b08727e968ec1e2381eb87cd3
+          imagePullPolicy: Always
           env:
             - name: DB_HOST
               value: "postgres"
