@@ -15,6 +15,11 @@ metadata:
   name: gateway
 
 spec:
+  
+  # Give the rollout 60 seconds to make progress before Kubernetes
+  # marks the Deployment as failed.
+  progressDeadlineSeconds: 60
+
   # One Gateway replica is enough for this lab.
   replicas: 1
 
