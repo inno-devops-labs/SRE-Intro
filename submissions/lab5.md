@@ -30,7 +30,27 @@ ghcr.io/tdzdslippen/quickticket-events:latest
 ghcr.io/tdzdslippen/quickticket-payments:latest
 ```
 
-They use `imagePullPolicy: Always` and the `ghcr-secret` pull secret. The first successful run on `main` will replace `latest` with its exact 40-character commit SHA.
+They use `imagePullPolicy: Always` and the `ghcr-secret` pull secret. The successful workflow replaced `latest` with the exact 40-character commit SHA.
+
+The initial CI run completed successfully:
+
+```text
+https://github.com/tdzdslippen/SRE-Intro/actions/runs/36244249730
+
+build-and-push (gateway)   success
+build-and-push (events)    success
+build-and-push (payments)  success
+update-manifests           success
+```
+
+Published packages:
+
+```text
+$ gh api 'user/packages?package_type=container'
+quickticket-events    public
+quickticket-payments  public
+quickticket-gateway   public
+```
 
 ### ArgoCD installation
 
@@ -56,48 +76,84 @@ argocd-server-59bd8b5c4-bhn5f                       1/1     Running
 
 If somebody manually changes an ArgoCD-managed resource with `kubectl edit`, it becomes `OutOfSync` because live state differs from Git. This application has automated self-healing enabled, so ArgoCD restores the Git version. Without self-healing, it remains drifted until the next manual or automated sync. The correct permanent change must be committed to Git.
 
-### External evidence pending after merge
+### GitOps sync evidence
 
-These acceptance items require the Lab 5 commit to exist on GitHub `main` and are intentionally not fabricated:
+```text
+Name:               argocd/quickticket
+Project:            default
+Server:             https://kubernetes.default.svc
+Namespace:          default
+Source:
+- Repo:             https://github.com/tdzdslippen/SRE-Intro.git
+  Target:           main
+  Path:             k8s
+Sync Policy:        Automated (Prune)
+Sync Status:        Synced to main (78fbd40)
+Health Status:      Healthy
+```
 
-- successful GitHub Actions run URL
-- three packages returned by `gh api user/packages?package_type=container`
-- ArgoCD `Synced` and `Healthy` output for the GitHub repository
-- live gateway `version: v2` label synced from Git
+All five Deployments and Services were `Synced` and `Healthy`. The visible label was also present in the cluster:
 
-Commands to capture them after the PR is merged:
-
-```bash
-gh run list --workflow CI --limit 3
-gh api 'user/packages?package_type=container' --jq '.[].name'
-kubectl apply -f argocd/quickticket.yaml
-argocd app get quickticket
-kubectl get deployment gateway -o jsonpath='{.metadata.labels.version}{"\n"}'
+```text
+$ kubectl get deployment gateway -o jsonpath='{.metadata.labels.version}'
+v2
 ```
 
 ## Task 2 — Rollback via GitOps
 
-The rollback experiment must be performed on `main` after GHCR contains a valid image. The safe experiment is:
+I pushed a deliberately invalid gateway tag in commit `1e870be` and synchronized it through ArgoCD. The failed pod appeared after two seconds:
 
-1. Commit a non-existent gateway image tag and push it.
-2. Capture ArgoCD in `Progressing` or `Degraded` and the gateway pod in `ImagePullBackOff`.
-3. Run `git revert HEAD --no-edit` and push the revert.
-4. Measure from the revert push until the replacement gateway pod is Ready.
+```text
+Sync Status:        Synced to main (1e870be)
+Health Status:      Progressing
 
-The exact recovery duration and Git log are pending this external run; no value is claimed from a local simulation.
+NAME                        READY   STATUS
+gateway-84fc4f6695-ccz7p    0/1     ErrImagePull
+gateway-8594949bff-hsdmj    1/1     Running
+```
+
+Kubernetes kept the previous healthy replica available while the replacement could not pull its image.
+
+I then reverted the bad Git commit and pushed the revert. ArgoCD synchronized revision `a8020f8`, removed the failed rollout and returned to Healthy in **17.01 seconds**, measured from the completed revert push:
+
+```text
+Sync Status:        Synced to main (a8020f8)
+Health Status:      Healthy
+
+NAME                        READY   STATUS
+events-5db4c4cfd6-brd8z     1/1     Running
+gateway-8594949bff-hsdmj    1/1     Running
+payments-587cd547b-kpdgw    1/1     Running
+postgres-745cf6f696-vjfvd   1/1     Running
+redis-d8d9865df-s5kbk       1/1     Running
+```
+
+Git history for the experiment:
+
+```text
+a8020f8 Revert "feat: deploy new gateway version [skip ci]"
+1e870be feat: deploy new gateway version [skip ci]
+78fbd40 ci: update image tags to 71bc18c558601a75bf88a047c6a85bb61af256f0
+```
 
 ## Bonus — automated image updates
 
 The bonus is implemented in the `update-manifests` CI job. It starts only after all three image builds succeed, writes the originating SHA into the raw manifests, commits only the three intended files, and avoids an infinite workflow loop by skipping `ci:` commits.
 
-Expected Git history after the first successful merge run:
+Git history after the first successful run:
 
 ```text
-ci: update image tags to <40-character SHA>
-feat(lab5): add CI/CD pipeline and ArgoCD GitOps
+78fbd40 ci: update image tags to 71bc18c558601a75bf88a047c6a85bb61af256f0
+71bc18c feat(lab5): add CI/CD pipeline and ArgoCD GitOps
 ```
 
-The resulting manifest commit is the Git source ArgoCD will automatically detect and deploy.
+After rollback, I manually dispatched the same workflow for revision `a8020f8`. Run `36245255630` completed successfully, generated manifest commit `2e54784`, and ArgoCD deployed the final SHA-tagged images:
+
+```text
+Sync Status:   Synced to main (2e54784)
+Health Status: Healthy
+Gateway image: ghcr.io/tdzdslippen/quickticket-gateway:a8020f855dddb9a5260a8a9ba233185ed8713861
+```
 
 ## Local validation
 
