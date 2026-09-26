@@ -19,7 +19,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/kvakz/quickticket-gateway:629d0ade591cd52b08727e968ec1e2381eb87cd3
+          image: ghcr.io/kvakz/quickticket-gateway:ce3d600329e68c55401508d9129903372307cab5
           imagePullPolicy: Always
           env:
             - name: EVENTS_URL
