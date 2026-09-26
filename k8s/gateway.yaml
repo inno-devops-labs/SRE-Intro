@@ -31,15 +31,20 @@ spec:
         app: gateway
 
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+
       containers:
         # The Gateway Pod contains one application container.
         - name: gateway
 
           # This is the local image built from app/gateway and imported into k3d.
-          image: quickticket-gateway:v1
+          # image: quickticket-gateway:v1
+          image: ghcr.io/rmcavalcante7/quickticket-gateway:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
 
           # The image is local to the k3d cluster, so Kubernetes must not pull from a registry.
-          imagePullPolicy: Never
+          # imagePullPolicy: Never   # first version -> it uses the image that already exists in cluster/k3d
+          imagePullPolicy: Always
 
           # The Gateway FastAPI application listens on port 8080.
           ports:

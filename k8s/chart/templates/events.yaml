@@ -14,9 +14,13 @@ spec:
       labels:
         app: events
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+
       containers:
         - name: events
-          image: {{ .Values.events.image | quote }}
+          # image: {{ .Values.events.image | quote }}
+          image: ghcr.io/rmcavalcante7/quickticket-events:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.events.port }}

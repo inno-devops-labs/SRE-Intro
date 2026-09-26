@@ -31,15 +31,21 @@ spec:
         app: payments
 
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+
       containers:
         # The Payments Pod contains one application container.
         - name: payments
 
           # This is the local image built from app/payments and imported into k3d.
-          image: quickticket-payments:v1
+#          image: quickticket-payments:v1
+          image: ghcr.io/rmcavalcante7/quickticket-payments:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
+
 
           # The image is local to the k3d cluster, so Kubernetes must not try to pull it.
-          imagePullPolicy: Never
+          # imagePullPolicy: Never   # first version -> it uses the image that already exists in cluster/k3d
+          imagePullPolicy: Always
 
           # The Payments FastAPI application listens on port 8082.
           ports:

@@ -16,7 +16,8 @@ global:
   # The app images are built locally and imported into the k3d cluster, so the
   # Kubernetes nodes already have them available. With Never, Kubernetes will
   # not try to pull quickticket-* images from Docker Hub.
-  imagePullPolicy: Never
+  # imagePullPolicy: Never     # first version -> it uses the image that already exists in cluster/k3d
+  imagePullPolicy: Always
 
   # serviceType is used by all Services rendered by the chart.
   # ClusterIP exposes each Service only inside the Kubernetes cluster.

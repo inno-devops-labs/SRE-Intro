@@ -14,9 +14,13 @@ spec:
       labels:
         app: payments
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+
       containers:
         - name: payments
-          image: {{ .Values.payments.image | quote }}
+#          image: {{ .Values.payments.image | quote }}
+          image: ghcr.io/rmcavalcante7/quickticket-payments:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
           imagePullPolicy: {{ .Values.global.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.payments.port }}
