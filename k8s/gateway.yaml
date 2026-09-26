@@ -4,6 +4,7 @@ metadata:
   name: gateway
   labels:
     app: gateway
+    version: "v2"
 spec:
   replicas: 1
   selector:
