@@ -14,10 +14,12 @@ spec:
       labels:
         app: {{ $name }}
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: {{ $name }}
           image: {{ $app.image }}
-          imagePullPolicy: Never
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ $app.port }}
           env:

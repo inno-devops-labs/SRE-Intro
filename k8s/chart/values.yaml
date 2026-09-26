@@ -1,12 +1,12 @@
 gateway:
   replicas: 1
-  image: quickticket-gateway:v1
+  image: ghcr.io/tdzdslippen/quickticket-gateway:latest
   port: 8080
   timeoutMs: "5000"
 
 events:
   replicas: 1
-  image: quickticket-events:v1
+  image: ghcr.io/tdzdslippen/quickticket-events:latest
   port: 8081
   db:
     host: postgres
@@ -23,7 +23,7 @@ events:
 
 payments:
   replicas: 1
-  image: quickticket-payments:v1
+  image: ghcr.io/tdzdslippen/quickticket-payments:latest
   port: 8082
   failureRate: "0.0"
   latencyMs: "0"
@@ -48,4 +48,3 @@ resources:
   limits:
     cpu: 200m
     memory: 256Mi
-
