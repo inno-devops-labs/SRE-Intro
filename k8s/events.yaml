@@ -47,7 +47,7 @@ spec:
           # This image is built by GitHub Actions and pushed to ghcr.io.
           # The tag is the commit SHA from the CI run, which makes the deployed
           # container traceable to the exact source revision.
-          image: ghcr.io/rmcavalcante7/quickticket-events:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
+          image: ghcr.io/rmcavalcante7/quickticket-events:95a2074418e498cc72d5b17db23bf9e93d7ca688
 
           # Always makes Kubernetes pull the image from the registry whenever
           # a new Pod is created, which matches the Lab 5 GHCR workflow.
