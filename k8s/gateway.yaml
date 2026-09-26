@@ -18,7 +18,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/tdzdslippen/quickticket-gateway:does-not-exist
+          image: ghcr.io/tdzdslippen/quickticket-gateway:71bc18c558601a75bf88a047c6a85bb61af256f0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
