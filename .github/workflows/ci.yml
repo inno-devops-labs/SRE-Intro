@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     # Permissions granted to the automatically provided GITHUB_TOKEN.
     permissions:
+      # Allow checkout and the bonus step that commits updated manifests back to the repo.
+      contents: write
       # Allow the workflow to publish container images to GitHub Container Registry.
       packages: write      # Needed to push to ghcr.io
 
@@ -122,4 +124,3 @@ jobs:
           git add k8s/
           git diff --cached --quiet || git commit -m "ci: update image tags to ${{ github.sha }}"
           git push
-
