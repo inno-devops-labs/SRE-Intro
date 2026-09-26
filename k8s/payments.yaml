@@ -16,7 +16,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: payments
-          image: ghcr.io/tdzdslippen/quickticket-payments:71bc18c558601a75bf88a047c6a85bb61af256f0
+          image: ghcr.io/tdzdslippen/quickticket-payments:a8020f855dddb9a5260a8a9ba233185ed8713861
           imagePullPolicy: Always
           ports:
             - containerPort: 8082
