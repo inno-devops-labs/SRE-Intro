@@ -18,7 +18,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: image: ghcr.io/wyroxx/quickticket-gateway:does-not-exist
+          image: ghcr.io/wyroxx/quickticket-gateway:1aaff1a590851432a683b368cef4197c7bda2024
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
