@@ -24,5 +24,10 @@ services:
       - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
 
+  webhook:
+    build: ./webhook
+    ports:
+      - "8090:8080"
+
 volumes:
   grafana_data:
