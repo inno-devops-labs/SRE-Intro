@@ -295,7 +295,7 @@ The validation showed that checking events health should come before scanning lo
 
 ### Classmate cross-test
 
-- **Tester:** Danila Khasanshin
+- **Tester:** Danil Khasanshin (d.khasanshin@innopolis.university)
 - **Result:** Successful
 - **Resolution time:** Approximately 5–10 minutes
 - **Diagnosis:** The tester followed every runbook step and correctly identified that Redis was unavailable.
