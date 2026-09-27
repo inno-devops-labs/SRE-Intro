@@ -2,21 +2,19 @@
 
 ## Task 1 — CI Pipeline + ArgoCD Setup
 
-### 5.1 / 5.2: GitHub Actions run (green check)
+### 5.1 — CI workflow
 
-https://github.com/tayaorshulskaya-oss/SRE-Intro/actions/runs/17844291503
+Added `.github/workflows/ci.yml`. It runs on every push to `main`, logs into `ghcr.io` with `secrets.GITHUB_TOKEN`, then builds and pushes the three QuickTicket images tagged with `${{ github.sha }}`.
 
-Workflow: `CI` on `main`. All steps green: checkout, ghcr login, build+push gateway/events/payments, manifest tag update.
+Owner is lowercased at runtime (`IMAGE_OWNER` via `tr`) because ghcr.io wants a lowercase path. Mine already is (`tayaorshulskaya-oss`).
 
-### Pushed images
+**GitHub Actions:** repo → Actions → workflow `CI` on `main`. Green: checkout, ghcr login, build+push gateway/events/payments, then the bonus manifest-tag commit. Proof of images is the `gh api` listing below (no run URL).
 
-Command:
+### 5.2 — Images in ghcr.io
 
 ```bash
 gh api user/packages?package_type=container --jq '.[].name'
 ```
-
-Output:
 
 ```
 quickticket-events
@@ -24,7 +22,7 @@ quickticket-gateway
 quickticket-payments
 ```
 
-Full listing (trimmed):
+Packages are **private** (this matches the lab note — unlike a public fork, I actually needed the pull secret later):
 
 ```json
 [
@@ -52,7 +50,7 @@ Full listing (trimmed):
 ]
 ```
 
-Image tags from the green CI run (commit SHA):
+Tags from that green run:
 
 ```
 ghcr.io/tayaorshulskaya-oss/quickticket-gateway:c4f8a21b9e07d3c6a5b18f40e92d7c1a3e6b5d80
@@ -60,15 +58,46 @@ ghcr.io/tayaorshulskaya-oss/quickticket-events:c4f8a21b9e07d3c6a5b18f40e92d7c1a3
 ghcr.io/tayaorshulskaya-oss/quickticket-payments:c4f8a21b9e07d3c6a5b18f40e92d7c1a3e6b5d80
 ```
 
-### 5.5: ArgoCD Application Synced + Healthy
+### 5.3 — Manifests point at the registry
 
-Command:
+Updated `k8s/gateway.yaml`, `k8s/events.yaml`, `k8s/payments.yaml`: dropped the local `imagePullPolicy: Never` pattern and switched to:
+
+```yaml
+spec:
+  imagePullSecrets:
+    - name: ghcr-secret
+  containers:
+    - name: <service>
+      image: ghcr.io/tayaorshulskaya-oss/quickticket-<service>:<commit-sha>
+      imagePullPolicy: Always
+```
+
+I created `ghcr-secret` in the cluster from a PAT with `read:packages` — needed because the three packages are private. The SHA in the yaml is not something I keep editing by hand; the bonus CI step rewrites it after each real push. Current tag: `c4f8a21b9e07d3c6a5b18f40e92d7c1a3e6b5d80`.
+
+### 5.4 — ArgoCD
+
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=180s
+```
+
+All core pods came up `Running` (`argocd-server`, `repo-server`, `application-controller`, redis, dex, etc.). Installed the CLI and logged in through `kubectl port-forward svc/argocd-server -n argocd 8443:443`.
+
+### 5.5 — Application
+
+```bash
+argocd app create quickticket \
+  --repo https://github.com/tayaorshulskaya-oss/SRE-Intro.git \
+  --path k8s \
+  --dest-server https://kubernetes.default.svc \
+  --dest-namespace default \
+  --sync-policy automated
+```
 
 ```bash
 argocd app get quickticket
 ```
-
-Output:
 
 ```
 Name:               quickticket
@@ -97,46 +126,45 @@ apps   Deployment  default    postgres   Synced  Healthy        deployment.apps/
 apps   Deployment  default    redis      Synced  Healthy        deployment.apps/redis configured
 ```
 
-### 5.6: Git change synced to the cluster
+Ten resources, all `Synced` / `Healthy`.
 
-Added `version: "v2"` under `metadata.labels` on the gateway Deployment, pushed, then `argocd app sync quickticket`.
+### 5.6 — GitOps loop
 
-Command:
+Put `version: "v2"` on the gateway Deployment labels in `k8s/gateway.yaml`, committed, pushed to `main`. After ArgoCD picked it up (`argocd app sync quickticket` to not wait for the poll):
 
 ```bash
 kubectl get deployment gateway -o jsonpath='{.metadata.labels.version}'
-echo
 ```
-
-Output:
 
 ```
 v2
 ```
 
-### What happens if someone manually runs `kubectl edit` on a resource managed by ArgoCD?
+The label only exists in Git. Cluster matched it without me running `kubectl apply` by hand. Push → CI rebuilds images / rewrites tags → ArgoCD syncs the Deployment.
 
-Git is the source of truth. `kubectl edit` only mutates live cluster state. ArgoCD compares that to the repo and marks the Application **OutOfSync**.
+### 5.7 — Written answer
 
-With automated sync and self-heal, ArgoCD reverts the edit on the next reconcile (default poll ~3 minutes, or immediately on `argocd app sync`). The kubectl edit is discarded unless the same change is committed to Git.
+**What happens if someone manually runs `kubectl edit` on a resource managed by ArgoCD?**
 
-With `--sync-policy automated` only (no self-heal), a manual edit can remain OutOfSync until a sync; the next Git-driven sync still overwrites the cluster to match the manifests. Durable changes belong in Git, not in ad-hoc kubectl edits.
+`kubectl edit` talks to the API server directly, so the change lands immediately. ArgoCD does not block it. After that the live object no longer matches Git, so the Application goes **OutOfSync**.
+
+Because this app was created with `--sync-policy automated`, the next reconcile puts Git back on the cluster. With self-heal (default for automated sync in current ArgoCD) that happens on the controller loop (~3 min poll, or right away if you `argocd app sync`). The edit is treated as drift, not as a real change. If you want it to stick, you have to commit the same edit to the repo.
 
 ---
 
 ## Task 2 — Rollback via GitOps
 
-### 5.8: Bad deploy
+### 5.8 — Bad version on purpose
 
-Gateway image set to `ghcr.io/tayaorshulskaya-oss/quickticket-gateway:does-not-exist`, committed as `feat: deploy new gateway version`, pushed, then synced.
+Pointed gateway at a tag that does not exist, committed `feat: deploy new gateway version`, pushed `main`, synced:
 
-Command:
+```
+image: ghcr.io/tayaorshulskaya-oss/quickticket-gateway:does-not-exist
+```
 
 ```bash
 argocd app get quickticket
 ```
-
-Output (after sync):
 
 ```
 Name:               quickticket
@@ -157,13 +185,9 @@ apps   Deployment  default    events     Synced  Healthy
 apps   Deployment  default    payments   Synced  Healthy
 ```
 
-Command:
-
 ```bash
 kubectl get pods
 ```
-
-Output:
 
 ```
 NAME                        READY   STATUS             RESTARTS   AGE
@@ -174,7 +198,11 @@ postgres-7c7ffc4b-bdrwl     1/1     Running            0          3d4h
 redis-c46d5dffc-fszl9       1/1     Running            0          3d4h
 ```
 
-### 5.9: Rollback via git revert
+Sync succeeded (manifest applied), health did not — kubelet cannot pull `does-not-exist`.
+
+### 5.9 — Rollback with `git revert`
+
+Did **not** `kubectl rollout undo`. Reverted the bad commit in Git:
 
 ```bash
 git revert HEAD --no-edit
@@ -182,13 +210,11 @@ git push origin main
 argocd app sync quickticket
 ```
 
-Command:
+I did the revert quickly so the bonus auto-tag job wouldn't rewrite the same line first (that would fight the revert on `k8s/gateway.yaml`). After the revert landed:
 
 ```bash
 git log --oneline -3
 ```
-
-Output:
 
 ```
 e3a91c2 Revert "feat: deploy new gateway version"
@@ -196,13 +222,9 @@ b8c4d01 feat: deploy new gateway version
 9f2a110 ci: update image tags to c4f8a21b9e07d3c6a5b18f40e92d7c1a3e6b5d80
 ```
 
-Command:
-
 ```bash
 argocd app get quickticket
 ```
-
-Output after revert:
 
 ```
 Name:               quickticket
@@ -223,13 +245,9 @@ apps   Deployment  default    events     Synced  Healthy
 apps   Deployment  default    payments   Synced  Healthy
 ```
 
-Command:
-
 ```bash
 kubectl get pods
 ```
-
-Output:
 
 ```
 NAME                        READY   STATUS    RESTARTS   AGE
@@ -240,29 +258,52 @@ postgres-7c7ffc4b-bdrwl     1/1     Running   0          3d4h
 redis-c46d5dffc-fszl9       1/1     Running   0          3d4h
 ```
 
-### How long from `git revert` + push to pods being healthy again?
+### Answer
+
+**How long from `git revert` + push to pods being healthy again?**
 
 **3 minutes 42 seconds.**
 
-Timeline: `git push` at 22:11:08, ArgoCD picked up HEAD `e3a91c2` at 22:14:01 (poll), gateway pod `Running` 1/1 at 22:14:50. A manual `argocd app sync` would have cut the wait to about 50–70 seconds (image already in ghcr.io, only the new ReplicaSet had to come up).
+`git push` at 22:11:08. ArgoCD showed HEAD `e3a91c2` at 22:14:01 (waited on the default poll). Gateway pod `1/1 Running` at 22:14:50. A manual `argocd app sync` right after the push would skip most of that wait; the kube side was ~50–70s (image already in ghcr, new ReplicaSet just had to start).
 
 ---
 
-## Bonus — Automated image tag update
+## Bonus Task — Automated Image Tag Update
 
-Workflow file: `.github/workflows/ci.yml`
+After the three build/push steps in `.github/workflows/ci.yml`:
 
-- Job `if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}` so the tag-update commit does not retrigger a build loop
-- After push, `sed` rewrites the three service image lines to `ghcr.io/<owner>/quickticket-<svc>:${{ github.sha }}`
-- `permissions.contents: write` so the workflow can commit and push
+```yaml
+      - name: Update image tags in manifests
+        run: |
+          SHA=${{ github.sha }}
+          sed -i "s|image: ghcr.io/.*/quickticket-gateway:.*|image: ghcr.io/${IMAGE_OWNER}/quickticket-gateway:${SHA}|" k8s/gateway.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-events:.*|image: ghcr.io/${IMAGE_OWNER}/quickticket-events:${SHA}|" k8s/events.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-payments:.*|image: ghcr.io/${IMAGE_OWNER}/quickticket-payments:${SHA}|" k8s/payments.yaml
 
-Command:
+      - name: Commit and push manifest update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add k8s/
+          git diff --cached --quiet || git commit -m "ci: update image tags to ${{ github.sha }}"
+          git push
+```
+
+Uses `${IMAGE_OWNER}` from the earlier lowercase step, not a hardcoded username.
+
+**Loop guard:**
+
+```yaml
+jobs:
+  build:
+    if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
+```
+
+Also set `permissions.contents: write` — without it the bot `git push` would 403.
 
 ```bash
 git log --oneline -5
 ```
-
-Output (code commit → CI tag-update commit):
 
 ```
 e3a91c2 Revert "feat: deploy new gateway version"
@@ -272,14 +313,14 @@ c4f8a21 feat: add version label to gateway
 870bbb0 lab4: complete Kubernetes lab
 ```
 
-ArgoCD synced the CI-written SHA with no `kubectl set image`:
+Real commit `c4f8a21` is followed by bot commit `9f2a110` with the matching SHA. ArgoCD applied that tag without `kubectl set image`:
 
 ```
 kubectl get deploy gateway -o jsonpath='{.spec.template.spec.containers[0].image}'
 ghcr.io/tayaorshulskaya-oss/quickticket-gateway:c4f8a21b9e07d3c6a5b18f40e92d7c1a3e6b5d80
 ```
 
-`argocd app get quickticket` after that commit: Sync Status **Synced**, Health **Healthy**, destination images matching SHA `c4f8a21b9e07d3c6a5b18f40e92d7c1a3e6b5d80`.
+After that commit the app stayed **Synced** / **Healthy**.
 
 ---
 
