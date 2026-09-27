@@ -6,6 +6,7 @@ metadata:
     version: "v2"
 spec:
   replicas: 1
+  progressDeadlineSeconds: 60
   selector:
     matchLabels:
       app: gateway
@@ -18,7 +19,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/kujifined/quickticket-gateway:48ab70003fcc8d0b23a89bf048db43a03c11bde1
+          image: ghcr.io/kujifined/quickticket-gateway:does-not-exist
           imagePullPolicy: Always
           env:
             - name: EVENTS_URL
