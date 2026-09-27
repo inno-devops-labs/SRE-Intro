@@ -1,0 +1,20 @@
+gateway-1  | {"time":"2026-09-27 11:07:11,967","level":"ERROR","service":"gateway","msg":"payment error: [Errno -2] Name or service not known"}
+gateway-1  | INFO:     172.19.0.1:60426 - "POST /reserve/c445feab-cb7b-4d1a-92cc-bf28313d5378/pay HTTP/1.1" 502 Bad Gateway
+gateway-1  | {"time":"2026-09-27 11:07:12,256","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/5/reserve "HTTP/1.1 409 Conflict""}
+gateway-1  | INFO:     172.19.0.1:60442 - "POST /events/5/reserve HTTP/1.1" 409 Conflict
+gateway-1  | {"time":"2026-09-27 11:07:12,640","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.19.0.1:60456 - "GET /events HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:07:12,993","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/3/reserve "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.19.0.1:60464 - "POST /events/3/reserve HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:07:13,002","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1  | {"time":"2026-09-27 11:07:13,003","level":"ERROR","service":"gateway","msg":"payment error: [Errno -2] Name or service not known"}
+gateway-1  | INFO:     172.19.0.1:60482 - "GET /events HTTP/1.1" 200 OK
+gateway-1  | INFO:     172.19.0.1:60470 - "POST /reserve/47f0b521-b0d1-40c7-b963-d0c80e99e010/pay HTTP/1.1" 502 Bad Gateway
+gateway-1  | {"time":"2026-09-27 11:07:13,373","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/5/reserve "HTTP/1.1 409 Conflict""}
+gateway-1  | INFO:     172.19.0.1:60496 - "POST /events/5/reserve HTTP/1.1" 409 Conflict
+gateway-1  | {"time":"2026-09-27 11:07:13,750","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.19.0.1:60512 - "GET /events HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:07:14,064","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.19.0.1:60522 - "GET /health HTTP/1.1" 503 Service Unavailable
+gateway-1  | {"time":"2026-09-27 11:07:14,113","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.19.0.1:60526 - "GET /events HTTP/1.1" 200 OK

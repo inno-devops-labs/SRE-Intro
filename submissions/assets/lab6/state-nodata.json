@@ -1,0 +1,57 @@
+{
+  "observed_at": "2026-09-27T11:01:43.808889+00:00",
+  "rule": {
+    "state": "inactive",
+    "name": "QuickTicket High Error Rate",
+    "query": "sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) / sum(rate(gateway_requests_total[5m])) * 100",
+    "queriedDatasourceUIDs": [
+      "PBFA97CFB590B2093"
+    ],
+    "duration": 120,
+    "annotations": {
+      "description": "Error rate exceeded 5% for 2 minutes. Check payments service health.",
+      "summary": "Gateway error rate is {{ $value }}%"
+    },
+    "alerts": [
+      {
+        "labels": {
+          "alertname": "QuickTicket High Error Rate",
+          "datasource_uid": "PBFA97CFB590B2093",
+          "grafana_folder": "QuickTicket Lab 6",
+          "ref_id": "A",
+          "severity": "critical"
+        },
+        "annotations": {
+          "description": "Error rate exceeded 5% for 2 minutes. Check payments service health.",
+          "summary": "Gateway error rate is %"
+        },
+        "state": "NoData",
+        "activeAt": "2026-09-27T11:00:10Z",
+        "value": ""
+      }
+    ],
+    "totals": {
+      "nodata": 1
+    },
+    "totalsFiltered": {
+      "nodata": 1
+    },
+    "uid": "qt-high-errors",
+    "folderUid": "quickticket-lab6",
+    "labels": {
+      "severity": "critical"
+    },
+    "health": "nodata",
+    "type": "alerting",
+    "lastEvaluation": "2026-09-27T11:01:10Z",
+    "evaluationTime": 0.00959475,
+    "isPaused": false
+  },
+  "query": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": []
+    }
+  }
+}

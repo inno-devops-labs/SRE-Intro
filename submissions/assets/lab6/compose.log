@@ -1,0 +1,16 @@
+ Container app-payments-1 Stopping 
+ Container app-payments-1 Stopped 
+time="2026-09-27T14:01:43+03:00" level=warning msg="Found orphan containers ([app-webhook-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container app-payments-1 Recreate 
+ Container app-payments-1 Recreated 
+ Container app-payments-1 Starting 
+ Container app-payments-1 Started 
+ Container app-payments-1 Stopping 
+ Container app-payments-1 Stopped 
+ Container app-payments-1 Stopping 
+ Container app-payments-1 Stopped 
+time="2026-09-27T14:07:14+03:00" level=warning msg="Found orphan containers ([app-webhook-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up."
+ Container app-payments-1 Recreate 
+ Container app-payments-1 Recreated 
+ Container app-payments-1 Starting 
+ Container app-payments-1 Started 

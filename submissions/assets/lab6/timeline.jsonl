@@ -1,0 +1,15 @@
+{"time": "2026-09-27T11:01:43.725238+00:00", "event": "failure_injected", "failure_rate": 0.5}
+{"time": "2026-09-27T11:01:43.808807+00:00", "event": "alert_state", "state": "NoData", "lastEvaluation": "2026-09-27T11:01:10Z", "query": {"status": "success", "data": {"resultType": "vector", "result": []}}}
+{"time": "2026-09-27T11:03:14.933561+00:00", "event": "alert_state", "state": "Normal", "lastEvaluation": "2026-09-27T11:03:10Z", "query": {"status": "success", "data": {"resultType": "vector", "result": [{"metric": {}, "value": [1790506994.916, "0.16522792344290316"]}]}}}
+{"time": "2026-09-27T11:03:44.294076+00:00", "event": "initial_injection_observation", "query": {"status": "success", "data": {"resultType": "vector", "result": [{"metric": {}, "value": [1790507024.287, "0.14231555620009168"]}]}}}
+{"time": "2026-09-27T11:03:44.972797+00:00", "event": "failure_intensified", "mode": "payments unavailable; supplemental valid purchases at 1/s"}
+{"time": "2026-09-27T11:05:20.009149+00:00", "event": "alert_state", "state": "Pending", "lastEvaluation": "2026-09-27T11:05:10Z", "query": {"status": "success", "data": {"resultType": "vector", "result": [{"metric": {}, "value": [1790507120.005, "9.907956339466871"]}]}}}
+{"time": "2026-09-27T11:07:14.058560+00:00", "event": "alert_state", "state": "Alerting", "lastEvaluation": "2026-09-27T11:07:10Z", "query": {"status": "success", "data": {"resultType": "vector", "result": [{"metric": {}, "value": [1790507234.055, "17.333472749999597"]}]}}}
+{"time": "2026-09-27T11:07:14.059423+00:00", "event": "investigation_started"}
+{"time": "2026-09-27T11:07:14.403446+00:00", "event": "root_cause_identified", "health": {"gateway": [503, "{\"status\":\"degraded\",\"checks\":{\"events\":\"ok\",\"payments\":\"down\",\"circuit_payments\":\"CLOSED\"}}"], "payments": [0, "<urlopen error [Errno 61] Connection refused>"], "events": [200, {"status": "healthy", "checks": {"postgres": "ok", "redis": "ok"}}]}}
+{"time": "2026-09-27T11:07:14.403577+00:00", "event": "fix_started"}
+{"time": "2026-09-27T11:07:15.258811+00:00", "event": "fix_applied"}
+{"time": "2026-09-27T11:07:16.319292+00:00", "event": "service_recovered", "health": [200, {"status": "healthy", "checks": {"events": "ok", "payments": "ok", "circuit_payments": "CLOSED"}}]}
+{"time": "2026-09-27T11:07:16.360544+00:00", "event": "purchase_verification", "status": 200, "result": {"order_id": "48202aef-b0ef-4aa1-892d-bd054e0762b4", "event_id": 3, "quantity": 1, "total_cents": 15000, "status": "confirmed"}}
+{"time": "2026-09-27T11:12:17.649987+00:00", "event": "alert_state", "state": "Normal", "lastEvaluation": "2026-09-27T11:12:10Z", "query": {"status": "success", "data": {"resultType": "vector", "result": [{"metric": {}, "value": [1790507537.646, "0"]}]}}}
+{"time": "2026-09-27T11:12:17.651468+00:00", "event": "alert_resolved"}

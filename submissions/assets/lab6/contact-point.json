@@ -1,0 +1,10 @@
+{
+  "uid": "quickticket-lab6-webhook",
+  "name": "quickticket-alerts",
+  "type": "webhook",
+  "settings": {
+    "url": "http://webhook:9000",
+    "httpMethod": "POST"
+  },
+  "disableResolveMessage": false
+}

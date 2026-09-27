@@ -1,0 +1,20 @@
+{
+  "verified_at": "2026-09-27T21:25:23.118061+00:00",
+  "gateway_http_status": 200,
+  "gateway_checks": {
+    "events": "ok",
+    "payments": "ok",
+    "circuit_payments": "CLOSED"
+  },
+  "database_order": {
+    "id": "b9e5d88e-53b1-4bb4-bb1a-12b9d8e570f8",
+    "status": "confirmed",
+    "event_id": 3,
+    "created_at": "2026-09-27T21:22:06.0754+00:00"
+  },
+  "session_start": "2026-09-27T21:21:29Z",
+  "session_end": "2026-09-27T21:22:09Z",
+  "session_seconds": 40,
+  "seconds_to_purchase": 37,
+  "dashboard_verified_by_peer": false
+}

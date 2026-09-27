@@ -1,0 +1,27 @@
+{
+  "health_status": 200,
+  "health": {
+    "status": "healthy",
+    "checks": {
+      "events": "ok",
+      "payments": "ok",
+      "circuit_payments": "CLOSED"
+    }
+  },
+  "reserve_status": 200,
+  "reserve": {
+    "reservation_id": "9e3f5ae8-7ee9-4f1a-9c2b-fdf82bebc578",
+    "event_id": 3,
+    "quantity": 1,
+    "total_cents": 15000,
+    "expires_in_seconds": 300
+  },
+  "pay_status": 200,
+  "pay": {
+    "order_id": "9e3f5ae8-7ee9-4f1a-9c2b-fdf82bebc578",
+    "event_id": 3,
+    "quantity": 1,
+    "total_cents": 15000,
+    "status": "confirmed"
+  }
+}
