@@ -1,0 +1,23 @@
+# Chart.yaml is the metadata file for a Helm chart.
+# Helm reads this file to understand what the chart is, which API version it uses,
+# and which version of the chart is being packaged or installed.
+
+# apiVersion v2 is the current Helm chart API version for application charts.
+apiVersion: v2
+
+# name is the chart name. It is used by Helm commands and appears in release metadata.
+name: quickticket
+
+# description is a short human-readable explanation of what this chart deploys.
+description: QuickTicket SRE learning project
+
+# type application means this chart deploys runnable Kubernetes resources.
+type: application
+
+# version is the chart version, not the application image version.
+# Increase this when the chart templates or default values change.
+version: 0.1.0
+
+# appVersion documents the application version deployed by the chart.
+# The lab images are tagged v1, so this keeps the chart metadata aligned with them.
+appVersion: "v1"

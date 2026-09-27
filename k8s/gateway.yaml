@@ -1,0 +1,140 @@
+# This file defines the QuickTicket Gateway service in Kubernetes.
+# It contains two resources:
+# 1. A Deployment, which keeps the Gateway application Pod running.
+# 2. A Service, which gives the Gateway API a stable address.
+
+# Deployments use the apps/v1 API.
+apiVersion: apps/v1
+
+# A Deployment manages Pods and recreates them if they are deleted or fail.
+kind: Deployment
+
+metadata:
+  # The Deployment name is "gateway".
+  # Example: kubectl get deployment gateway
+  name: gateway
+
+spec:
+  # One Gateway replica is enough for this lab.
+  replicas: 1
+
+  # selector tells the Deployment which Pods it owns.
+  selector:
+    matchLabels:
+      app: gateway
+
+  # template defines the Pod created by the Gateway Deployment.
+  template:
+    metadata:
+      labels:
+        # This label links the Pod to the Deployment selector and the Service selector.
+        app: gateway
+        version: "v2"
+
+    spec:
+      # imagePullSecrets tells Kubernetes which registry credentials to use
+      # when it pulls private images from GitHub Container Registry.
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      containers:
+        # The Gateway Pod contains one application container.
+        - name: gateway
+
+          # This image is built by GitHub Actions and pushed to ghcr.io.
+          # The tag is the commit SHA from the CI run, which makes the deployed
+          # container traceable to the exact source revision.
+          image: ghcr.io/rmcavalcante7/quickticket-gateway:de17feee953bcb45967f17d54952e873b93648ad
+
+          # Always makes Kubernetes pull the image from the registry whenever
+          # a new Pod is created, which matches the Lab 5 GHCR workflow.
+          imagePullPolicy: Always
+
+          # The Gateway FastAPI application listens on port 8080.
+          ports:
+            - containerPort: 8080
+
+          # livenessProbe tells Kubernetes whether the container process is alive.
+          # If this check fails repeatedly, Kubernetes restarts the container.
+          # It uses /metrics instead of /health because Gateway /health checks
+          # downstream services. A dependency problem should affect readiness,
+          # not force the Gateway process to restart.
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # readinessProbe tells Kubernetes whether this Pod can receive traffic.
+          # If this check fails, Kubernetes keeps the Pod running but removes it
+          # from the Service endpoints until the check passes again.
+          # This is useful when the process is alive but a dependency is degraded.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+
+          # resources declares the amount of CPU and memory requested by the Pod
+          # and the maximum amount the container is allowed to use.
+          # requests are used by the scheduler to place the Pod on a node.
+          # limits protect the node from a container consuming too many resources.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+          # env configures how the Gateway reaches backend services.
+          # These values mirror app/docker-compose.yaml.
+          env:
+            # EVENTS_URL points to the Events Kubernetes Service.
+            # The hostname "events" is resolved by Kubernetes DNS.
+            - name: EVENTS_URL
+              value: "http://events:8081"
+
+            # PAYMENTS_URL points to the Payments Kubernetes Service.
+            # The hostname "payments" is resolved by Kubernetes DNS.
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+
+            # GATEWAY_TIMEOUT_MS defines the HTTP client timeout used by the gateway.
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+
+---
+
+# This Service gives the Gateway Pods a stable address.
+# Inside the cluster, other Pods can call http://gateway:8080.
+# For host-machine access during the lab, we will use kubectl port-forward.
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  # This name becomes the Kubernetes DNS hostname "gateway".
+  name: gateway
+
+spec:
+  # ClusterIP exposes the Service only inside the cluster.
+  # The lab uses port-forward to map localhost:3080 to this Service.
+  type: ClusterIP
+
+  # The Service routes traffic to Pods labeled app=gateway.
+  selector:
+    app: gateway
+
+  ports:
+    # port is the Service port inside the cluster.
+    - port: 8080
+
+      # targetPort is the port on the Gateway container.
+      targetPort: 8080
