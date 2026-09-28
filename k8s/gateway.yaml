@@ -19,7 +19,7 @@ spec:
       - name: ghcr-secret
       containers:
       - name: gateway
-        image: ghcr.io/nikitadev-work/quickticket-gateway:85be3a96489cd32d3f045e706510161bd446da04
+        image: ghcr.io/nikitadev-work/quickticket-gateway:does-not-exist
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
