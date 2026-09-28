@@ -1,0 +1,12 @@
+services:
+  webhook:
+    image: python:3.13-slim
+    command: [python, -u, /receiver.py]
+    ports:
+      - "127.0.0.1:8090:8080"
+    volumes:
+      - ../monitoring/webhook/receiver.py:/receiver.py:ro
+      - webhook_data:/data
+
+volumes:
+  webhook_data:
