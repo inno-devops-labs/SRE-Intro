@@ -53,7 +53,7 @@ logging.basicConfig(
 log = logging.getLogger("gateway")
 
 # --- App ---
-app = FastAPI(title="QuickTicket Gateway", version="1.0.0")
+app = FastAPI(title="QuickTicket Gateway", version="1.0.1")
 
 # --- Prometheus metrics ---
 REQUEST_COUNT = Counter(
