@@ -298,25 +298,6 @@ kubectl delete -f labs/lab8/mixedload.yaml
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab8
-git add submissions/lab8.md
-git commit -m "feat(lab8): add chaos experiment reports"
-git push -u origin feature/lab8
-```
-
-PR checklist:
-
-```text
-- [x] Task 1 done — 3 chaos experiments with hypotheses
-- [ ] Task 2 done — combined failure scenario
-- [ ] Bonus Task done — resilience improvement with before/after proof
-```
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -336,6 +317,25 @@ PR checklist:
 - ✅ Before-vs-after comparison with evidence.
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab8
+git add <proof of work + lab8.md> (submissions/lab8.md, ...)
+git commit -m "feat(lab8): add chaos experiment reports"
+git push -u origin feature/lab8
+```
+
+PR checklist:
+
+```text
+- [x] Task 1 done — 3 chaos experiments with hypotheses
+- [ ] Task 2 done — combined failure scenario
+- [ ] Bonus Task done — resilience improvement with before/after proof
+```
+
+---
+
 
 ## Rubric
 

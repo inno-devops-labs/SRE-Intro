@@ -440,25 +440,6 @@ pkill -f "port-forward.*5432" || true
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab9
-git add migrations/ k8s/postgres.yaml submissions/lab9.md
-git commit -m "feat(lab9): add Alembic migrations and DB reliability submission"
-git push -u origin feature/lab9
-```
-
-PR checklist:
-
-```text
-- [x] Task 1 done — Alembic migration under load + pg_dump/pg_restore cycle
-- [ ] Task 2 done — disaster recovery RTO/RPO measurement
-- [ ] Bonus Task done — PVC + automated CronJob backup with rotation
-```
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -481,6 +462,25 @@ PR checklist:
 - ✅ Retention works: 7 runs → exactly 5 files remain; retention log visible.
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab9
+git add <proof of work + lab9.md> (migrations/ k8s/postgres.yaml submissions/lab9.md, ...)
+git commit -m "feat(lab9): add Alembic migrations and DB reliability submission"
+git push -u origin feature/lab9
+```
+
+PR checklist:
+
+```text
+- [x] Task 1 done — Alembic migration under load + pg_dump/pg_restore cycle
+- [ ] Task 2 done — disaster recovery RTO/RPO measurement
+- [ ] Bonus Task done — PVC + automated CronJob backup with rotation
+```
+
+---
+
 
 ## Rubric
 

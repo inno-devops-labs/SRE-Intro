@@ -244,31 +244,6 @@ docker exec app-gateway-1 whoami
 
 ---
 
-## How to Submit
-
-1. Create a branch and push:
-
-   ```bash
-   git switch -c feature/lab2
-   git add submissions/lab2.md
-   git commit -m "docs(lab2): add lab2 — Docker inspection and optimization"
-   git push -u origin feature/lab2
-   ```
-
-2. Open a PR from your fork's `feature/lab2` → **course repo main branch**.
-
-3. In the PR description, include:
-
-   ```text
-   - [x] Task 1 done — Docker inspection and operations
-   - [ ] Task 2 done — Dockerfile optimization
-   - [ ] Bonus Task done — request tracing across services
-   ```
-
-4. **Submit PR URL** via Moodle before the deadline.
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -293,6 +268,31 @@ docker exec app-gateway-1 whoami
 - ✅ End-to-end time calculated
 
 ---
+## How to Submit
+
+1. Create a branch and push:
+
+   ```bash
+   git switch -c feature/lab2
+   git add <proof of work + lab2.md> (submissions/lab2.md app/gateway/Dockerfile app/events/Dockerfile app/payments/Dockerfile app/gateway/.dockerignore app/events/.dockerignore app/payments/.dockerignore, ...)
+   git commit -m "docs(lab2): add lab2 — Docker inspection and optimization"
+   git push -u origin feature/lab2
+   ```
+
+2. Open a PR from your fork's `feature/lab2` → **course repo main branch**.
+
+3. In the PR description, include:
+
+   ```text
+   - [x] Task 1 done — Docker inspection and operations
+   - [ ] Task 2 done — Dockerfile optimization
+   - [ ] Bonus Task done — request tracing across services
+   ```
+
+4. **Submit PR URL** via Moodle before the deadline.
+
+---
+
 
 ## Rubric
 

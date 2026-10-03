@@ -353,24 +353,6 @@ Add a step to your CI workflow after pushing the images:
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab5
-git add .github/workflows/ci.yml k8s/ submissions/lab5.md
-git commit -m "feat(lab5): add CI/CD pipeline and ArgoCD GitOps"
-git push -u origin feature/lab5
-```
-
-PR checklist:
-```text
-- [x] Task 1 done — CI pipeline + ArgoCD deployed + GitOps loop verified
-- [ ] Task 2 done — rollback via git revert
-- [ ] Bonus Task done — automated image tag update
-```
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -393,6 +375,24 @@ PR checklist:
 - ✅ ArgoCD syncs auto-updated tag
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab5
+git add <proof of work + lab5.md> (.github/workflows/ci.yml k8s/ submissions/lab5.md, ...)
+git commit -m "feat(lab5): add CI/CD pipeline and ArgoCD GitOps"
+git push -u origin feature/lab5
+```
+
+PR checklist:
+```text
+- [x] Task 1 done — CI pipeline + ArgoCD deployed + GitOps loop verified
+- [ ] Task 2 done — rollback via git revert
+- [ ] Bonus Task done — automated image tag update
+```
+
+---
+
 
 ## Rubric
 

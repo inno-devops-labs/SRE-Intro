@@ -662,28 +662,6 @@ kubectl exec -i $(kubectl get pod -l app=postgres -o name) -- \
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab12
-git add k8s/pdb.yaml k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml k8s/notifications.yaml migrations/ app/events/ app/seed.sql submissions/lab12.md
-git commit -m "feat(lab12): PDBs, preStop, and zero-downtime migration"
-git push -u origin feature/lab12
-```
-
-PR checklist:
-
-```text
-- [x] Task 1 done — multi-replica failover + 4 PDBs + topology spread + real eviction-API block
-- [ ] Task 2 done — preStop + zero-error rolling restart + CONCURRENTLY migration + expand-and-contract sketch
-- [ ] Bonus Task done — expand-and-contract executed live (3 migrations + 2 deploys, zero 5xx, `event_date` dropped)
-- [ ] (Optional) 12.9 HPA observation
-```
-
-> 📝 **About the Bonus Task.** Lab 12 is itself a bonus lab, but its internal **Bonus Task (2 pts)** is still a real extension — and the one that converts your 12.8 *design sketch* into a live, zero-downtime production playbook on your own cluster. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (4 pts)
@@ -710,6 +688,28 @@ PR checklist:
 - ✅ Submission answers all three design prompts (ordering, batching at scale, rollback safety once Deploy B is in prod).
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab12
+git add <proof of work + lab12.md> (k8s/pdb.yaml k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml k8s/notifications.yaml migrations/ app/events/ app/seed.sql submissions/lab12.md, ...)
+git commit -m "feat(lab12): PDBs, preStop, and zero-downtime migration"
+git push -u origin feature/lab12
+```
+
+PR checklist:
+
+```text
+- [x] Task 1 done — multi-replica failover + 4 PDBs + topology spread + real eviction-API block
+- [ ] Task 2 done — preStop + zero-error rolling restart + CONCURRENTLY migration + expand-and-contract sketch
+- [ ] Bonus Task done — expand-and-contract executed live (3 migrations + 2 deploys, zero 5xx, `event_date` dropped)
+- [ ] (Optional) 12.9 HPA observation
+```
+
+> 📝 **About the Bonus Task.** Lab 12 is itself a bonus lab, but its internal **Bonus Task (2 pts)** is still a real extension — and the one that converts your 12.8 *design sketch* into a live, zero-downtime production playbook on your own cluster. The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
+
+---
+
 
 ## Rubric
 

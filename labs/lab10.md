@@ -293,26 +293,6 @@ Write `submissions/runbooks/quickticket-handbook.md`:
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab10
-git add locustfile.py submissions/lab10.md
-# plus submissions/runbooks/ if you did Bonus Option B
-git commit -m "feat(lab10): add load tests and reliability review"
-git push -u origin feature/lab10
-```
-
-PR checklist:
-
-```text
-- [x] Task 1 done — load tests, DORA, toil, reliability review (all 7 sections)
-- [ ] Task 2 done — detailed capacity plan with numbers
-- [ ] Bonus Task done — demo video OR SRE handbook
-```
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -330,6 +310,26 @@ PR checklist:
 - ✅ Demo video link OR completed 2-page handbook.
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab10
+git add <proof of work + lab10.md> (locustfile.py submissions/lab10.md, ...)
+# plus submissions/runbooks/ if you did Bonus Option B
+git commit -m "feat(lab10): add load tests and reliability review"
+git push -u origin feature/lab10
+```
+
+PR checklist:
+
+```text
+- [x] Task 1 done — load tests, DORA, toil, reliability review (all 7 sections)
+- [ ] Task 2 done — detailed capacity plan with numbers
+- [ ] Bonus Task done — demo video OR SRE handbook
+```
+
+---
+
 
 ## Rubric
 
