@@ -379,7 +379,7 @@ Add a step to your CI workflow after pushing the images:
 
 ```bash
 git switch -c feature/lab5
-git add <proof of work + lab5.md>
+git add <proof of work + lab5.md> (.github/workflows/ci.yml k8s/ submissions/lab5.md, ...)
 git commit -m "feat(lab5): add CI/CD pipeline and ArgoCD GitOps"
 git push -u origin feature/lab5
 ```

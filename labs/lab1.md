@@ -323,7 +323,7 @@ PAYMENT_FAILURE_RATE=0.0 PAYMENT_LATENCY_MS=0 docker compose up -d payments
 
    ```bash
    git switch -c feature/lab1
-   git add <proof of work + lab1.md>
+   git add <proof of work + lab1.md> (app/gateway/main.py submissions/lab1.md, ...)
    git commit -m "docs(lab1): add submission1 — deploy and failure exploration"
    git push -u origin feature/lab1
    ```

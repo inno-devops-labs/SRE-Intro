@@ -428,7 +428,7 @@ kubectl delete -f labs/lab7/loadgen.yaml
 
 ```bash
 git switch -c feature/lab7
-git add <proof of work + lab7.md>
+git add <proof of work + lab7.md> (k8s/gateway.yaml k8s/analysis-template.yaml submissions/lab7.md, ...)
 git commit -m "feat(lab7): add canary rollout for gateway"
 git push -u origin feature/lab7
 ```

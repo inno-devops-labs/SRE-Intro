@@ -594,7 +594,7 @@ kubectl set env deployment/payments PAYMENT_LATENCY_MS=0
 
 ```bash
 git switch -c feature/lab11
-git add <proof of work + lab11.md>
+git add <proof of work + lab11.md> (app/notifications/ app/gateway/main.py app/docker-compose.yaml k8s/notifications.yaml k8s/gateway.yaml submissions/lab11.md, ...)
 git commit -m "feat(lab11): add notifications service and resilience patterns"
 git push -u origin feature/lab11
 ```

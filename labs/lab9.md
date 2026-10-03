@@ -466,7 +466,7 @@ pkill -f "port-forward.*5432" || true
 
 ```bash
 git switch -c feature/lab9
-git add <proof of work + lab9.md>
+git add <proof of work + lab9.md> (migrations/ k8s/postgres.yaml submissions/lab9.md, ...)
 git commit -m "feat(lab9): add Alembic migrations and DB reliability submission"
 git push -u origin feature/lab9
 ```
