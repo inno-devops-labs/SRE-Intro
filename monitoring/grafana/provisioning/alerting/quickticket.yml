@@ -1,0 +1,164 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: quickticket-alerts
+    receivers:
+      - uid: quickticket-webhook
+        type: webhook
+        disableResolveMessage: false
+        settings:
+          url: http://webhook:8080/alerts
+          httpMethod: POST
+
+policies:
+  - orgId: 1
+    receiver: quickticket-alerts
+    group_by:
+      - alertname
+    group_wait: 30s
+    group_interval: 1m
+    repeat_interval: 5m
+
+groups:
+  - orgId: 1
+    name: QuickTicket SLO Alerts
+    folder: QuickTicket
+    interval: 1m
+    rules:
+      - uid: quickticket-high-error-rate
+        title: QuickTicket High Error Rate
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: PBFA97CFB590B2093
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr: sum(rate(gateway_requests_total{status=~"5.."}[5m])) / sum(rate(gateway_requests_total[5m])) * 100
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: Gateway error rate is {{ $values.B.Value }}%
+          description: Error rate exceeded 5% for 2 minutes. Check payments service health.
+          runbook_url: submissions/lab6.md#runbook-quickticket-high-error-rate
+        labels:
+          severity: critical
+
+      - uid: quickticket-slo-burn-rate
+        title: QuickTicket SLO Burn Rate
+        condition: C
+        data:
+          - refId: A
+            datasourceUid: PBFA97CFB590B2093
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: PBFA97CFB590B2093
+              editorMode: code
+              expr: (1 - (sum(rate(gateway_requests_total{status!~"5.."}[30m])) / sum(rate(gateway_requests_total[30m])))) / (1 - 0.995)
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 6
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: Gateway SLO error budget is burning too quickly
+          description: Availability error budget burn rate exceeded 6x for 5 minutes.
+        labels:
+          severity: warning
