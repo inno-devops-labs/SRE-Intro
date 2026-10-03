@@ -423,7 +423,7 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
    ```bash
    git switch -c feature/lab4
-   git add <proof of work + lab4.md>
+   git add <proof of work + lab4.md> (k8s/ submissions/lab4.md monitoring/prometheus/prometheus.yml, ...)
    git commit -m "docs(lab4): add lab4 — K8s manifests and deployment"
    git push -u origin feature/lab4
    ```

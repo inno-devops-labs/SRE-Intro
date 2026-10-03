@@ -311,7 +311,7 @@ Kill payments for 1 minute — watch the gauge drop.
 
 ```bash
 git switch -c feature/lab3
-git add <proof of work + lab3.md>
+git add <proof of work + lab3.md> (monitoring/prometheus/ submissions/lab3.md, ...)
 git commit -m "feat(lab3): add monitoring config and SLO definitions"
 git push -u origin feature/lab3
 ```

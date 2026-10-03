@@ -314,7 +314,7 @@ Write `submissions/runbooks/quickticket-handbook.md`:
 
 ```bash
 git switch -c feature/lab10
-git add <proof of work + lab10.md>
+git add <proof of work + lab10.md> (locustfile.py submissions/lab10.md, ...)
 # plus submissions/runbooks/ if you did Bonus Option B
 git commit -m "feat(lab10): add load tests and reliability review"
 git push -u origin feature/lab10

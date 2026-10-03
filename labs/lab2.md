@@ -275,7 +275,7 @@ docker exec app-gateway-1 whoami
 
    ```bash
    git switch -c feature/lab2
-   git add <proof of work + lab2.md>
+   git add <proof of work + lab2.md> (app/gateway/Dockerfile app/events/Dockerfile app/payments/Dockerfile app/gateway/.dockerignore app/events/.dockerignore app/payments/.dockerignore submissions/lab2.md, ...)
    git commit -m "docs(lab2): add lab2 — Docker inspection and optimization"
    git push -u origin feature/lab2
    ```

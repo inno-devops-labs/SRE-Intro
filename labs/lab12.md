@@ -692,7 +692,7 @@ kubectl exec -i $(kubectl get pod -l app=postgres -o name) -- \
 
 ```bash
 git switch -c feature/lab12
-git add <proof of work + lab12.md>
+git add <proof of work + lab12.md> (k8s/pdb.yaml k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml k8s/notifications.yaml migrations/ app/events/ app/seed.sql submissions/lab12.md, ...)
 git commit -m "feat(lab12): PDBs, preStop, and zero-downtime migration"
 git push -u origin feature/lab12
 ```

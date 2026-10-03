@@ -321,7 +321,7 @@ kubectl delete -f labs/lab8/mixedload.yaml
 
 ```bash
 git switch -c feature/lab8
-git add <proof of work + lab8.md>
+git add <proof of work + lab8.md> (submissions/lab8.md, ...)
 git commit -m "feat(lab8): add chaos experiment reports"
 git push -u origin feature/lab8
 ```

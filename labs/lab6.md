@@ -298,7 +298,7 @@ Write a runbook following the same structure as step 6.5.
 
 ```bash
 git switch -c feature/lab6
-git add <proof of work + lab6.md>
+git add <proof of work + lab6.md> (submissions/lab6.md, ...)
 git commit -m "feat(lab6): add alerting config, runbook, and postmortem"
 git push -u origin feature/lab6
 ```
