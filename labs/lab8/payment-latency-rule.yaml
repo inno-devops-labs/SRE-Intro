@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: monitoring
+
+data:
+  latency.yml: |
+    groups:
+      - name: gateway-latency
+        rules:
+          - alert: HighPaymentLatency
+            expr: |
+              histogram_quantile(
+                0.99,
+                sum by (le, path) (
+                  rate(
+                    gateway_request_duration_seconds_bucket{
+                      path="/reserve/{id}/pay"
+                    }[1m]
+                  )
+                )
+              ) > 1
+
+            for: 30s
+
+            labels:
+              severity: warning
+
+            annotations:
+              summary: "High payment latency"
+              description: "Gateway payment p99 latency is above 1 second."
