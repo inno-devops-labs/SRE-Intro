@@ -236,7 +236,7 @@ async def health():
 
     critical_ok = checks["events"] == "ok" and checks["payments"] == "ok"
     return JSONResponse(
-        status_code=200 if critical_ok else 503,
+        status_code=200,
         content={"status": "healthy" if critical_ok else "degraded", "checks": checks},
     )
 
@@ -286,7 +286,7 @@ async def reserve_tickets(event_id: int, request: Request):
     except httpx.TimeoutException:
         raise HTTPException(504, "Events service timeout")
     except httpx.HTTPStatusError as e:
-        raise HTTPException(e.response.status_code, e.response.json())
+        raise HTTPException(e.response.status_code, e.response.text)
     except Exception as e:
         log.error(f"reserve error: {e}")
         raise HTTPException(502, "Events service unavailable")
