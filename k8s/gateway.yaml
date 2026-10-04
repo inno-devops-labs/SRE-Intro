@@ -1,0 +1,181 @@
+# This file defines the QuickTicket Gateway service in Kubernetes.
+# It contains two resources:
+# 1. A Rollout, which keeps the Gateway application Pods running and controls canary releases.
+# 2. A Service, which gives the Gateway API a stable address.
+
+# Argo Rollouts resources use the argoproj.io/v1alpha1 API.
+# The Rollout CRD was installed in the argo-rollouts namespace during Lab 7.
+apiVersion: argoproj.io/v1alpha1
+
+# A Rollout is managed by the Argo Rollouts controller.
+# It behaves like a Deployment for steady-state Pods, but adds progressive
+# delivery controls such as canary weights, pauses, promotion, and abort.
+kind: Rollout
+
+metadata:
+  # The Rollout name is "gateway".
+  # Example: kubectl argo rollouts get rollout gateway
+  name: gateway
+
+spec:
+  # Five Gateway replicas are required for meaningful canary splits in this lab.
+  # With 5 replicas, 20% means 1 canary Pod and 4 stable Pods.
+  replicas: 5
+
+  # strategy defines how Argo Rollouts releases a new Gateway version.
+  # The bonus strategy adds an automated analysis step after the first canary
+  # exposure. Argo Rollouts passes the latest canary pod-template hash into the
+  # AnalysisTemplate so Prometheus measures only the canary pods.
+  strategy:
+    canary:
+      steps:
+        # Send roughly 20% of traffic to the new version.
+        # With 5 replicas, this corresponds to 1 canary Pod.
+        - setWeight: 20
+
+        # Keep traffic on the canary long enough for Prometheus to scrape samples.
+        - pause:
+            duration: 20s
+
+        # Run the gateway-error-rate AnalysisTemplate against the latest canary.
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+
+        # If the analysis succeeds, increase exposure to roughly 50%.
+        - setWeight: 50
+
+        # Observe the 50% step briefly before full promotion.
+        - pause:
+            duration: 20s
+
+        # Complete the rollout by moving all Gateway traffic to the new version.
+        - setWeight: 100
+
+  # selector tells the Rollout which Pods it owns.
+  selector:
+    matchLabels:
+      app: gateway
+
+  # template defines the Pods created by the Gateway Rollout.
+  template:
+    metadata:
+      labels:
+        # This label links the Pod to the Rollout selector and the Service selector.
+        app: gateway
+        version: "v2"
+
+    spec:
+      # imagePullSecrets tells Kubernetes which registry credentials to use
+      # when it pulls private images from GitHub Container Registry.
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      containers:
+        # The Gateway Pod contains one application container.
+        - name: gateway
+
+          # This image is built by GitHub Actions and pushed to ghcr.io.
+          # The tag is the commit SHA from the CI run, which makes the deployed
+          # container traceable to the exact source revision.
+          image: ghcr.io/rmcavalcante7/quickticket-gateway:10bf5ac035aa71b9905dc6a2c20df9eae760696a
+
+          # Always makes Kubernetes pull the image from the registry whenever
+          # a new Pod is created, which matches the GHCR workflow.
+          imagePullPolicy: Always
+
+          # The Gateway FastAPI application listens on port 8080.
+          ports:
+            - containerPort: 8080
+
+          # livenessProbe tells Kubernetes whether the container process is alive.
+          # If this check fails repeatedly, Kubernetes restarts the container.
+          # It uses /metrics instead of /health because Gateway /health checks
+          # downstream services. A dependency problem should affect readiness,
+          # not force the Gateway process to restart.
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # readinessProbe tells Kubernetes whether this Pod can receive traffic.
+          # It uses /health so only Gateway Pods that can answer health checks
+          # are added to the Service endpoints.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+
+          # resources declares the amount of CPU and memory requested by the Pod
+          # and the maximum amount the container is allowed to use.
+          # requests are used by the scheduler to place the Pod on a node.
+          # limits protect the node from a container consuming too many resources.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+          # env configures how the Gateway reaches backend services.
+          # These values mirror app/docker-compose.yaml.
+          env:
+            # EVENTS_URL points to the Events Kubernetes Service.
+            # The hostname "events" is resolved by Kubernetes DNS.
+            - name: EVENTS_URL
+              value: "http://events:8081"
+
+            # PAYMENTS_URL points to the Payments Kubernetes Service.
+            # The hostname "payments" is resolved by Kubernetes DNS.
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+
+            # GATEWAY_TIMEOUT_MS defines the HTTP client timeout used by the gateway.
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+
+            # APP_VERSION identifies this Gateway template revision during the canary lab.
+            # Changing this value forces Argo Rollouts to create a new ReplicaSet.
+            - name: APP_VERSION
+              value: "v5-multistep"
+---
+
+# This Service gives the Gateway Pods a stable address.
+# Inside the cluster, other Pods can call http://gateway:8080.
+# For host-machine access during the lab, we will use kubectl port-forward.
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  # This name becomes the Kubernetes DNS hostname "gateway".
+  name: gateway
+
+spec:
+  # ClusterIP exposes the Service only inside the cluster.
+  # The lab uses port-forward to map localhost:3080 to this Service.
+  type: ClusterIP
+
+  # The Service routes traffic to Pods labeled app=gateway.
+  selector:
+    app: gateway
+
+  ports:
+    # port is the Service port inside the cluster.
+    - port: 8080
+
+      # targetPort is the port on the Gateway container.
+      targetPort: 8080
