@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        version: "v2"
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: gateway
+          image: ghcr.io/g-0-rg/quickticket-gateway:340a6ba4557ab7fd19d4fef12961e0ccbe8fc327
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+          # Liveness = "is this process alive?" only. /metrics has no downstream
+          # dependencies; restarting a pod can't fix a missing dependency (Lab 8, Exp 3).
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          # Readiness = "can this pod serve anything?". Gateway handles dependency
+          # failures per request, so it must not leave the Service because of them.
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
