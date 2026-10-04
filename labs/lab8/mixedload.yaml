@@ -26,6 +26,9 @@ spec:
       containers:
         - name: curl
           image: curlimages/curl:latest
+          env:
+            - name: EVENT_ID
+              value: "1"
           command: ["sh", "-c"]
           args:
             - |
@@ -34,7 +37,7 @@ spec:
                 curl -s http://gateway:8080/events > /dev/null
 
                 # Full checkout chain (exercises events+postgres+redis+payments)
-                RES=$(curl -s -X POST http://gateway:8080/events/1/reserve \
+                RES=$(curl -s -X POST "http://gateway:8080/events/${EVENT_ID}/reserve" \
                         -H "Content-Type: application/json" \
                         -d '{"quantity":1}')
                 RID=$(echo "$RES" | sed -n 's/.*reservation_id":"\([^"]*\).*/\1/p')
