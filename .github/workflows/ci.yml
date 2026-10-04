@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Skip runs triggered by the CI's own image-tag commit to avoid an infinite loop.
+    if: "!startsWith(github.event.head_commit.message, 'ci:')"
+    permissions:
+      contents: write     # Needed to push the image-tag manifest update back
+      packages: write      # Needed to push to ghcr.io
+
+    strategy:
+      matrix:
+        service: [gateway, events, payments]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lowercase the owner for ghcr.io
+        id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push ${{ matrix.service }}
+        run: |
+          IMAGE=ghcr.io/${{ steps.owner.outputs.name }}/quickticket-${{ matrix.service }}
+          docker build -t "${IMAGE}:${{ github.sha }}" -t "${IMAGE}:latest" ./app/${{ matrix.service }}
+          docker push "${IMAGE}:${{ github.sha }}"
+          docker push "${IMAGE}:latest"
+
+  # Bonus Task: after all three images are pushed, rewrite the image tags in the
+  # K8s manifests to the new commit SHA and push the change back to main. ArgoCD
+  # then detects the manifest change and syncs the new images automatically.
+  update-manifests:
+    needs: build
+    runs-on: ubuntu-latest
+    if: "!startsWith(github.event.head_commit.message, 'ci:')"
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase the owner for ghcr.io
+        id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Update image tags in manifests
+        run: |
+          OWNER=${{ steps.owner.outputs.name }}
+          SHA=${{ github.sha }}
+          for svc in gateway events payments; do
+            sed -i "s|image: ghcr.io/.*/quickticket-${svc}:.*|image: ghcr.io/${OWNER}/quickticket-${svc}:${SHA}|" k8s/${svc}.yaml
+          done
+
+      - name: Commit and push manifest update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/
+          git diff --cached --quiet || git commit -m "ci: update image tags to ${{ github.sha }}"
+          git push
