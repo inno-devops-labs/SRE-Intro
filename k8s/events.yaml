@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+  labels:
+    app: events
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      # No depends_on in Kubernetes: events connects once at startup and keeps
+      # redis_client=None / db_pool=None forever if a dependency is not up yet.
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until pg_isready -h postgres -p 5432 -U quickticket; do echo waiting for postgres; sleep 2; done"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: wait-for-redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until redis-cli -h redis -p 6379 ping | grep -q PONG; do echo waiting for redis; sleep 2; done"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      # ghcr.io packages are private by default, so the kubelet needs a
+      # docker-registry secret to pull them. Lab 4 needed none: the images
+      # were imported into the node and marked imagePullPolicy: Never.
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: events
+          image: ghcr.io/kortezz12/quickticket-events:a2dfee5f0663bd645857f685c294c0646bdb5f4b
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "quickticket"
+            - name: DB_USER
+              value: "quickticket"
+            - name: DB_PASS
+              value: "quickticket"
+            - name: DB_MAX_CONNS
+              value: "10"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_TIMEOUT_MS
+              value: "1000"
+            - name: RESERVATION_TTL
+              value: "300"
+          # Liveness asks only "is the process serving HTTP": /metrics touches no dependency.
+          # Pointing it at /health would restart this pod whenever a dependency is down.
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          # Readiness is shallow on purpose (lab 8 bonus). /health fails when Redis is down,
+          # which pulled the only events pod out of its Service and broke GET /events too,
+          # although listing needs only Postgres. /health stays for dashboards and alerts.
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  type: ClusterIP
+  selector:
+    app: events
+  ports:
+    - port: 8081
+      targetPort: 8081
