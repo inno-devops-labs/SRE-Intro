@@ -1,0 +1,52 @@
+# PodDisruptionBudgets for QuickTicket (Lab 12).
+#
+# A PDB caps how many pods of a workload may be *voluntarily* disrupted at once
+# (node drain, cluster upgrade, `kubectl drain`) — it does NOT protect against
+# involuntary disruption (a node crash). It gates the eviction API so a drain
+# can never take a service below its floor.
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+spec:
+  # 5 replicas, minAvailable 2 → tolerate 3 simultaneous evictions during a drain.
+  # Not 4: that would leave only 1 evictable at a time and a node drain could
+  # block forever. 2 keeps ~half of normal RPS while the rest reschedule.
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+spec:
+  # 2 replicas, must always keep 1 serving.
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+spec:
+  # 2 replicas, must always keep 1 serving.
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payments
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+spec:
+  # Best-effort (fire-and-forget in Lab 11) → a softer bar: at most 1 down.
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: notifications

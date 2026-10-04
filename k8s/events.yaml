@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+  labels:
+    app: events
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      # Graceful shutdown so the two Lab 12 code deploys (expand-and-contract)
+      # drop zero requests: preStop lets kube-proxy remove this pod's endpoint
+      # before uvicorn gets SIGTERM, avoiding the connection-refused window.
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: events
+          image: quickticket-events:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "quickticket"
+            - name: DB_USER
+              value: "quickticket"
+            - name: DB_PASS
+              value: "quickticket"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  type: ClusterIP
+  selector:
+    app: events
+  ports:
+    - port: 8081
+      targetPort: 8081
