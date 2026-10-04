@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image tags
+        id: meta
+        run: |
+          echo "sha_tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "version_tag=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version_tag=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push gateway
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/quickticket-gateway
+
+          docker build \
+            -t ${IMAGE}:${{ steps.meta.outputs.sha_tag }} \
+            ./app/gateway
+
+          docker push ${IMAGE}:${{ steps.meta.outputs.sha_tag }}
+
+          if [[ -n "${{ steps.meta.outputs.version_tag }}" ]]; then
+            docker tag \
+              ${IMAGE}:${{ steps.meta.outputs.sha_tag }} \
+              ${IMAGE}:${{ steps.meta.outputs.version_tag }}
+
+            docker push ${IMAGE}:${{ steps.meta.outputs.version_tag }}
+          fi
+
+      - name: Build and push events
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/quickticket-events
+
+          docker build \
+            -t ${IMAGE}:${{ steps.meta.outputs.sha_tag }} \
+            ./app/events
+
+          docker push ${IMAGE}:${{ steps.meta.outputs.sha_tag }}
+
+          if [[ -n "${{ steps.meta.outputs.version_tag }}" ]]; then
+            docker tag \
+              ${IMAGE}:${{ steps.meta.outputs.sha_tag }} \
+              ${IMAGE}:${{ steps.meta.outputs.version_tag }}
+
+            docker push ${IMAGE}:${{ steps.meta.outputs.version_tag }}
+          fi
+
+      - name: Build and push payments
+        run: |
+          IMAGE=ghcr.io/${{ github.repository_owner }}/quickticket-payments
+
+          docker build \
+            -t ${IMAGE}:${{ steps.meta.outputs.sha_tag }} \
+            ./app/payments
+
+          docker push ${IMAGE}:${{ steps.meta.outputs.sha_tag }}
+
+          if [[ -n "${{ steps.meta.outputs.version_tag }}" ]]; then
+            docker tag \
+              ${IMAGE}:${{ steps.meta.outputs.sha_tag }} \
+              ${IMAGE}:${{ steps.meta.outputs.version_tag }}
+
+            docker push ${IMAGE}:${{ steps.meta.outputs.version_tag }}
+          fi
