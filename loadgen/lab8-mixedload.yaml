@@ -1,0 +1,43 @@
+# Full checkout traffic on a dedicated test event, preserving original inventory.
+# Create the test event first and set EVENT_ID to the returned id before applying.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mixedload
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mixedload
+  template:
+    metadata:
+      labels:
+        app: mixedload
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: EVENT_ID
+              value: "6"
+          command: [sh, -c]
+          args:
+            - |
+              while true; do
+                at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                read_result=$(curl -s --max-time 15 -o /dev/null -w '%{http_code} %{time_total}' http://gateway:8080/events)
+                echo "$at read $read_result"
+                reserve_result=$(curl -s --max-time 15 -X POST \
+                  "http://gateway:8080/events/$EVENT_ID/reserve" \
+                  -H 'Content-Type: application/json' -d '{"quantity":1}')
+                rid=$(echo "$reserve_result" | sed -n 's/.*reservation_id":"\([^"]*\).*/\1/p')
+                if [ -n "$rid" ]; then
+                  pay_result=$(curl -s --max-time 15 -X POST -o /dev/null -w '%{http_code} %{time_total}' \
+                    "http://gateway:8080/reserve/$rid/pay")
+                  echo "$at pay $pay_result"
+                else
+                  echo "$at reserve_failed $reserve_result"
+                fi
+                sleep 0.3
+              done
