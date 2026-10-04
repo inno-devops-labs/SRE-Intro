@@ -1,0 +1,7 @@
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+argocd-applicationset-controller   1/1     1            1           9m16s
+argocd-dex-server                  1/1     1            1           9m16s
+argocd-notifications-controller    1/1     1            1           9m16s
+argocd-redis                       1/1     1            1           9m16s
+argocd-repo-server                 1/1     1            1           9m16s
+argocd-server                      1/1     1            1           9m16s
