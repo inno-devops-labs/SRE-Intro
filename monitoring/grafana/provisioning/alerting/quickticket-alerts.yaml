@@ -1,0 +1,133 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: quickticket-alerts
+    folder: QuickTicket
+    interval: 1m
+    rules:
+      - uid: quickticket-high-error-rate
+        title: QuickTicket High Error Rate
+        condition: B
+        for: 2m
+        noDataState: OK
+        execErrState: Error
+        annotations:
+          summary: 'Gateway error rate is {{ $value }}%'
+          description: Error rate exceeded 5% for 2 minutes. Check payments service health.
+        labels:
+          severity: critical
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              expr: 'sum(rate(gateway_requests_total{status=~"5.."}[5m])) / sum(rate(gateway_requests_total[5m])) * 100'
+              instant: true
+              interval: ''
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [5]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+              type: threshold
+      - uid: quickticket-slo-burn-rate
+        title: QuickTicket SLO Burn Rate
+        condition: B
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        annotations:
+          summary: Gateway SLO burn rate is above 6x.
+          description: Availability error budget is being consumed more than six times faster than the SLO budget.
+        labels:
+          severity: warning
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 1800
+              to: 0
+            datasourceUid: PBFA97CFB590B2093
+            model:
+              editorMode: code
+              expr: '(1 - (sum(rate(gateway_requests_total{status!~"5.."}[30m])) / sum(rate(gateway_requests_total[30m])))) / (1 - 0.995)'
+              instant: true
+              interval: ''
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            queryType: ''
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [6]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+              type: threshold
+
+contactPoints:
+  - orgId: 1
+    name: quickticket-alerts
+    receivers:
+      - uid: quickticket-webhook
+        type: webhook
+        settings:
+          url: http://quickticket-webhook-receiver:18080/alerts
+
+policies:
+  - orgId: 1
+    receiver: quickticket-alerts
+    group_by: [alertname]
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 5m
