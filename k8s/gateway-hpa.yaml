@@ -1,0 +1,22 @@
+# Lab 12 (12.9, optional) — HorizontalPodAutoscaler for the gateway Rollout.
+# HPA works on any scalable resource, including an Argo Rollouts Rollout.
+# On single-node k3d new pods schedule on the same node (not real elasticity),
+# but you can watch the HPA controller make scaling decisions under load.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gateway
+spec:
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: gateway
+  minReplicas: 5              # don't drop below the Lab 7 base
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

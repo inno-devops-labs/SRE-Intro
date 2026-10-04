@@ -1,0 +1,55 @@
+# Lab 9 Bonus — automated pg_dump backup with rotation.
+#
+# Runs every 5 minutes, writes a custom-format dump to the postgres-backups PVC
+# (from labs/lab9/backup-storage.yaml), and keeps only the 5 newest dumps.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid          # don't stack jobs if one runs long
+  successfulJobsHistoryLimit: 3      # don't fill etcd
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: OnFailure    # Jobs require OnFailure or Never
+          containers:
+            - name: backup
+              image: postgres:17-alpine   # ships pg_dump
+              env:
+                - name: PGHOST
+                  value: "postgres"        # Kubernetes Service DNS
+                - name: PGUSER
+                  value: "quickticket"
+                - name: PGDATABASE
+                  value: "quickticket"
+                - name: PGPASSWORD
+                  value: "quickticket"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  cd /backups
+                  TS=$(date -u +%Y%m%dT%H%M%SZ)
+                  OUT="quickticket_${TS}.dump"
+                  echo "Backing up ${PGDATABASE} -> ${OUT}"
+                  pg_dump -Fc "${PGDATABASE}" > "${OUT}"
+                  echo "Backup complete: $(ls -lh ${OUT})"
+                  # Retention: keep the 5 newest, delete the rest.
+                  # tail -n +6 emits everything from line 6 onward (beyond the 5 newest).
+                  ls -1t quickticket_*.dump | tail -n +6 | xargs -r rm -v
+                  echo "Remaining dumps:"; ls -1t quickticket_*.dump
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
