@@ -43,13 +43,15 @@ spec:
               value: "300"
           readinessProbe:
             httpGet:
-              path: /health
+              # Keep Redis-independent reads available; /health reports dependencies.
+              path: /metrics
               port: 8081
             periodSeconds: 5
             failureThreshold: 2
           livenessProbe:
             httpGet:
-              path: /health
+              # Restart only for process failure, not an external dependency outage.
+              path: /metrics
               port: 8081
             initialDelaySeconds: 10
             periodSeconds: 10
