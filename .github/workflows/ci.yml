@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['k8s/**', 'submissions/**']   # manifest-only commits need no rebuild
+
+jobs:
+  build:
+    # Skip commits made by this workflow to avoid an infinite loop
+    if: "!startsWith(github.event.head_commit.message, 'ci:')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # Needed to push the manifest update
+      packages: write      # Needed to push to ghcr.io
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Multi-arch so images run natively on arm64 (Apple Silicon k3d) too
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push images
+        run: |
+          for svc in gateway events payments; do
+            docker buildx build --platform linux/amd64,linux/arm64 \
+              -t ghcr.io/meliman1000-7/quickticket-$svc:${{ github.sha }} \
+              --push ./app/$svc
+          done
+
+      - name: Update image tags in manifests
+        run: |
+          for svc in gateway events payments; do
+            sed -i "s|image: ghcr.io/.*/quickticket-$svc:.*|image: ghcr.io/meliman1000-7/quickticket-$svc:${{ github.sha }}|" k8s/$svc.yaml
+          done
+
+      - name: Commit and push manifest update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add k8s/
+          git diff --cached --quiet && exit 0
+          git commit -m "ci: update image tags to ${{ github.sha }}"
+          git pull --rebase origin main
+          git push
