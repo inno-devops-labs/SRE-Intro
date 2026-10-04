@@ -41,16 +41,20 @@ spec:
               value: "1000"
             - name: RESERVATION_TTL
               value: "300"
+          # Liveness = "is this process alive?" only. /metrics has no downstream
+          # dependencies; restarting a pod can't fix a missing dependency (Lab 8, Exp 3).
           livenessProbe:
             httpGet:
-              path: /health
+              path: /metrics
               port: 8081
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
+          # Readiness checks Postgres (which every events path needs) but not Redis,
+          # so a Redis outage breaks only reservations instead of the whole service.
           readinessProbe:
             httpGet:
-              path: /health
+              path: /events
               port: 8081
             periodSeconds: 5
             failureThreshold: 2
