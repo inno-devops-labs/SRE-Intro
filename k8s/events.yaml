@@ -26,7 +26,7 @@ spec:
             - { name: DB_NAME, value: quickticket }
             - { name: DB_USER, value: quickticket }
             - { name: DB_PASS, value: quickticket }
-            - { name: DB_MAX_CONNS, value: "10" }
+            - { name: DB_MAX_CONNS, value: "20" }
             - { name: REDIS_HOST, value: redis }
             - { name: REDIS_PORT, value: "6379" }
             - { name: REDIS_TIMEOUT_MS, value: "1000" }
@@ -41,7 +41,7 @@ spec:
             periodSeconds: 5
             failureThreshold: 2
           resources:
-            requests: { cpu: 50m, memory: 64Mi }
+            requests: { cpu: 100m, memory: 128Mi }
             limits: { cpu: 200m, memory: 256Mi }
 ---
 apiVersion: v1
