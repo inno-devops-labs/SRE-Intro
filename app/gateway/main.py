@@ -24,7 +24,7 @@ from collections import defaultdict, deque
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 # --- Config ---
 EVENTS_URL = os.getenv("EVENTS_URL", "http://events:8081")
@@ -44,6 +44,10 @@ CB_COOLDOWN_S = float(os.getenv("CB_COOLDOWN_S", "30"))
 
 # Rate limiter (Lab 11) — per endpoint, sliding window
 RATE_LIMIT_RPS = int(os.getenv("RATE_LIMIT_RPS", "10"))
+
+# Bulkhead (Lab 11 bonus) — bounds concurrent in-flight calls to payments
+BULKHEAD_PAYMENTS_MAX = int(os.getenv("BULKHEAD_PAYMENTS_MAX", "10"))
+BULKHEAD_PAYMENTS_TIMEOUT_S = float(os.getenv("BULKHEAD_PAYMENTS_TIMEOUT_S", "0.5"))
 
 # --- Logging ---
 logging.basicConfig(
@@ -68,6 +72,12 @@ CB_STATE_TRANSITIONS = Counter(
 )
 RATE_LIMIT_REJECTIONS = Counter(
     "gateway_rate_limit_rejections_total", "Requests rejected by rate limiter", ["path"]
+)
+BULKHEAD_IN_FLIGHT = Gauge(
+    "gateway_bulkhead_in_flight", "Current occupants of a bulkhead", ["target"]
+)
+BULKHEAD_REJECTIONS = Counter(
+    "gateway_bulkhead_rejections_total", "Requests rejected by a full bulkhead", ["target"]
 )
 
 client = httpx.AsyncClient(timeout=GATEWAY_TIMEOUT_MS / 1000)
@@ -101,8 +111,34 @@ async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
     See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
     will pick up your implementation automatically.
     """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    base_delay = RETRY_BASE_DELAY_MS / 1000.0
+    last_exc = None
+    for attempt in range(max_retries):
+        try:
+            result = await func()
+        except httpx.HTTPStatusError as e:
+            status = e.response.status_code
+            # Only 5xx + 408/429 are transient. Any other 4xx (404, 422, ...)
+            # will not fix itself, so stop immediately.
+            if not (status in (408, 429) or 500 <= status < 600):
+                RETRY_TOTAL.labels(target, "non_retryable").inc()
+                raise
+            last_exc = e
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            last_exc = e
+        else:
+            # Succeeded. If we got here on a later attempt, a retry saved us.
+            if attempt > 0:
+                RETRY_TOTAL.labels(target, "succeeded_after_retry").inc()
+            return result
+        # Reached only on a retryable transient error.
+        if attempt == max_retries - 1:
+            RETRY_TOTAL.labels(target, "exhausted").inc()
+            raise last_exc
+        delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)
+        RETRY_TOTAL.labels(target, "retried").inc()
+        await asyncio.sleep(delay)
+    raise last_exc
 
 
 class CircuitOpenError(Exception):
@@ -144,8 +180,25 @@ class CircuitBreaker:
         No-op default: just calls func. Lab 11 task 11.7 replaces this with
         the state machine. Raise `CircuitOpenError` when the circuit is open.
         """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == self.OPEN:
+            if time.time() - self.opened_at >= self.cooldown:
+                # Cooldown elapsed: let one probe through to test recovery.
+                self._transition(self.HALF_OPEN)
+            else:
+                # Still in cooldown: fast-fail without touching the dependency.
+                raise CircuitOpenError(f"circuit[{self.name}] OPEN")
+        try:
+            result = await func()
+        except Exception:
+            self.failures += 1
+            self.opened_at = time.time()
+            if self.state == self.HALF_OPEN or self.failures >= self.threshold:
+                self._transition(self.OPEN)
+            raise
+        # Success: reset the failure count and close the circuit.
+        self.failures = 0
+        self._transition(self.CLOSED)
+        return result
 
 
 class RateLimiter:
@@ -166,12 +219,53 @@ class RateLimiter:
 
         No-op default: always True. Lab 11 task 11.8 replaces this body.
         """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        q = self.hits[key]
+        cutoff = now - self.window_s
+        # Drop timestamps that have fallen out of the 1-second window.
+        while q and q[0] < cutoff:
+            q.popleft()
+        if len(q) >= self.rps:
+            return False
+        q.append(now)
         return True
+
+
+class BulkheadFullError(Exception):
+    """Raised by Bulkhead.call when the pool is full and acquire times out."""
+
+
+class Bulkhead:
+    """Per-target concurrency bulkhead. Lab 11 bonus task 11.9.
+
+    Bounds how many calls may be in-flight to a dependency at once using an
+    asyncio.Semaphore. If a slot can't be acquired within acquire_timeout_s,
+    the call is fast-failed with BulkheadFullError so one slow dependency can't
+    drown the shared event loop and starve the other routes.
+    """
+
+    def __init__(self, name: str, max_concurrent: int, acquire_timeout_s: float):
+        self.name = name
+        self.sem = asyncio.Semaphore(max_concurrent)
+        self.acquire_timeout_s = acquire_timeout_s
+
+    async def call(self, func):
+        try:
+            await asyncio.wait_for(self.sem.acquire(), timeout=self.acquire_timeout_s)
+        except asyncio.TimeoutError:
+            BULKHEAD_REJECTIONS.labels(self.name).inc()
+            raise BulkheadFullError(f"bulkhead[{self.name}] full")
+        BULKHEAD_IN_FLIGHT.labels(self.name).inc()
+        try:
+            return await func()
+        finally:
+            BULKHEAD_IN_FLIGHT.labels(self.name).dec()
+            self.sem.release()
 
 
 payments_cb = CircuitBreaker(CB_FAILURE_THRESHOLD, CB_COOLDOWN_S, name="payments")
 rate_limiter = RateLimiter(RATE_LIMIT_RPS)
+payments_bulkhead = Bulkhead("payments", BULKHEAD_PAYMENTS_MAX, BULKHEAD_PAYMENTS_TIMEOUT_S)
 
 
 # --- Middleware ---
@@ -312,12 +406,14 @@ async def _notify_order_confirmed(reservation_id: str):
 
 @app.post("/reserve/{reservation_id}/pay")
 async def pay_reservation(reservation_id: str):
-    # 1. Call payments — wrapped in circuit breaker + retry.
+    # 1. Call payments — wrapped in bulkhead -> circuit breaker -> retry.
     #
-    # Composition order matters: cb.call(retry(_charge)) means each CB-tracked
-    # invocation includes its retries internally; the CB only sees the FINAL
-    # outcome. The reverse — retry(cb.call(_charge)) — would retry past the
-    # CircuitOpenError, defeating the fast-fail. See lab 11 §11.4.
+    # Composition order (outside -> in): bulkhead, CB, retry.
+    #   - bulkhead OUTERMOST: one logical request (incl. all its retries) holds
+    #     exactly ONE slot for its whole lifetime; if it were inside the retry
+    #     loop, each attempt would grab its own slot and the cap would be void.
+    #   - cb inside bulkhead: cb.call(retry(_charge)) means the CB only sees the
+    #     FINAL outcome; the reverse would retry past CircuitOpenError. §11.4.
     async def _charge():
         resp = await client.post(
             f"{PAYMENTS_URL}/charge",
@@ -327,11 +423,13 @@ async def pay_reservation(reservation_id: str):
         return resp
 
     try:
-        pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        pay_resp = await payments_bulkhead.call(
+            lambda: payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        )
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
-    except CircuitOpenError:
-        log.error("circuit open, skipping payments call")
-        raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
+    except (CircuitOpenError, BulkheadFullError):
+        log.error("payments fast-failed (circuit open or bulkhead full)")
+        raise HTTPException(503, "Payment service temporarily unavailable (fast-fail)")
     except httpx.TimeoutException:
         raise HTTPException(504, "Payment service timeout")
     except httpx.HTTPStatusError as e:
