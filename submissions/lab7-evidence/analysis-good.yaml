@@ -1,0 +1,82 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisRun
+metadata:
+  annotations:
+    rollout.argoproj.io/revision: "6"
+  creationTimestamp: "2026-10-05T00:38:35Z"
+  generation: 5
+  labels:
+    app: gateway
+    rollout-type: Step
+    rollouts-pod-template-hash: 7d79dcbb87
+    step-index: "2"
+  name: gateway-7d79dcbb87-6-2
+  namespace: default
+  ownerReferences:
+  - apiVersion: argoproj.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Rollout
+    name: gateway
+    uid: 037a0ba0-a17c-470f-872e-0f44a04defd3
+  resourceVersion: "48504"
+  uid: 2c11e1d1-6d13-4115-ae2a-317855b4c5a0
+spec:
+  args:
+  - name: canary-hash
+    value: 7d79dcbb87
+  metrics:
+  - count: 3
+    failureLimit: 1
+    initialDelay: 60s
+    interval: 20s
+    name: error-rate
+    provider:
+      prometheus:
+        address: http://prometheus.monitoring.svc.cluster.local:9090
+        authentication:
+          oauth2: {}
+          sigv4: {}
+        query: |
+          (
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+            or on() vector(0)
+          )
+          /
+          sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
+    successCondition: result[0] < 0.05
+status:
+  completedAt: "2026-10-05T00:40:15Z"
+  dryRunSummary: {}
+  metricResults:
+  - consecutiveSuccess: 3
+    count: 3
+    measurements:
+    - finishedAt: "2026-10-05T00:39:35Z"
+      phase: Successful
+      startedAt: "2026-10-05T00:39:35Z"
+      value: '[0]'
+    - finishedAt: "2026-10-05T00:39:55Z"
+      phase: Successful
+      startedAt: "2026-10-05T00:39:55Z"
+      value: '[0]'
+    - finishedAt: "2026-10-05T00:40:15Z"
+      phase: Successful
+      startedAt: "2026-10-05T00:40:15Z"
+      value: '[0]'
+    metadata:
+      ResolvedPrometheusQuery: |
+        (
+          sum(rate(gateway_requests_total{rs_hash="7d79dcbb87",status=~"5.."}[60s]))
+          or on() vector(0)
+        )
+        /
+        sum(rate(gateway_requests_total{rs_hash="7d79dcbb87"}[60s]))
+    name: error-rate
+    phase: Successful
+    successful: 3
+  phase: Successful
+  runSummary:
+    count: 1
+    successful: 1
+  startedAt: "2026-10-05T00:38:35Z"

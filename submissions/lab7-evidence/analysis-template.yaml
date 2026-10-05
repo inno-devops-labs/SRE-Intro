@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"AnalysisTemplate","metadata":{"annotations":{},"name":"gateway-error-rate","namespace":"default"},"spec":{"args":[{"name":"canary-hash"}],"metrics":[{"count":3,"failureLimit":1,"initialDelay":"60s","interval":"20s","name":"error-rate","provider":{"prometheus":{"address":"http://prometheus.monitoring.svc.cluster.local:9090","query":"(\n  sum(rate(gateway_requests_total{rs_hash=\"{{args.canary-hash}}\",status=~\"5..\"}[60s]))\n  or on() vector(0)\n)\n/\nsum(rate(gateway_requests_total{rs_hash=\"{{args.canary-hash}}\"}[60s]))\n"}},"successCondition":"result[0] \u003c 0.05"}]}}
+  creationTimestamp: "2026-10-05T00:37:17Z"
+  generation: 1
+  name: gateway-error-rate
+  namespace: default
+  resourceVersion: "48303"
+  uid: bb3d3f85-378e-4da7-b3f8-609813d3c5a1
+spec:
+  args:
+  - name: canary-hash
+  metrics:
+  - count: 3
+    failureLimit: 1
+    initialDelay: 60s
+    interval: 20s
+    name: error-rate
+    provider:
+      prometheus:
+        address: http://prometheus.monitoring.svc.cluster.local:9090
+        query: |
+          (
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+            or on() vector(0)
+          )
+          /
+          sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
+    successCondition: result[0] < 0.05

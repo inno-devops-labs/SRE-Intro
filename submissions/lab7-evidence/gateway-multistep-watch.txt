@@ -1,0 +1,1331 @@
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          0/9
+  SetWeight:     20
+  ActualWeight:  0
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       4
+  Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  42m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  1s   [33mcanary[0m
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      41m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      41m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      30m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running      30m  ready:1/1
+│     ├──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      29m  ready:1/1
+│     └──□ gateway-b9dbd796d-bqwdq  Pod         [94m◌[0m Terminating  22m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   26m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   42m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          0/9
+  SetWeight:     20
+  ActualWeight:  0
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       4
+  Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  42m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  1s   [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [94m◌[0m Pending      0s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      41m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      41m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      30m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running      30m  ready:1/1
+│     ├──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      29m  ready:1/1
+│     └──□ gateway-b9dbd796d-bqwdq  Pod         [94m◌[0m Terminating  22m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   26m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   42m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          0/9
+  SetWeight:     20
+  ActualWeight:  0
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS               AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing        42m  
+├──# revision:5                                                           
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing        2s   [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [94m◌[0m ContainerCreating  1s   ready:0/1
+├──# revision:4                                                           
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy            41m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running            41m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running            30m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running            30m  ready:1/1
+│     ├──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running            29m  ready:1/1
+│     └──□ gateway-b9dbd796d-bqwdq  Pod         [94m◌[0m Terminating        22m  ready:1/1
+├──# revision:3                                                           
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown         26m  
+└──# revision:1                                                           
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown         42m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     62s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     61s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     42m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     42m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     63s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     62s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     42m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     42m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     64s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     63s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     65s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     64s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     66s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     65s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     67s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     66s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     68s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     67s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     69s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     68s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  27m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     70s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     69s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     71s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     70s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     30m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  20
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy      72s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      71s  ready:1/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       4
+  Updated:       1
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  72s  [33mcanary[0m
+│     └──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      71s  ready:1/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [94m◌[0m Terminating  31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS               AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing        43m  
+├──# revision:5                                                           
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing        73s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running            72s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [94m◌[0m ContainerCreating  1s   ready:0/1
+├──# revision:4                                                           
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy            43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running            43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running            31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running            30m  ready:1/1
+├──# revision:3                                                           
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown         28m  
+└──# revision:1                                                           
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown         43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS               AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing        43m  
+├──# revision:5                                                           
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing        74s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running            73s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [94m◌[0m ContainerCreating  2s   ready:0/1
+├──# revision:4                                                           
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy            43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running            43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running            31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running            30m  ready:1/1
+├──# revision:3                                                           
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown         28m  
+└──# revision:1                                                           
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown         43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  75s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      74s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      3s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  76s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      75s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      4s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  77s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      76s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      5s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  78s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      77s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      6s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  79s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      78s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      7s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  80s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      79s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      8s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  81s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      80s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      9s   ready:0/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      30m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [94m◌[0m Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/9
+  SetWeight:     40
+  ActualWeight:  25
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE  INFO
+⟳ gateway                           Rollout     [94m◌[0m Progressing  43m  
+├──# revision:5                                                     
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [94m◌[0m Progressing  82s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running      81s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running      10s  ready:1/1
+├──# revision:4                                                     
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy      43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      31m  ready:1/1
+├──# revision:3                                                     
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown   28m  
+└──# revision:1                                                     
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     83s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     82s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     11s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     84s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     83s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     12s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     85s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     84s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     13s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     86s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     85s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     14s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     87s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     86s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     15s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     88s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     87s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     16s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     89s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     88s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     17s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      43m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     90s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     89s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     18s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  43m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      44m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     91s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     90s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     19s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  44m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      44m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     92s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     91s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     20s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  44m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      44m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     93s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     92s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     21s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  44m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      44m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     94s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     93s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     22s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  44m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      44m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     95s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     94s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     23s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  44m  
+[H[2J[0;0HName:            gateway
+Namespace:       default
+Status:          [0m॥[0m Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([33mcanary[0m, [32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE  INFO
+⟳ gateway                           Rollout     [0m॥[0m Paused      44m  
+├──# revision:5                                                    
+│  └──⧉ [33mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     96s  [33mcanary[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     95s  ready:1/1
+│     └──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     24s  ready:1/1
+├──# revision:4                                                    
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [32m✔[0m Healthy     43m  [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running     43m  ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running     31m  ready:1/1
+│     └──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running     31m  ready:1/1
+├──# revision:3                                                    
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  28m  
+└──# revision:1                                                    
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  44m  
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          9/9
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE    INFO
+⟳ gateway                           Rollout     [32m✔[0m Healthy     47m    
+├──# revision:5                                                      
+│  └──⧉ [32mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     5m8s   [32mstable[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     5m7s   ready:1/1
+│     ├──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     3m56s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-8w4pn  Pod         [32m✔[0m Running     2m46s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-hvstz  Pod         [32m✔[0m Running     95s    ready:1/1
+│     └──□ gateway-9b68dc7f6-7qnml  Pod         [32m✔[0m Running     56s    ready:1/1
+├──# revision:4                                                      
+│  └──⧉ gateway-b9dbd796d           ReplicaSet  [0m•[0m ScaledDown  47m    
+├──# revision:3                                                      
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  31m    
+└──# revision:1                                                      
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  47m    
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          9/9
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE    INFO
+⟳ gateway                           Rollout     [32m✔[0m Healthy     47m    
+├──# revision:5                                                      
+│  └──⧉ [32mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     5m9s   [32mstable[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     5m8s   ready:1/1
+│     ├──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     3m57s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-8w4pn  Pod         [32m✔[0m Running     2m47s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-hvstz  Pod         [32m✔[0m Running     96s    ready:1/1
+│     └──□ gateway-9b68dc7f6-7qnml  Pod         [32m✔[0m Running     57s    ready:1/1
+├──# revision:4                                                      
+│  └──⧉ gateway-b9dbd796d           ReplicaSet  [0m•[0m ScaledDown  47m    
+├──# revision:3                                                      
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  31m    
+└──# revision:1                                                      
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  47m    
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          9/9
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE    INFO
+⟳ gateway                           Rollout     [32m✔[0m Healthy     48m    
+├──# revision:5                                                      
+│  └──⧉ [32mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     6m14s  [32mstable[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     6m13s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     5m2s   ready:1/1
+│     ├──□ gateway-9b68dc7f6-8w4pn  Pod         [32m✔[0m Running     3m52s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-hvstz  Pod         [32m✔[0m Running     2m41s  ready:1/1
+│     └──□ gateway-9b68dc7f6-7qnml  Pod         [32m✔[0m Running     2m2s   ready:1/1
+├──# revision:4                                                      
+│  └──⧉ gateway-b9dbd796d           ReplicaSet  [0m•[0m ScaledDown  48m    
+├──# revision:3                                                      
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  33m    
+└──# revision:1                                                      
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  48m    
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          9/9
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE    INFO
+⟳ gateway                           Rollout     [32m✔[0m Healthy     48m    
+├──# revision:5                                                      
+│  └──⧉ [32mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     6m14s  [32mstable[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     6m13s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     5m2s   ready:1/1
+│     ├──□ gateway-9b68dc7f6-8w4pn  Pod         [32m✔[0m Running     3m52s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-hvstz  Pod         [32m✔[0m Running     2m41s  ready:1/1
+│     └──□ gateway-9b68dc7f6-7qnml  Pod         [32m✔[0m Running     2m2s   ready:1/1
+├──# revision:4                                                      
+│  └──⧉ gateway-b9dbd796d           ReplicaSet  [0m•[0m ScaledDown  48m    
+├──# revision:3                                                      
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  33m    
+└──# revision:1                                                      
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  48m    

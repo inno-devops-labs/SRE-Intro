@@ -1,0 +1,29 @@
+Name:            gateway
+Namespace:       default
+Status:          [31m✖[0m Degraded
+Message:         RolloutAborted: Rollout aborted update to revision 3
+Strategy:        Canary
+  Step:          0/5
+  SetWeight:     0
+  ActualWeight:  0
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                KIND        STATUS         AGE    INFO
+⟳ gateway                           Rollout     [31m✖[0m Degraded     19m
+├──# revision:3
+│  └──⧉ [33mgateway-677f979d5c[0m          ReplicaSet  [0m•[0m ScaledDown   4m8s   [33mcanary[0m
+├──# revision:2
+│  └──⧉ [32mgateway-b9dbd796d[0m           ReplicaSet  [94m◌[0m Progressing  19m    [32mstable[0m
+│     ├──□ gateway-b9dbd796d-hspdg  Pod         [32m✔[0m Running      19m    ready:1/1
+│     ├──□ gateway-b9dbd796d-22xqs  Pod         [32m✔[0m Running      7m37s  ready:1/1
+│     ├──□ gateway-b9dbd796d-kbkq5  Pod         [32m✔[0m Running      7m37s  ready:1/1
+│     ├──□ gateway-b9dbd796d-7kxlh  Pod         [32m✔[0m Running      6m56s  ready:1/1
+│     └──□ gateway-b9dbd796d-bqwdq  Pod         [32m✔[0m Running      8s     ready:0/1
+└──# revision:1
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown   19m

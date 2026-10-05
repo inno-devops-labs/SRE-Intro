@@ -1,0 +1,6 @@
+Stable hash: b9dbd796d
+Endpoints before abort: ['gateway-b9dbd796d-hspdg', 'gateway-b9dbd796d-kbkq5', 'gateway-b9dbd796d-22xqs', 'gateway-b9dbd796d-7kxlh', 'gateway-677f979d5c-bxpgw']
+Abort started: 2026-10-05T03:04:57.984956+03:00
+rollout 'gateway' aborted
+0.741s stable_only=True endpoints=['gateway-b9dbd796d-hspdg', 'gateway-b9dbd796d-kbkq5', 'gateway-b9dbd796d-22xqs', 'gateway-b9dbd796d-7kxlh']
+Observed rollback time: 0.741 seconds

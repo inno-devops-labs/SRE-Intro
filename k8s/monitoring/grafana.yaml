@@ -1,0 +1,517 @@
+# Lab 7/8: in-cluster Grafana with a provisioned canary dashboard.
+# Apply labs/lab7/prometheus.yaml first.
+# Open using: kubectl -n monitoring port-forward svc/grafana 3001:3000
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-quickticket-provisioning
+  namespace: monitoring
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: QuickTicket Kubernetes Prometheus
+      uid: quickticket-k8s-prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus:9090
+      isDefault: true
+      editable: false
+      jsonData:
+        timeInterval: 5s
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: QuickTicket Kubernetes
+      orgId: 1
+      folder: QuickTicket Kubernetes
+      type: file
+      disableDeletion: false
+      editable: false
+      updateIntervalSeconds: 10
+      options:
+        path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-quickticket-dashboard
+  namespace: monitoring
+data:
+  canary.json: |
+    {
+      "id": null,
+      "uid": "quickticket-k8s-canary",
+      "title": "QuickTicket — Kubernetes Canary",
+      "description": "Lab 7: observe canary traffic, HTTP errors, latency and scrape targets from in-cluster Prometheus.",
+      "tags": [
+        "quickticket",
+        "lab7",
+        "kubernetes"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "editable": false,
+      "refresh": "5s",
+      "time": {
+        "from": "now-15m",
+        "to": "now"
+      },
+      "templating": {
+        "list": []
+      },
+      "annotations": {
+        "list": []
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "timeseries",
+          "title": "Traffic share by revision",
+          "description": "Share of /events requests over the previous 30 seconds; this is observed traffic, not the configured rollout weight.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "quickticket-k8s-prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "max": 100
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "quickticket-k8s-prometheus"
+              },
+              "expr": "100 * (sum by (rs_hash) (rate(gateway_requests_total{job=\"gateway\",path=\"/events\"}[30s]))) / scalar(sum(rate(gateway_requests_total{job=\"gateway\",path=\"/events\"}[30s])))",
+              "legendFormat": "{{rs_hash}}",
+              "range": true,
+              "editorMode": "code"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "timeseries",
+          "title": "Requests per second by revision",
+          "description": "Request rate for /events, grouped by ReplicaSet hash.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "quickticket-k8s-prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps",
+              "min": 0,
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "quickticket-k8s-prometheus"
+              },
+              "expr": "sum by (rs_hash) (rate(gateway_requests_total{job=\"gateway\",path=\"/events\"}[30s]))",
+              "legendFormat": "{{rs_hash}}",
+              "range": true,
+              "editorMode": "code"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "HTTP 5xx percentage by revision",
+          "description": "Percentage of /events responses with HTTP 5xx. No traffic can produce gaps.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "quickticket-k8s-prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "max": 100
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "quickticket-k8s-prometheus"
+              },
+              "expr": "100 * ((sum by (rs_hash) (rate(gateway_requests_total{job=\"gateway\",path=\"/events\",status=~\"5..\"}[30s]))) or on (rs_hash) (0 * (sum by (rs_hash) (rate(gateway_requests_total{job=\"gateway\",path=\"/events\"}[30s]))))) / (sum by (rs_hash) (rate(gateway_requests_total{job=\"gateway\",path=\"/events\"}[30s])))",
+              "legendFormat": "{{rs_hash}}",
+              "range": true,
+              "editorMode": "code"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "P95 /events latency by revision",
+          "description": "P95 estimated from histogram buckets over the previous 30 seconds.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "quickticket-k8s-prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "min": 0,
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "quickticket-k8s-prometheus"
+              },
+              "expr": "histogram_quantile(0.95, sum by (le, rs_hash) (rate(gateway_request_duration_seconds_bucket{job=\"gateway\",path=\"/events\"}[30s])))",
+              "legendFormat": "{{rs_hash}}",
+              "range": true,
+              "editorMode": "code"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "timeseries",
+          "title": "Scrape targets UP by revision",
+          "description": "Number of targets with successful Prometheus scrapes. This is not the Kubernetes Pod Ready condition.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "quickticket-k8s-prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 16
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "min": 0,
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "quickticket-k8s-prometheus"
+              },
+              "expr": "sum by (rs_hash) (up{job=\"gateway\"})",
+              "legendFormat": "{{rs_hash}}",
+              "range": true,
+              "editorMode": "code"
+            }
+          ]
+        },
+        {
+          "id": 6,
+          "type": "timeseries",
+          "title": "Total /events requests per second",
+          "description": "Total observed /events request rate across all revisions.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "quickticket-k8s-prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 16
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps",
+              "min": 0,
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "quickticket-k8s-prometheus"
+              },
+              "expr": "sum(rate(gateway_requests_total{job=\"gateway\",path=\"/events\"}[30s]))",
+              "legendFormat": "total",
+              "range": true,
+              "editorMode": "code"
+            }
+          ]
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 472
+        fsGroup: 472
+      containers:
+      - name: grafana
+        image: grafana/grafana:13.0.1
+        ports:
+        - name: http
+          containerPort: 3000
+        env:
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: 'true'
+        - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+          value: Viewer
+        - name: GF_SERVER_ROOT_URL
+          value: http://localhost:3001/
+        - name: GF_USERS_DEFAULT_THEME
+          value: light
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 3
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/grafana
+        - name: provisioning
+          mountPath: /etc/grafana/provisioning/datasources/quickticket.yaml
+          subPath: datasources.yaml
+          readOnly: true
+        - name: provisioning
+          mountPath: /etc/grafana/provisioning/dashboards/quickticket.yaml
+          subPath: dashboards.yaml
+          readOnly: true
+        - name: dashboard
+          mountPath: /var/lib/grafana/dashboards
+          readOnly: true
+      volumes:
+      - name: data
+        emptyDir: {}
+      - name: provisioning
+        configMap:
+          name: grafana-quickticket-provisioning
+      - name: dashboard
+        configMap:
+          name: grafana-quickticket-dashboard
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  selector:
+    app: grafana
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http

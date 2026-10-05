@@ -1,0 +1,11 @@
+POD	VERSION	HASH	REQUESTS	NON_200
+gateway-7d798c7b65-2tx2k	v1	7d798c7b65	57	0
+gateway-7d798c7b65-79b25	v1	7d798c7b65	49	0
+gateway-7d798c7b65-7p6jd	v1	7d798c7b65	43	0
+gateway-7d798c7b65-lcx6r	v1	7d798c7b65	83	0
+gateway-b9dbd796d-hspdg	v2	b9dbd796d	70	0
+
+Total /events requests: 302
+Non-200 responses: 0
+v1: 232 requests, 76.82%
+v2: 70 requests, 23.18%

@@ -1,0 +1,7 @@
+kubectl-argo-rollouts: v1.10.0+d90700a
+  BuildDate: 2026-08-27T15:22:01Z
+  GitCommit: d90700ae8d71d141561f0c546e19f999bb335cbd
+  GitTreeState: clean
+  GoVersion: go1.26.7
+  Compiler: gc
+  Platform: linux/amd64

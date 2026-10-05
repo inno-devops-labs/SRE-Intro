@@ -1,0 +1,30 @@
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          9/9
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                KIND        STATUS        AGE    INFO
+⟳ gateway                           Rollout     [32m✔[0m Healthy     48m
+├──# revision:5
+│  └──⧉ [32mgateway-9b68dc7f6[0m           ReplicaSet  [32m✔[0m Healthy     6m14s  [32mstable[0m
+│     ├──□ gateway-9b68dc7f6-gbvgc  Pod         [32m✔[0m Running     6m13s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-zsk92  Pod         [32m✔[0m Running     5m2s   ready:1/1
+│     ├──□ gateway-9b68dc7f6-8w4pn  Pod         [32m✔[0m Running     3m52s  ready:1/1
+│     ├──□ gateway-9b68dc7f6-hvstz  Pod         [32m✔[0m Running     2m41s  ready:1/1
+│     └──□ gateway-9b68dc7f6-7qnml  Pod         [32m✔[0m Running     2m2s   ready:1/1
+├──# revision:4
+│  └──⧉ gateway-b9dbd796d           ReplicaSet  [0m•[0m ScaledDown  48m
+├──# revision:3
+│  └──⧉ gateway-677f979d5c          ReplicaSet  [0m•[0m ScaledDown  33m
+└──# revision:1
+   └──⧉ gateway-7d798c7b65          ReplicaSet  [0m•[0m ScaledDown  48m

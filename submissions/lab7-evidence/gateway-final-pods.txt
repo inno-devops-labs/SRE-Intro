@@ -1,0 +1,6 @@
+NAME                       READY   STATUS    RESTARTS   AGE     ROLLOUTS-POD-TEMPLATE-HASH
+gateway-7d79dcbb87-b5rg2   1/1     Running   0          8m42s   7d79dcbb87
+gateway-7d79dcbb87-gbnnl   1/1     Running   0          9m52s   7d79dcbb87
+gateway-7d79dcbb87-mgwq6   1/1     Running   0          2m45s   7d79dcbb87
+gateway-7d79dcbb87-t9jnv   1/1     Running   0          12m     7d79dcbb87
+gateway-7d79dcbb87-thcs6   1/1     Running   0          7m32s   7d79dcbb87

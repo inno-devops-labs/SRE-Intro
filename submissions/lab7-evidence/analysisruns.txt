@@ -1,0 +1,3 @@
+NAME                     STATUS       AGE
+gateway-5bcbd9ff4-7-2    Failed       4m31s
+gateway-7d79dcbb87-6-2   Successful   11m
