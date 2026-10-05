@@ -1,0 +1,98 @@
+# QuickTicket — gateway (public entry point, fans out to events + payments)
+#
+# Translated from the `gateway` service in app/docker-compose.yaml.
+# There is no Ingress yet: reach it with
+#   kubectl port-forward svc/gateway 3080:8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    app.kubernetes.io/part-of: quickticket
+    # Lab 5 §5.6 — marker used to prove the GitOps loop: this label was added
+    # in Git only, never with kubectl, and ArgoCD reconciled it into the cluster.
+    version: "v2"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        app.kubernetes.io/part-of: quickticket
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      # ghcr.io packages are private by default; this secret holds a classic PAT
+      # with read:packages. Inert while imagePullPolicy is Never (no pull is
+      # attempted) — required as soon as the policy flips to Always.
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: gateway
+          image: ghcr.io/vanady39/quickticket-gateway:ae1a4579f016fd3e7b68ad97a4b998660af38d3c
+          # Lab 5 §5.3: the manifests now carry the ghcr.io reference that CI
+          # writes on every push. The registry copy does not exist yet (the fork
+          # has not been pushed), so the image in the cluster is the locally
+          # built one re-tagged with this name and loaded via `k3d image import`,
+          # and the policy stays Never. Flip to Always once CI has published.
+          imagePullPolicy: Never
+          env:
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+          ports:
+            - name: http
+              containerPort: 8080
+          # Readiness = "should this pod receive traffic?". The gateway's
+          # /health returns 503 when events or payments is unreachable, so a
+          # downstream outage pulls this pod out of the Service endpoints.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 2
+          # Liveness = "is this process wedged?". Measured in lab 4 §4.10: with
+          # `httpGet /health` here, a 2-minute Redis outage restarted the
+          # gateway 5 times — /health checks downstreams, and restarting the
+          # gateway cannot bring Redis back. A TCP accept on 8080 proves the
+          # uvicorn event loop is alive without dragging dependencies in.
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    app.kubernetes.io/part-of: quickticket
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080

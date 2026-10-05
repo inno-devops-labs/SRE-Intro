@@ -1,0 +1,107 @@
+# Lab 6 — Grafana in the k3d cluster, with alerting provisioned from
+# monitoring/grafana/provisioning/ (the same tree docker-compose mounted in
+# labs 1-3, so the two deployments stay in sync).
+#
+# The four ConfigMaps below are built from files on disk by
+# monitoring/k8s/deploy.sh — they are NOT defined here, to keep one source of
+# truth for the dashboards and provisioning YAML:
+#   grafana-datasources  <- provisioning/datasources/
+#   grafana-dashprovider <- provisioning/dashboards/
+#   grafana-alerting     <- provisioning/alerting/
+#   grafana-dashboards   <- dashboards/
+#
+# Access: kubectl port-forward -n monitoring svc/grafana 3000:3000
+#         http://localhost:3000  (admin / admin)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:13.0.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            # Admin (not Viewer as in docker-compose.monitoring.yaml): this
+            # Grafana is only reachable through a localhost port-forward, and
+            # anonymous Admin means the alerting UI is fully usable without
+            # typing credentials into the browser.
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Admin
+            # Evaluate alert rules aggressively so a 1m group interval is
+            # actually honoured on a single-node lab cluster.
+            - name: GF_UNIFIED_ALERTING_MIN_INTERVAL
+              value: 10s
+          ports:
+            - containerPort: 3000
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashproviders
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: alerting
+              mountPath: /etc/grafana/provisioning/alerting
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: datasources
+          configMap:
+            name: grafana-datasources
+        - name: dashproviders
+          configMap:
+            name: grafana-dashprovider
+        - name: alerting
+          configMap:
+            name: grafana-alerting
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  selector:
+    app: grafana
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
