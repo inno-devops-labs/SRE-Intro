@@ -1,11 +1,33 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: gateway
   labels:
-    version: "v2"
+    app: gateway
+    version: "v4-canary"
 spec:
-  replicas: 1
+  replicas: 5
+  strategy:
+    canary:
+      maxSurge: 0
+      maxUnavailable: 1
+      steps:
+        - setWeight: 20
+        - pause: {duration: 60s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 40
+        - pause: {duration: 60s}
+        - setWeight: 60
+        - pause: {duration: 60s}
+        - setWeight: 80
+        - pause: {duration: 30s}
+        - setWeight: 100
   selector:
     matchLabels:
       app: gateway
@@ -18,31 +40,35 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/m1d0rfeed/quickticket-gateway:4336499893a2b12fa7c8503343666a5e5e1c9b18
+          image: ghcr.io/tdzdslippen/quickticket-gateway:a8020f855dddb9a5260a8a9ba233185ed8713861
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
           env:
+            - name: APP_VERSION
+              value: "v4-canary"
             - name: EVENTS_URL
               value: "http://events:8081"
             - name: PAYMENTS_URL
               value: "http://payments:8082"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            periodSeconds: 5
+            timeoutSeconds: 1
+            failureThreshold: 2
           livenessProbe:
             httpGet:
-              path: /health
+              path: /metrics
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 1
             failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8080
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            failureThreshold: 2
           resources:
             requests:
               cpu: 50m
@@ -56,11 +82,12 @@ kind: Service
 metadata:
   name: gateway
   labels:
-    version: "v2"
+    app: gateway
 spec:
   type: ClusterIP
   selector:
     app: gateway
   ports:
-    - port: 8080
+    - name: http
+      port: 8080
       targetPort: 8080
