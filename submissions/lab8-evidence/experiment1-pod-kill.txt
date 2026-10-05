@@ -1,0 +1,30 @@
+Experiment 1 started: 2026-10-05T04:08:59,945371009+03:00
+Victim pod: gateway-7d79dcbb87-b5rg2
+Delete issued at: 2026-10-05T04:09:00.134675+03:00
+pod "gateway-7d79dcbb87-b5rg2" deleted from default namespace
+0.32s: 4 ready replacement/other pods: ['gateway-7d79dcbb87-gbnnl', 'gateway-7d79dcbb87-mgwq6', 'gateway-7d79dcbb87-t9jnv', 'gateway-7d79dcbb87-thcs6']
+11.23s: 5 ready replacement/other pods: ['gateway-7d79dcbb87-gbnnl', 'gateway-7d79dcbb87-mgwq6', 'gateway-7d79dcbb87-sh67r', 'gateway-7d79dcbb87-t9jnv', 'gateway-7d79dcbb87-thcs6']
+Five non-victim gateway pods are Ready after 11.23s
+
+=== Gateway pods and endpoints after recovery ===
+NAME                       READY   STATUS    RESTARTS   AGE   IP           NODE                       NOMINATED NODE   READINESS GATES
+gateway-7d79dcbb87-gbnnl   1/1     Running   0          28m   10.42.0.40   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-mgwq6   1/1     Running   0          21m   10.42.0.45   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-sh67r   1/1     Running   0          11s   10.42.0.48   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-t9jnv   1/1     Running   0          31m   10.42.0.39   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-thcs6   1/1     Running   0          26m   10.42.0.42   k3d-quickticket-server-0   <none>           <none>
+NAME            ADDRESSTYPE   PORTS   ENDPOINTS                                      AGE
+gateway-mh7tp   IPv4          8080    10.42.0.39,10.42.0.40,10.42.0.42 + 2 more...   13d
+
+=== Gateway 5xx responses in the last 3 minutes ===
+Prometheus status: success
+labels: {} value: 0
+
+=== Request rate per gateway pod ===
+Prometheus status: success
+labels: {'pod': 'gateway-7d79dcbb87-t9jnv'} value: 3.4727272727272727
+labels: {'pod': 'gateway-7d79dcbb87-gbnnl'} value: 3.4363636363636365
+labels: {'pod': 'gateway-7d79dcbb87-b5rg2'} value: 3.0703229845921123
+labels: {'pod': 'gateway-7d79dcbb87-thcs6'} value: 3.672727272727273
+labels: {'pod': 'gateway-7d79dcbb87-mgwq6'} value: 3.8544052943529326
+Experiment 1 observed at: 2026-10-05T04:09:11,739517153+03:00

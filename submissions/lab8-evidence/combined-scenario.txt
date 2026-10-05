@@ -1,0 +1,69 @@
+Combined experiment started: 2026-10-05T04:14:57,794224947+03:00
+deployment.apps/payments env updated
+deployment.apps/events env updated
+deployment.apps/mixedload scaled
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+deployment "payments" successfully rolled out
+deployment "events" successfully rolled out
+deployment "mixedload" successfully rolled out
+
+Combined scenario sample 1 at 2026-10-05T04:15:10,994922862+03:00
+
+=== Total gateway requests per second ===
+Prometheus status: success
+labels: {} value: 18.035972245336716
+
+=== 5xx ratio by path ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0
+labels: {'path': '/events/{id}/reserve'} value: 0
+
+=== p99 latency by path, seconds ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0.0680833171733822
+labels: {'path': '/events'} value: 0.024522697597109115
+labels: {'path': '/reserve/{id}/pay'} value: 0.09950025451206769
+labels: {'path': '/events/{id}/reserve'} value: 0.07117869517171367
+
+Combined scenario sample 2 at 2026-10-05T04:16:11,101426141+03:00
+
+=== Total gateway requests per second ===
+Prometheus status: success
+labels: {} value: 11.946411166441678
+
+=== 5xx ratio by path ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0
+labels: {'path': '/events/{id}/reserve'} value: 0
+labels: {'path': '/events'} value: 0
+labels: {'path': '/reserve/{id}/pay'} value: 0.34233312902594515
+
+=== p99 latency by path, seconds ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0.024663513513513514
+labels: {'path': '/events'} value: 0.021400000000000016
+labels: {'path': '/reserve/{id}/pay'} value: 0.7475
+labels: {'path': '/events/{id}/reserve'} value: 0.024342857142857145
+
+Combined scenario sample 3 at 2026-10-05T04:17:11,213190745+03:00
+
+=== Total gateway requests per second ===
+Prometheus status: success
+labels: {} value: 11.909040334515385
+
+=== 5xx ratio by path ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0
+labels: {'path': '/events/{id}/reserve'} value: 0
+labels: {'path': '/events'} value: 0
+labels: {'path': '/reserve/{id}/pay'} value: 0.3108814899258792
+
+=== p99 latency by path, seconds ===
+Prometheus status: success
+labels: {'path': '/events/{id}/reserve'} value: 0.024607362769759944
+labels: {'path': '/health'} value: 0.024672368073531455
+labels: {'path': '/events'} value: 0.019300019636435045
+labels: {'path': '/reserve/{id}/pay'} value: 0.7475
+
+Combined scenario measurements ended: 2026-10-05T04:17:11,318546864+03:00

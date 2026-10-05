@@ -1,0 +1,28 @@
+Experiment 2 started: 2026-10-05T04:10:08,736799554+03:00
+deployment.apps/payments env updated
+Waiting for deployment "payments" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+deployment "payments" successfully rolled out
+NAME                        READY   STATUS        RESTARTS       AGE   IP           NODE                       NOMINATED NODE   READINESS GATES
+payments-594db4df9d-5tjp7   1/1     Terminating   1 (103m ago)   8d    10.42.0.4    k3d-quickticket-server-0   <none>           <none>
+payments-794cc78d-rjzg9     1/1     Running       0              10s   10.42.0.49   k3d-quickticket-server-0   <none>           <none>
+Collecting one-minute window: 2026-10-05T04:10:21,425808927+03:00
+
+=== Gateway 5xx ratio ===
+Prometheus status: success
+labels: {} value: 0
+
+=== Gateway p99 latency per path, seconds ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0.029250599999999793
+labels: {'path': '/events'} value: 0.023800000909118456
+labels: {'path': '/reserve/{id}/pay'} value: 2.485
+labels: {'path': '/events/{id}/reserve'} value: 0.08849993636132217
+End of 2000 ms observation: 2026-10-05T04:11:21,501522437+03:00
+deployment.apps/payments env updated
+Waiting for deployment "payments" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+deployment "payments" successfully rolled out
+Payments latency restored: 2026-10-05T04:11:31,372916767+03:00

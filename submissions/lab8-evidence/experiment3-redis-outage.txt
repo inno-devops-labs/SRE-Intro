@@ -1,0 +1,100 @@
+Experiment 3 started: 2026-10-05T04:13:00,334956585+03:00
+deployment.apps/redis scaled
+
+=== Pods and endpoints with Redis stopped ===
+NAME                       READY   STATUS    RESTARTS       AGE    IP           NODE                       NOMINATED NODE   READINESS GATES
+events-5686cc8b-vkdbf      1/1     Running   1 (105m ago)   8d     10.42.0.11   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-gbnnl   1/1     Running   0              32m    10.42.0.40   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-mgwq6   1/1     Running   0              25m    10.42.0.45   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-sh67r   1/1     Running   0              4m2s   10.42.0.48   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-t9jnv   1/1     Running   0              35m    10.42.0.39   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-thcs6   1/1     Running   0              30m    10.42.0.42   k3d-quickticket-server-0   <none>           <none>
+NAME           ADDRESSTYPE   PORTS   ENDPOINTS    AGE
+events-kp9z9   IPv4          8081    10.42.0.11   13d
+NAME            ADDRESSTYPE   PORTS   ENDPOINTS                                      AGE
+gateway-mh7tp   IPv4          8080    10.42.0.39,10.42.0.40,10.42.0.42 + 2 more...   13d
+
+=== Requests through the Gateway during the outage ===
+POST /reserve: HTTP 000 in 2.002710s
+{"status":"degraded","checks":{"events":"degraded","payments":"ok","circuit_payments":"CLOSED"}}
+GET /health: HTTP 503 in 0.017730s
+Attempt 2 at 2026-10-05T01:13:10+00:00
+GET /events: HTTP 200 in 0.017770s
+POST /reserve: HTTP 000 in 2.001065s
+{"status":"degraded","checks":{"events":"degraded","payments":"ok","circuit_payments":"CLOSED"}}
+GET /health: HTTP 503 in 0.018469s
+
+=== Gateway 5xx responses in the last 3 minutes ===
+{
+    "status": "success",
+    "data": {
+        "resultType": "vector",
+        "result": [
+            {
+                "metric": {},
+                "value": [
+                    1791162795.026,
+                    "24.802052700571345"
+                ]
+            }
+        ]
+    }
+}
+Redis recovery started: 2026-10-05T04:13:15,100289407+03:00
+deployment.apps/redis scaled
+Waiting for deployment "redis" rollout to finish: 0 of 1 updated replicas are available...
+deployment "redis" successfully rolled out
+pod/events-5686cc8b-vkdbf condition met
+pod/gateway-7d79dcbb87-gbnnl condition met
+pod/gateway-7d79dcbb87-mgwq6 condition met
+pod/gateway-7d79dcbb87-sh67r condition met
+pod/gateway-7d79dcbb87-t9jnv condition met
+pod/gateway-7d79dcbb87-thcs6 condition met
+
+=== Recovery state ===
+NAME                       READY   STATUS    RESTARTS       AGE     IP           NODE                       NOMINATED NODE   READINESS GATES
+events-5686cc8b-vkdbf      1/1     Running   1 (106m ago)   8d      10.42.0.11   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-gbnnl   1/1     Running   0              33m     10.42.0.40   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-mgwq6   1/1     Running   0              26m     10.42.0.45   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-sh67r   1/1     Running   0              4m24s   10.42.0.48   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-t9jnv   1/1     Running   0              35m     10.42.0.39   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-thcs6   1/1     Running   0              30m     10.42.0.42   k3d-quickticket-server-0   <none>           <none>
+redis-6fcfb5475d-s2zf2     1/1     Running   0              9s      10.42.0.52   k3d-quickticket-server-0   <none>           <none>
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          10/10
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND         STATUS        AGE    INFO
+⟳ gateway                            Rollout      [32m✔[0m Healthy     88m
+├──# revision:8
+│  └──⧉ [32mgateway-7d79dcbb87[0m           ReplicaSet   [32m✔[0m Healthy     35m    [32mstable[0m
+│     ├──□ gateway-7d79dcbb87-t9jnv  Pod          [32m✔[0m Running     35m    ready:1/1
+│     ├──□ gateway-7d79dcbb87-gbnnl  Pod          [32m✔[0m Running     33m    ready:1/1
+│     ├──□ gateway-7d79dcbb87-thcs6  Pod          [32m✔[0m Running     30m    ready:1/1
+│     ├──□ gateway-7d79dcbb87-mgwq6  Pod          [32m✔[0m Running     26m    ready:1/1
+│     └──□ gateway-7d79dcbb87-sh67r  Pod          [32m✔[0m Running     4m24s  ready:1/1
+├──# revision:7
+│  ├──⧉ gateway-5bcbd9ff4            ReplicaSet   [0m•[0m ScaledDown  28m
+│  └──α [0mgateway-5bcbd9ff4-7-2[0m        AnalysisRun  [31m✖[0m Failed      27m    [31m✖[0m 2
+├──# revision:6
+│  └──α [0mgateway-7d79dcbb87-6-2[0m       AnalysisRun  [32m✔[0m Successful  34m    [32m✔[0m 3
+├──# revision:5
+│  └──⧉ gateway-9b68dc7f6            ReplicaSet   [0m•[0m ScaledDown  45m
+├──# revision:4
+│  └──⧉ gateway-b9dbd796d            ReplicaSet   [0m•[0m ScaledDown  87m
+├──# revision:3
+│  └──⧉ gateway-677f979d5c           ReplicaSet   [0m•[0m ScaledDown  72m
+└──# revision:1
+   └──⧉ gateway-7d798c7b65           ReplicaSet   [0m•[0m ScaledDown  88m
+Experiment 3 completed: 2026-10-05T04:13:24,550554624+03:00

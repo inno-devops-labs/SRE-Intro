@@ -1,0 +1,36 @@
+deployment.apps/mixedload created
+Waiting for deployment "mixedload" rollout to finish: 0 out of 2 new replicas have been updated...
+Waiting for deployment "mixedload" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "mixedload" rollout to finish: 1 of 2 updated replicas are available...
+deployment "mixedload" successfully rolled out
+NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE                       NOMINATED NODE   READINESS GATES
+mixedload-96c9f49fd-jm9dr   1/1     Running   0          6s    10.42.0.47   k3d-quickticket-server-0   <none>           <none>
+mixedload-96c9f49fd-kb7z8   1/1     Running   0          6s    10.42.0.46   k3d-quickticket-server-0   <none>           <none>
+NAME            ADDRESSTYPE   PORTS   ENDPOINTS                                      AGE
+gateway-mh7tp   IPv4          8080    10.42.0.39,10.42.0.40,10.42.0.41 + 2 more...   13d
+Baseline window started: 2026-10-05T04:06:29,352383764+03:00
+
+=== Total gateway requests per second ===
+Prometheus status: success
+labels: {} value: 17.727149765914188
+
+=== Requests per path and status ===
+Prometheus status: success
+labels: {'path': '/health', 'status': '200'} value: 1.4908971912847326
+labels: {'path': '/events', 'status': '200'} value: 5.381784467353825
+labels: {'path': '/health', 'status': '503'} value: 0
+labels: {'path': '/events/{id}/reserve', 'status': '200'} value: 5.4181454588489375
+labels: {'path': '/reserve/{id}/pay', 'status': '200'} value: 5.436322648426692
+
+=== Gateway 5xx ratio ===
+Prometheus status: success
+labels: {} value: 0
+
+=== p99 latency per path ===
+Prometheus status: success
+labels: {'path': '/reserve/{id}/pay'} value: 0.0626246022640903
+labels: {'path': '/health'} value: 0.06475008182347115
+labels: {'path': '/events'} value: 0.02158467499653894
+labels: {'path': '/events/{id}/reserve'} value: 0.056374955685092834
+
+Baseline captured: 2026-10-05T04:07:29,509571537+03:00

@@ -1,0 +1,99 @@
+=== Before injection: alert state ===
+
+=== GatewayPayP99High ===
+Prometheus status: success
+No matching series
+
+Bonus experiment started: 2026-10-05T04:25:04,614996341+03:00
+deployment.apps/payments env updated
+deployment.apps/events env updated
+deployment.apps/mixedload scaled
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "payments" rollout to finish: 1 old replicas are pending termination...
+deployment "payments" successfully rolled out
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+deployment "mixedload" successfully rolled out
+
+Sample 0 at 2026-10-05T04:25:20,421684719+03:00
+
+=== p99 latency by path, seconds ===
+Prometheus status: success
+labels: {'path': '/reserve/{id}/pay'} value: 0.6663879146859937
+labels: {'path': '/events/{id}/reserve'} value: 0.07475039547363704
+labels: {'path': '/health'} value: 0.05425060908247946
+labels: {'path': '/events'} value: 0.024976290484530154
+
+=== 5xx ratio by path, percent ===
+Prometheus status: success
+labels: {'path': '/health'} value: 2.4096435691618847
+labels: {'path': '/events/{id}/reserve'} value: 0
+labels: {'path': '/reserve/{id}/pay'} value: 1.342289864136529
+labels: {'path': '/events'} value: 0
+
+=== GatewayPayP99High alert state ===
+Prometheus status: success
+labels: {'__name__': 'ALERTS', 'alertname': 'GatewayPayP99High', 'alertstate': 'pending', 'service': 'gateway', 'severity': 'warning'} value: 1
+
+Sample 1 at 2026-10-05T04:26:20,528552922+03:00
+
+=== p99 latency by path, seconds ===
+Prometheus status: success
+labels: {'path': '/events/{id}/reserve'} value: 0.02393887973013242
+labels: {'path': '/health'} value: 0.02457068856544699
+labels: {'path': '/events'} value: 0.023500022725322398
+labels: {'path': '/reserve/{id}/pay'} value: 0.7475
+
+=== 5xx ratio by path, percent ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0
+labels: {'path': '/events/{id}/reserve'} value: 0
+labels: {'path': '/reserve/{id}/pay'} value: 32.10501112578536
+labels: {'path': '/events'} value: 0
+
+=== GatewayPayP99High alert state ===
+Prometheus status: success
+labels: {'__name__': 'ALERTS', 'alertname': 'GatewayPayP99High', 'alertstate': 'firing', 'service': 'gateway', 'severity': 'warning'} value: 1
+
+Sample 2 at 2026-10-05T04:27:20,627820937+03:00
+
+=== p99 latency by path, seconds ===
+Prometheus status: success
+labels: {'path': '/reserve/{id}/pay'} value: 0.7475
+labels: {'path': '/events/{id}/reserve'} value: 0.02466706343346623
+labels: {'path': '/health'} value: 0.029249390920165125
+labels: {'path': '/events'} value: 0.024025005649086516
+
+=== 5xx ratio by path, percent ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0
+labels: {'path': '/events/{id}/reserve'} value: 0
+labels: {'path': '/reserve/{id}/pay'} value: 33.33325757928703
+labels: {'path': '/events'} value: 0
+
+=== GatewayPayP99High alert state ===
+Prometheus status: success
+labels: {'__name__': 'ALERTS', 'alertname': 'GatewayPayP99High', 'alertstate': 'firing', 'service': 'gateway', 'severity': 'warning'} value: 1
+
+Sample 3 at 2026-10-05T04:28:20,739304288+03:00
+
+=== p99 latency by path, seconds ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0.02461094000368201
+labels: {'path': '/events'} value: 0.02370453084811657
+labels: {'path': '/reserve/{id}/pay'} value: 0.74748691117918
+labels: {'path': '/events/{id}/reserve'} value: 0.024230267668309487
+
+=== 5xx ratio by path, percent ===
+Prometheus status: success
+labels: {'path': '/health'} value: 0
+labels: {'path': '/events/{id}/reserve'} value: 0
+labels: {'path': '/reserve/{id}/pay'} value: 25.13072637100852
+labels: {'path': '/events'} value: 0
+
+=== GatewayPayP99High alert state ===
+Prometheus status: success
+labels: {'__name__': 'ALERTS', 'alertname': 'GatewayPayP99High', 'alertstate': 'firing', 'service': 'gateway', 'severity': 'warning'} value: 1
+
+Bonus experiment ended: 2026-10-05T04:28:20,851730425+03:00

@@ -50,6 +50,8 @@ data:
     global:
       scrape_interval: 5s
       evaluation_interval: 5s
+    rule_files:
+      - /etc/prometheus/rules.yml
     scrape_configs:
       - job_name: gateway
         kubernetes_sd_configs:
@@ -73,6 +75,25 @@ data:
           # into rs_hash so the AnalysisTemplate query can filter canary vs stable.
           - source_labels: [__meta_kubernetes_pod_label_rollouts_pod_template_hash]
             target_label: rs_hash
+  rules.yml: |
+    groups:
+      - name: gateway-latency
+        rules:
+          - alert: GatewayPayP99High
+            expr: |
+              histogram_quantile(
+                0.99,
+                sum by (le) (
+                  rate(gateway_request_duration_seconds_bucket{path="/reserve/{id}/pay"}[2m])
+                )
+              ) > 0.5
+            for: 30s
+            labels:
+              severity: warning
+              service: gateway
+            annotations:
+              summary: "Gateway payment p99 latency is high"
+              description: "The p99 latency of the Gateway payment endpoint has exceeded 0.5 seconds for 30 seconds."
 ---
 apiVersion: apps/v1
 kind: Deployment
