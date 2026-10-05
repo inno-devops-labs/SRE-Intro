@@ -1,0 +1,319 @@
+{
+  "timestamp": "2026-10-05T08:09:22.999722+00:00",
+  "data": {
+    "rollout": {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Rollout",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Rollout\",\"metadata\":{\"annotations\":{},\"labels\":{\"version\":\"v2\"},\"name\":\"gateway\",\"namespace\":\"default\"},\"spec\":{\"progressDeadlineSeconds\":60,\"replicas\":5,\"selector\":{\"matchLabels\":{\"app\":\"gateway\"}},\"strategy\":{\"canary\":{\"maxSurge\":0,\"maxUnavailable\":1,\"steps\":[{\"setWeight\":20},{\"pause\":{\"duration\":\"60s\"}},{\"setWeight\":40},{\"pause\":{\"duration\":\"60s\"}},{\"setWeight\":60},{\"pause\":{\"duration\":\"60s\"}},{\"setWeight\":80},{\"pause\":{\"duration\":\"30s\"}},{\"setWeight\":100}]}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"gateway\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"EVENTS_URL\",\"value\":\"http://events:8081\"},{\"name\":\"PAYMENTS_URL\",\"value\":\"http://payments:8082\"},{\"name\":\"GATEWAY_TIMEOUT_MS\",\"value\":\"5000\"},{\"name\":\"APP_VERSION\",\"value\":\"v4-multistep\"}],\"image\":\"ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616\",\"imagePullPolicy\":\"Always\",\"livenessProbe\":{\"failureThreshold\":3,\"initialDelaySeconds\":10,\"periodSeconds\":10,\"tcpSocket\":{\"port\":8080}},\"name\":\"gateway\",\"ports\":[{\"containerPort\":8080,\"name\":\"tcp\"}],\"readinessProbe\":{\"periodSeconds\":5,\"tcpSocket\":{\"port\":8080}},\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"256Mi\"},\"requests\":{\"cpu\":\"50m\",\"memory\":\"64Mi\"}},\"startupProbe\":{\"failureThreshold\":30,\"periodSeconds\":2,\"tcpSocket\":{\"port\":8080}}}]}}}}\n",
+          "rollout.argoproj.io/revision": "5"
+        },
+        "creationTimestamp": "2026-10-05T08:01:39Z",
+        "generation": 5,
+        "labels": {
+          "version": "v2"
+        },
+        "name": "gateway",
+        "namespace": "default",
+        "resourceVersion": "2099",
+        "uid": "50466390-13fa-4ce6-8db4-390a4a95d9ee"
+      },
+      "spec": {
+        "progressDeadlineSeconds": 60,
+        "replicas": 5,
+        "selector": {
+          "matchLabels": {
+            "app": "gateway"
+          }
+        },
+        "strategy": {
+          "canary": {
+            "maxSurge": 0,
+            "maxUnavailable": 1,
+            "steps": [
+              {
+                "setWeight": 20
+              },
+              {
+                "pause": {
+                  "duration": "60s"
+                }
+              },
+              {
+                "setWeight": 40
+              },
+              {
+                "pause": {
+                  "duration": "60s"
+                }
+              },
+              {
+                "setWeight": 60
+              },
+              {
+                "pause": {
+                  "duration": "60s"
+                }
+              },
+              {
+                "setWeight": 80
+              },
+              {
+                "pause": {
+                  "duration": "30s"
+                }
+              },
+              {
+                "setWeight": 100
+              }
+            ]
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "gateway"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "EVENTS_URL",
+                    "value": "http://events:8081"
+                  },
+                  {
+                    "name": "PAYMENTS_URL",
+                    "value": "http://payments:8082"
+                  },
+                  {
+                    "name": "GATEWAY_TIMEOUT_MS",
+                    "value": "5000"
+                  },
+                  {
+                    "name": "APP_VERSION",
+                    "value": "v4-multistep"
+                  }
+                ],
+                "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                "imagePullPolicy": "Always",
+                "livenessProbe": {
+                  "failureThreshold": 3,
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 10,
+                  "tcpSocket": {
+                    "port": 8080
+                  }
+                },
+                "name": "gateway",
+                "ports": [
+                  {
+                    "containerPort": 8080,
+                    "name": "tcp",
+                    "protocol": "TCP"
+                  }
+                ],
+                "readinessProbe": {
+                  "periodSeconds": 5,
+                  "tcpSocket": {
+                    "port": 8080
+                  }
+                },
+                "resources": {
+                  "limits": {
+                    "cpu": "200m",
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "64Mi"
+                  }
+                },
+                "startupProbe": {
+                  "failureThreshold": 30,
+                  "periodSeconds": 2,
+                  "tcpSocket": {
+                    "port": 8080
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "status": {
+        "HPAReplicas": 5,
+        "availableReplicas": 5,
+        "blueGreen": {},
+        "canary": {},
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-05T08:06:42Z",
+            "lastUpdateTime": "2026-10-05T08:06:42Z",
+            "message": "Rollout is not healthy",
+            "reason": "RolloutHealthy",
+            "status": "False",
+            "type": "Healthy"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:06:42Z",
+            "lastUpdateTime": "2026-10-05T08:06:42Z",
+            "message": "RolloutCompleted",
+            "reason": "RolloutCompleted",
+            "status": "False",
+            "type": "Completed"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:09:04Z",
+            "lastUpdateTime": "2026-10-05T08:09:04Z",
+            "message": "Rollout has minimum availability",
+            "reason": "AvailableReason",
+            "status": "True",
+            "type": "Available"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:09:04Z",
+            "lastUpdateTime": "2026-10-05T08:09:04Z",
+            "message": "Rollout is paused",
+            "reason": "RolloutPaused",
+            "status": "Unknown",
+            "type": "Progressing"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:09:04Z",
+            "lastUpdateTime": "2026-10-05T08:09:04Z",
+            "message": "Rollout is paused",
+            "reason": "RolloutPaused",
+            "status": "True",
+            "type": "Paused"
+          }
+        ],
+        "controllerPause": true,
+        "currentPodHash": "76d687d64b",
+        "currentStepHash": "856f58577",
+        "currentStepIndex": 5,
+        "message": "CanaryPauseStep",
+        "observedGeneration": "5",
+        "pauseConditions": [
+          {
+            "reason": "CanaryPauseStep",
+            "startTime": "2026-10-05T08:09:04Z"
+          }
+        ],
+        "phase": "Paused",
+        "readyReplicas": 5,
+        "replicas": 5,
+        "selector": "app=gateway",
+        "stableRS": "664755f4c4",
+        "updatedReplicas": 3
+      }
+    },
+    "metrics": {
+      "sum(rate(gateway_requests_total[1m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791187762.718,
+            "8.663304370896856"
+          ]
+        }
+      ],
+      "(sum(rate(gateway_requests_total{status=~\"5..\"}[1m])) or vector(0))/sum(rate(gateway_requests_total[1m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791187762.788,
+            "0"
+          ]
+        }
+      ],
+      "sum by(pod)(rate(gateway_requests_total[1m]))": [
+        {
+          "metric": {
+            "pod": "gateway-664755f4c4-xnkdj"
+          },
+          "value": [
+            1791187762.858,
+            "1.781785785712987"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-664755f4c4-z7x2f"
+          },
+          "value": [
+            1791187762.858,
+            "1.7817533907857896"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-664755f4c4-v2j4l"
+          },
+          "value": [
+            1791187762.858,
+            "0.8893833333333334"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-76d687d64b-lp28t"
+          },
+          "value": [
+            1791187762.858,
+            "1.8363636363636362"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-76d687d64b-xfbmw"
+          },
+          "value": [
+            1791187762.858,
+            "1.7999018235368982"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-76d687d64b-6zzgm"
+          },
+          "value": [
+            1791187762.858,
+            "0.5752821657890643"
+          ]
+        }
+      ],
+      "histogram_quantile(0.99,sum by(le,path)(rate(gateway_request_duration_seconds_bucket[1m])))": [
+        {
+          "metric": {
+            "path": "/events"
+          },
+          "value": [
+            1791187762.924,
+            "0.009921209524978596"
+          ]
+        },
+        {
+          "metric": {
+            "path": "/health"
+          },
+          "value": [
+            1791187762.924,
+            "0.009988894453141408"
+          ]
+        }
+      ],
+      "sum(increase(gateway_requests_total{status=~\"5..\"}[3m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791187762.994,
+            "12"
+          ]
+        }
+      ]
+    }
+  }
+}

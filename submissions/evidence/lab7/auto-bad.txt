@@ -1,0 +1,38 @@
+2026-10-05T08:17:45.448130+00:00
+Name:            gateway
+Namespace:       default
+Status:          ✖ Degraded
+Message:         RolloutAborted: Rollout aborted update to revision 7: Step-based analysis phase error/failed: Metric "error-rate" assessed Failed due to failed (2) > failureLimit (1)
+Strategy:        Canary
+  Step:          0/6
+  SetWeight:     0
+  ActualWeight:  0
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                 KIND         STATUS               AGE    INFO
+⟳ gateway                            Rollout      ✖ Degraded           16m
+├──# revision:7
+│  ├──⧉ gateway-8567c9fdbf           ReplicaSet   • ScaledDown         105s   canary
+│  └──α gateway-8567c9fdbf-7-2       AnalysisRun  ✖ Failed             81s    ✖ 2
+├──# revision:6
+│  ├──⧉ gateway-5b45bc8f9f           ReplicaSet   ◌ Progressing        4m32s  stable
+│  │  ├──□ gateway-5b45bc8f9f-s6z9x  Pod          ✔ Running            4m31s  ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-q227v  Pod          ✔ Running            2m26s  ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-z4ffg  Pod          ✔ Running            2m21s  ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-9wnxp  Pod          ✔ Running            117s   ready:1/1
+│  │  └──□ gateway-5b45bc8f9f-ctq5c  Pod          ◌ ContainerCreating  1s     ready:0/1
+│  └──α gateway-5b45bc8f9f-6-2       AnalysisRun  ✔ Successful         4m6s   ✔ 3
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet   • ScaledDown         11m
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet   • ScaledDown         12m
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet   • ScaledDown         11m
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet   • ScaledDown         15m

@@ -1,0 +1,2788 @@
+$ kubectl config current-context
+k3d-quickticket-lab78
+
+$ kubectl argo rollouts version
+kubectl-argo-rollouts: v1.9.0+838d4e7
+  BuildDate: 2026-03-20T21:11:48Z
+  GitCommit: 838d4e792be666ec11bd0c80331e0c5511b5010e
+  GitTreeState: clean
+  GoVersion: go1.24.13
+  Compiler: gc
+  Platform: darwin/arm64
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ॥ Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/5
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS     AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused   3m50s
+├──# revision:2
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy  42s    canary
+│     └──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running  42s    ready:1/1
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  ✔ Healthy  3m29s  stable
+      ├──□ gateway-64d67f89fc-5tksf  Pod         ✔ Running  3m29s  ready:1/1
+      ├──□ gateway-64d67f89fc-b7mtw  Pod         ✔ Running  3m29s  ready:1/1
+      ├──□ gateway-64d67f89fc-p7nb2  Pod         ✔ Running  3m29s  ready:1/1
+      └──□ gateway-64d67f89fc-w8hbq  Pod         ✔ Running  3m29s  ready:1/1
+
+$ kubectl get pods -l app=gateway -o json
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-05T08:02:00Z",
+                "generateName": "gateway-64d67f89fc-",
+                "generation": 1,
+                "labels": {
+                    "app": "gateway",
+                    "rollouts-pod-template-hash": "64d67f89fc"
+                },
+                "name": "gateway-64d67f89fc-5tksf",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "gateway-64d67f89fc",
+                        "uid": "888da2a6-bec4-4272-a1fc-efd1e99f7c29"
+                    }
+                ],
+                "resourceVersion": "1283",
+                "uid": "d1e66741-4f02-4e44-904f-823c2a817add"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "EVENTS_URL",
+                                "value": "http://events:8081"
+                            },
+                            {
+                                "name": "PAYMENTS_URL",
+                                "value": "http://payments:8082"
+                            },
+                            {
+                                "name": "GATEWAY_TIMEOUT_MS",
+                                "value": "5000"
+                            },
+                            {
+                                "name": "APP_VERSION",
+                                "value": "v1"
+                            }
+                        ],
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "name": "gateway",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "tcp",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "startupProbe": {
+                            "failureThreshold": 30,
+                            "periodSeconds": 2,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-qlw2r",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "k3d-quickticket-lab78-agent-0",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-qlw2r",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:08Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:10Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:10Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "allocatedResources": {
+                            "cpu": "50m",
+                            "memory": "64Mi"
+                        },
+                        "containerID": "containerd://2036d835f259a12cccf94a5afd56a582060f61f585573990561cbdcd82c970da",
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imageID": "ghcr.io/walkerino/quickticket-gateway@sha256:9a86835ff766a564f5e595fb405d5627289ed465617c947322e95f53ed65afea",
+                        "lastState": {},
+                        "name": "gateway",
+                        "ready": true,
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-05T08:04:07Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-qlw2r",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.18.0.4",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.4"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.42.0.11",
+                "podIPs": [
+                    {
+                        "ip": "10.42.0.11"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2026-10-05T08:02:00Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-05T08:02:00Z",
+                "generateName": "gateway-64d67f89fc-",
+                "generation": 1,
+                "labels": {
+                    "app": "gateway",
+                    "rollouts-pod-template-hash": "64d67f89fc"
+                },
+                "name": "gateway-64d67f89fc-b7mtw",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "gateway-64d67f89fc",
+                        "uid": "888da2a6-bec4-4272-a1fc-efd1e99f7c29"
+                    }
+                ],
+                "resourceVersion": "1330",
+                "uid": "b7c56e90-c245-4c4c-bbd9-0c4ef1c3e3dc"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "EVENTS_URL",
+                                "value": "http://events:8081"
+                            },
+                            {
+                                "name": "PAYMENTS_URL",
+                                "value": "http://payments:8082"
+                            },
+                            {
+                                "name": "GATEWAY_TIMEOUT_MS",
+                                "value": "5000"
+                            },
+                            {
+                                "name": "APP_VERSION",
+                                "value": "v1"
+                            }
+                        ],
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "name": "gateway",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "tcp",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "startupProbe": {
+                            "failureThreshold": 30,
+                            "periodSeconds": 2,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-l6x8x",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "k3d-quickticket-lab78-server-0",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-l6x8x",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:13Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:16Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:16Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "allocatedResources": {
+                            "cpu": "50m",
+                            "memory": "64Mi"
+                        },
+                        "containerID": "containerd://4b9da4518e2ceab706d331816b6d3b03a9d98121147769c23b180a925e454228",
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imageID": "ghcr.io/walkerino/quickticket-gateway@sha256:9a86835ff766a564f5e595fb405d5627289ed465617c947322e95f53ed65afea",
+                        "lastState": {},
+                        "name": "gateway",
+                        "ready": true,
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-05T08:04:12Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-l6x8x",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.18.0.3",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.3"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.42.1.11",
+                "podIPs": [
+                    {
+                        "ip": "10.42.1.11"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2026-10-05T08:02:00Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-05T08:02:00Z",
+                "generateName": "gateway-64d67f89fc-",
+                "generation": 1,
+                "labels": {
+                    "app": "gateway",
+                    "rollouts-pod-template-hash": "64d67f89fc"
+                },
+                "name": "gateway-64d67f89fc-p7nb2",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "gateway-64d67f89fc",
+                        "uid": "888da2a6-bec4-4272-a1fc-efd1e99f7c29"
+                    }
+                ],
+                "resourceVersion": "1338",
+                "uid": "64c797f1-aee9-4667-a315-c30544fc39df"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "EVENTS_URL",
+                                "value": "http://events:8081"
+                            },
+                            {
+                                "name": "PAYMENTS_URL",
+                                "value": "http://payments:8082"
+                            },
+                            {
+                                "name": "GATEWAY_TIMEOUT_MS",
+                                "value": "5000"
+                            },
+                            {
+                                "name": "APP_VERSION",
+                                "value": "v1"
+                            }
+                        ],
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "name": "gateway",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "tcp",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "startupProbe": {
+                            "failureThreshold": 30,
+                            "periodSeconds": 2,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-dd56k",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "k3d-quickticket-lab78-server-0",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-dd56k",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:13Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:16Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:16Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "allocatedResources": {
+                            "cpu": "50m",
+                            "memory": "64Mi"
+                        },
+                        "containerID": "containerd://c79866a69bfc9b4081751b333f0179af81e19a44358a7ce8fd380f4cb370ef6a",
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imageID": "ghcr.io/walkerino/quickticket-gateway@sha256:9a86835ff766a564f5e595fb405d5627289ed465617c947322e95f53ed65afea",
+                        "lastState": {},
+                        "name": "gateway",
+                        "ready": true,
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-05T08:04:12Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-dd56k",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.18.0.3",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.3"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.42.1.10",
+                "podIPs": [
+                    {
+                        "ip": "10.42.1.10"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2026-10-05T08:02:00Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-05T08:02:00Z",
+                "generateName": "gateway-64d67f89fc-",
+                "generation": 1,
+                "labels": {
+                    "app": "gateway",
+                    "rollouts-pod-template-hash": "64d67f89fc"
+                },
+                "name": "gateway-64d67f89fc-w8hbq",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "gateway-64d67f89fc",
+                        "uid": "888da2a6-bec4-4272-a1fc-efd1e99f7c29"
+                    }
+                ],
+                "resourceVersion": "1290",
+                "uid": "8cc76421-c2c3-4f58-9d8a-9ae24ba35873"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "EVENTS_URL",
+                                "value": "http://events:8081"
+                            },
+                            {
+                                "name": "PAYMENTS_URL",
+                                "value": "http://payments:8082"
+                            },
+                            {
+                                "name": "GATEWAY_TIMEOUT_MS",
+                                "value": "5000"
+                            },
+                            {
+                                "name": "APP_VERSION",
+                                "value": "v1"
+                            }
+                        ],
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "name": "gateway",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "tcp",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "startupProbe": {
+                            "failureThreshold": 30,
+                            "periodSeconds": 2,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-g4vzj",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "k3d-quickticket-lab78-agent-0",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-g4vzj",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:08Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:11Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:11Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:02:00Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "allocatedResources": {
+                            "cpu": "50m",
+                            "memory": "64Mi"
+                        },
+                        "containerID": "containerd://ceefb6b69b280d1637378a3a2a72abe507ed5b4fc49f055c099c2e467ba1d9f0",
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imageID": "ghcr.io/walkerino/quickticket-gateway@sha256:9a86835ff766a564f5e595fb405d5627289ed465617c947322e95f53ed65afea",
+                        "lastState": {},
+                        "name": "gateway",
+                        "ready": true,
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-05T08:04:07Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-g4vzj",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.18.0.4",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.4"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.42.0.10",
+                "podIPs": [
+                    {
+                        "ip": "10.42.0.10"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2026-10-05T08:02:00Z"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "creationTimestamp": "2026-10-05T08:04:47Z",
+                "generateName": "gateway-664755f4c4-",
+                "generation": 1,
+                "labels": {
+                    "app": "gateway",
+                    "rollouts-pod-template-hash": "664755f4c4"
+                },
+                "name": "gateway-664755f4c4-xnkdj",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "ReplicaSet",
+                        "name": "gateway-664755f4c4",
+                        "uid": "ad163a80-b0ae-4b42-8d40-eb2005a68b07"
+                    }
+                ],
+                "resourceVersion": "1455",
+                "uid": "f3303676-9185-4403-9df2-53ac998c4680"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "env": [
+                            {
+                                "name": "EVENTS_URL",
+                                "value": "http://events:8081"
+                            },
+                            {
+                                "name": "PAYMENTS_URL",
+                                "value": "http://payments:8082"
+                            },
+                            {
+                                "name": "GATEWAY_TIMEOUT_MS",
+                                "value": "5000"
+                            },
+                            {
+                                "name": "APP_VERSION",
+                                "value": "v2"
+                            }
+                        ],
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imagePullPolicy": "Always",
+                        "livenessProbe": {
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 10,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "name": "gateway",
+                        "ports": [
+                            {
+                                "containerPort": 8080,
+                                "name": "tcp",
+                                "protocol": "TCP"
+                            }
+                        ],
+                        "readinessProbe": {
+                            "failureThreshold": 3,
+                            "periodSeconds": 5,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "startupProbe": {
+                            "failureThreshold": 30,
+                            "periodSeconds": 2,
+                            "successThreshold": 1,
+                            "tcpSocket": {
+                                "port": 8080
+                            },
+                            "timeoutSeconds": 1
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-l7hn5",
+                                "readOnly": true
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "enableServiceLinks": true,
+                "nodeName": "k3d-quickticket-lab78-server-0",
+                "preemptionPolicy": "PreemptLowerPriority",
+                "priority": 0,
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "serviceAccount": "default",
+                "serviceAccountName": "default",
+                "terminationGracePeriodSeconds": 30,
+                "tolerations": [
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/not-ready",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    },
+                    {
+                        "effect": "NoExecute",
+                        "key": "node.kubernetes.io/unreachable",
+                        "operator": "Exists",
+                        "tolerationSeconds": 300
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "kube-api-access-l7hn5",
+                        "projected": {
+                            "defaultMode": 420,
+                            "sources": [
+                                {
+                                    "serviceAccountToken": {
+                                        "expirationSeconds": 3607,
+                                        "path": "token"
+                                    }
+                                },
+                                {
+                                    "configMap": {
+                                        "items": [
+                                            {
+                                                "key": "ca.crt",
+                                                "path": "ca.crt"
+                                            }
+                                        ],
+                                        "name": "kube-root-ca.crt"
+                                    }
+                                },
+                                {
+                                    "downwardAPI": {
+                                        "items": [
+                                            {
+                                                "fieldRef": {
+                                                    "apiVersion": "v1",
+                                                    "fieldPath": "metadata.namespace"
+                                                },
+                                                "path": "namespace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "conditions": [
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:49Z",
+                        "status": "True",
+                        "type": "PodReadyToStartContainers"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:47Z",
+                        "status": "True",
+                        "type": "Initialized"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:52Z",
+                        "status": "True",
+                        "type": "Ready"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:52Z",
+                        "status": "True",
+                        "type": "ContainersReady"
+                    },
+                    {
+                        "lastProbeTime": null,
+                        "lastTransitionTime": "2026-10-05T08:04:47Z",
+                        "status": "True",
+                        "type": "PodScheduled"
+                    }
+                ],
+                "containerStatuses": [
+                    {
+                        "allocatedResources": {
+                            "cpu": "50m",
+                            "memory": "64Mi"
+                        },
+                        "containerID": "containerd://af4216a4e7aa8d38260fa2ff1db22dedd586f4c2bfb17d381dc47ad20eb20ff1",
+                        "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                        "imageID": "ghcr.io/walkerino/quickticket-gateway@sha256:9a86835ff766a564f5e595fb405d5627289ed465617c947322e95f53ed65afea",
+                        "lastState": {},
+                        "name": "gateway",
+                        "ready": true,
+                        "resources": {
+                            "limits": {
+                                "cpu": "200m",
+                                "memory": "256Mi"
+                            },
+                            "requests": {
+                                "cpu": "50m",
+                                "memory": "64Mi"
+                            }
+                        },
+                        "restartCount": 0,
+                        "started": true,
+                        "state": {
+                            "running": {
+                                "startedAt": "2026-10-05T08:04:48Z"
+                            }
+                        },
+                        "user": {
+                            "linux": {
+                                "gid": 0,
+                                "supplementalGroups": [
+                                    0
+                                ],
+                                "uid": 0
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+                                "name": "kube-api-access-l7hn5",
+                                "readOnly": true,
+                                "recursiveReadOnly": "Disabled"
+                            }
+                        ]
+                    }
+                ],
+                "hostIP": "172.18.0.3",
+                "hostIPs": [
+                    {
+                        "ip": "172.18.0.3"
+                    }
+                ],
+                "phase": "Running",
+                "podIP": "10.42.1.13",
+                "podIPs": [
+                    {
+                        "ip": "10.42.1.13"
+                    }
+                ],
+                "qosClass": "Burstable",
+                "startTime": "2026-10-05T08:04:47Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}
+
+$ kubectl logs gateway-64d67f89fc-5tksf --since=30s
+{"time":"2026-10-05 08:04:59,753","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:04:59,756","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54046 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:04:59,975","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:04:59,977","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54062 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:00,191","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54064 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:00,667","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:00,670","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54128 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,369","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54166 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,599","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54190 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:58624 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,090","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:02,093","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54234 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,545","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54276 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,668","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54360 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,752","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54518 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,229","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:06,231","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54564 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,462","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:06,464","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54582 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,685","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54588 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:58624 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,541","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54732 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,547","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:08,549","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54748 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,760","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54756 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,464","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:09,466","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58610 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,924","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:09,926","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58648 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,156","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:10,158","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58670 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,601","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58690 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,609","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:10,611","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58700 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,836","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58714 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,847","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:10,850","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58720 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,751","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:11,753","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58794 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:58624 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,976","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58798 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,206","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58818 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,350","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58940 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,040","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58998 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,100","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59132 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:58624 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,784","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59182 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,254","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:17,258","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59206 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,481","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:17,483","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59224 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,170","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:18,172","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59270 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,788","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36290 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,646","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:21,648","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36462 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:40060 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,325","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36506 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,238","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:23,241","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36588 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,457","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36604 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,470","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:23,473","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36610 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,703","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:23,706","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36636 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,711","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36894 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,721","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:26,722","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36910 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:40060 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,952","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:26,954","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36932 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,170","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36946 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,622","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36980 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,850","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37012 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,861","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:27,863","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37022 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:28,538","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37056 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,248","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37126 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,684","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:48448 - "GET /events HTTP/1.1" 200 OK
+
+$ kubectl logs gateway-64d67f89fc-b7mtw --since=30s
+{"time":"2026-10-05 08:04:59,967","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54054 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:00,436","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:00,439","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54104 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:46750 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,998","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:02,999","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54336 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,215","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54340 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,442","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54352 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,450","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:03,452","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54354 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,677","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:03,679","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54364 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,148","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:04,152","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54412 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,622","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:04,624","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54442 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,077","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54470 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,764","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:05,771","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54528 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,991","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54534 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,003","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:06,006","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54536 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,605","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54644 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:46750 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,325","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:08,328","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54716 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,067","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58732 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,295","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58748 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:46750 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,127","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58912 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,359","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:13,362","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58956 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,575","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58964 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,274","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59010 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,284","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:14,286","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59022 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,419","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59078 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,428","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:15,430","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59094 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,568","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:16,570","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59178 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,796","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:16,798","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59186 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,705","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:17,707","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59238 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:46750 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,159","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59268 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,390","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59274 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,622","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59290 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,634","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:18,637","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59298 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,796","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:19,798","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36298 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,249","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36328 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,260","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:20,261","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36344 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,482","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36354 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,945","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36390 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,186","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:21,188","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36430 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,554","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36530 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,794","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:22,797","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36550 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:46750 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,926","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36652 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,173","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:24,176","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36692 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,398","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36708 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,860","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36732 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,309","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36774 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,781","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36822 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,259","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:26,261","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36860 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:46750 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,031","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:29,033","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37114 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,256","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:29,258","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37130 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,474","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:29,476","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:48444 - "GET /health HTTP/1.1" 200 OK
+
+$ kubectl logs gateway-64d67f89fc-p7nb2 --since=30s
+{"time":"2026-10-05 08:05:00,655","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54114 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,135","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54160 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,608","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:01,610","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54200 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,850","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:01,852","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54214 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,771","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54296 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:60470 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,375","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54418 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,608","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54438 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,863","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:04,865","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54460 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,297","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54486 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,521","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54502 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,529","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:05,531","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54508 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,219","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54548 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,914","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54610 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,153","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:07,155","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54630 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,379","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54634 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,087","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:08,089","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54698 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,989","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54774 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,001","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:09,003","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54788 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:60470 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,224","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54804 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,682","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58614 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,145","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58656 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,520","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58766 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,530","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:11,533","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58774 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,136","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:13,138","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58924 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,826","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:13,828","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58994 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,048","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:14,050","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59004 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:60470 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,970","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59060 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,192","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59070 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,645","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59106 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,883","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:15,884","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59130 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,112","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:16,114","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59144 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,470","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59220 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,861","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59310 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:60470 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,327","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59352 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,339","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:19,341","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59360 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,563","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36266 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,013","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36308 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,495","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:20,497","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36366 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,714","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36374 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,877","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:21,879","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36484 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,093","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36486 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,103","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:22,106","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36490 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,008","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36558 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,015","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:23,016","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36562 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,228","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36572 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:60470 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,410","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:24,413","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36712 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,629","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36722 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,320","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:25,324","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36788 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,554","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:25,556","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36806 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,794","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:25,797","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36834 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,030","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:26,032","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36850 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,248","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36858 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,483","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36872 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,494","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:26,497","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36878 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,181","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:27,183","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36950 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,400","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36960 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:28,080","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37024 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:28,319","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:28,322","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37048 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:28,552","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:28,555","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37066 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:28,794","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:28,797","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37088 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,020","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37102 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:60470 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,466","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:48440 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:29,691","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:29,693","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:48456 - "GET /health HTTP/1.1" 200 OK
+
+$ kubectl logs gateway-64d67f89fc-w8hbq --since=30s
+{"time":"2026-10-05 08:05:00,907","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:00,910","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54144 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,147","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:01,149","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54162 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,383","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:01,387","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54174 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,079","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54220 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,330","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:02,333","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54260 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,781","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:02,783","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54312 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,901","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54376 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,913","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:03,916","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54384 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:51642 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,849","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54448 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,085","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:05,086","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54480 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:05,304","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:05,306","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54492 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,450","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54580 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,698","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:06,700","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54604 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:06,923","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:06,926","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54612 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,849","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:07,852","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54670 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,074","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54682 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,236","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:09,239","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54812 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:51642 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,455","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58604 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,912","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58632 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,386","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:10,389","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58678 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,306","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:11,309","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58750 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,988","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:11,991","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58814 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,217","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:12,219","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58830 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,446","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:12,448","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58856 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,665","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58864 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,902","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58884 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,914","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:12,917","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58896 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,586","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:13,588","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58966 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:51642 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,516","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:14,518","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59030 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,980","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:14,983","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59064 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,656","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:15,658","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59108 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,342","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:16,345","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59156 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,558","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59166 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,031","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:17,034","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59194 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,924","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59242 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,873","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:18,876","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59324 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,095","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59340 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,107","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:19,110","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59348 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:51642 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:19,576","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:19,578","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36274 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,634","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36450 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,564","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:22,566","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36532 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,782","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36546 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,692","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36624 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,161","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36678 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:51642 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,639","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:24,642","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36726 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,084","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36752 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,091","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:25,093","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36766 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:25,544","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36796 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,408","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:27,410","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36970 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:27,632","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:27,634","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36996 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:28,308","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37040 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:28,782","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37072 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:51642 - "GET /metrics HTTP/1.1" 200 OK
+
+$ kubectl logs gateway-664755f4c4-xnkdj --since=30s
+{"time":"2026-10-05 08:05:00,200","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:00,202","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54080 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:00,425","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54094 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:00,893","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54140 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:01,836","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54206 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,316","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54246 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,555","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:02,557","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54282 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:02,992","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54326 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:59138 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:03,227","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:03,230","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54342 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,136","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54398 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:04,388","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:04,391","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54430 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,142","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54628 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,391","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:07,394","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54636 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,613","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:07,615","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54652 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:07,837","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54660 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.8:59138 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,314","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54714 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:08,771","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:08,773","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:54768 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:09,693","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:09,696","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58622 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:10,374","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58674 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,079","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:11,082","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58740 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:11,743","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58780 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,437","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58846 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:12,679","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:12,682","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58870 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:59138 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:13,816","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:58978 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,507","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59028 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,738","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59044 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:14,748","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:14,750","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59054 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,201","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:15,203","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59074 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:15,875","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59118 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:16,329","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59148 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,018","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59190 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,245","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59200 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,696","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59228 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:17,938","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:17,940","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59256 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:59138 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:18,404","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:18,406","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:59276 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,025","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:20,027","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36318 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,727","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:20,729","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36382 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:20,959","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:20,962","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36406 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,176","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36414 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,403","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36434 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,411","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:21,414","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36440 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:21,866","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36468 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:22,338","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:22,340","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36520 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:44378 - "GET /metrics HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:23,939","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:23,941","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36668 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:24,872","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:24,874","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36746 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,020","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:36844 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.0.7:36924 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-05 08:05:26,938","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:28,093","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-05 08:05:28,095","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+INFO:     10.42.0.7:37026 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.1.8:44378 - "GET /metrics HTTP/1.1" 200 OK
+
+$ kubectl argo rollouts promote gateway
+rollout 'gateway' promoted
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ◌ Progressing
+Message:         more replicas need to be updated
+Strategy:        Canary
+  Step:          2/5
+  SetWeight:     60
+  ActualWeight:  50
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       3
+  Ready:         4
+  Available:     4
+
+NAME                                 KIND        STATUS         AGE    INFO
+⟳ gateway                            Rollout     ◌ Progressing  3m59s
+├──# revision:2
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ◌ Progressing  51s    canary
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running      51s    ready:1/1
+│     ├──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running      8s     ready:1/1
+│     └──□ gateway-664755f4c4-v5lzf  Pod         ✔ Running      4s     ready:0/1
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  ✔ Healthy      3m38s  stable
+      ├──□ gateway-64d67f89fc-5tksf  Pod         ✔ Running      3m38s  ready:1/1
+      └──□ gateway-64d67f89fc-b7mtw  Pod         ✔ Running      3m38s  ready:1/1
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          5/5
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ✔ Healthy     4m41s
+├──# revision:2
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy     93s    stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running     93s    ready:1/1
+│     ├──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running     50s    ready:1/1
+│     ├──□ gateway-664755f4c4-v5lzf  Pod         ✔ Running     46s    ready:1/1
+│     ├──□ gateway-664755f4c4-v2j4l  Pod         ✔ Running     11s    ready:1/1
+│     └──□ gateway-664755f4c4-h2kr6  Pod         ✔ Running     7s     ready:1/1
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  4m20s
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ॥ Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/5
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused      4m58s
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  ✔ Healthy     17s    canary
+│     └──□ gateway-57b4b57b58-q65ww  Pod         ✔ Running     17s    ready:1/1
+├──# revision:2
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy     110s   stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running     110s   ready:1/1
+│     ├──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running     67s    ready:1/1
+│     ├──□ gateway-664755f4c4-v5lzf  Pod         ✔ Running     63s    ready:1/1
+│     └──□ gateway-664755f4c4-v2j4l  Pod         ✔ Running     28s    ready:1/1
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  4m37s
+
+$ kubectl argo rollouts abort gateway
+rollout 'gateway' aborted
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ✖ Degraded
+Message:         RolloutAborted: Rollout aborted update to revision 3
+Strategy:        Canary
+  Step:          0/5
+  SetWeight:     0
+  ActualWeight:  0
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                 KIND        STATUS         AGE    INFO
+⟳ gateway                            Rollout     ✖ Degraded     5m
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown   19s    canary
+├──# revision:2
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ◌ Progressing  112s   stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running      112s   ready:1/1
+│     ├──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running      69s    ready:1/1
+│     ├──□ gateway-664755f4c4-v5lzf  Pod         ✔ Running      65s    ready:1/1
+│     ├──□ gateway-664755f4c4-v2j4l  Pod         ✔ Running      30s    ready:1/1
+│     └──□ gateway-664755f4c4-dg7lm  Pod         ✔ Running      2s     ready:0/1
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown   4m39s
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ॥ Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          1/9
+  SetWeight:     20
+  ActualWeight:  20
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       1
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused      5m28s
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet  ✔ Healthy     25s    canary
+│     └──□ gateway-76d687d64b-lp28t  Pod         ✔ Running     25s    ready:1/1
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy     2m20s  stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running     2m20s  ready:1/1
+│     ├──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running     97s    ready:1/1
+│     ├──□ gateway-664755f4c4-v5lzf  Pod         ✔ Running     93s    ready:1/1
+│     └──□ gateway-664755f4c4-v2j4l  Pod         ✔ Running     58s    ready:1/1
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown  47s
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  5m7s
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ॥ Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          3/9
+  SetWeight:     40
+  ActualWeight:  40
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       2
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused      6m38s
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet  ✔ Healthy     95s    canary
+│     ├──□ gateway-76d687d64b-lp28t  Pod         ✔ Running     95s    ready:1/1
+│     └──□ gateway-76d687d64b-xfbmw  Pod         ✔ Running     26s    ready:1/1
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy     3m30s  stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running     3m30s  ready:1/1
+│     ├──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running     2m47s  ready:1/1
+│     └──□ gateway-664755f4c4-v2j4l  Pod         ✔ Running     2m8s   ready:1/1
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown  117s
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  6m17s
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ॥ Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          5/9
+  SetWeight:     60
+  ActualWeight:  60
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       3
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused      7m43s
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet  ✔ Healthy     2m40s  canary
+│     ├──□ gateway-76d687d64b-lp28t  Pod         ✔ Running     2m40s  ready:1/1
+│     ├──□ gateway-76d687d64b-xfbmw  Pod         ✔ Running     91s    ready:1/1
+│     └──□ gateway-76d687d64b-6zzgm  Pod         ✔ Running     22s    ready:1/1
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy     4m35s  stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running     4m35s  ready:1/1
+│     └──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running     3m52s  ready:1/1
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown  3m2s
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  7m22s
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ॥ Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          7/9
+  SetWeight:     80
+  ActualWeight:  80
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       4
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused      11m
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet  ✔ Healthy     6m12s  canary
+│     ├──□ gateway-76d687d64b-lp28t  Pod         ✔ Running     6m12s  ready:1/1
+│     ├──□ gateway-76d687d64b-xfbmw  Pod         ✔ Running     5m3s   ready:1/1
+│     ├──□ gateway-76d687d64b-6zzgm  Pod         ✔ Running     3m54s  ready:1/1
+│     └──□ gateway-76d687d64b-64rtz  Pod         ✔ Running     2m50s  ready:1/1
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy     8m7s   stable
+│     └──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running     7m24s  ready:1/1
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown  6m34s
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  10m
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          9/9
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ✔ Healthy     11m
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet  ✔ Healthy     6m31s  stable
+│     ├──□ gateway-76d687d64b-lp28t  Pod         ✔ Running     6m31s  ready:1/1
+│     ├──□ gateway-76d687d64b-xfbmw  Pod         ✔ Running     5m22s  ready:1/1
+│     ├──□ gateway-76d687d64b-6zzgm  Pod         ✔ Running     4m13s  ready:1/1
+│     ├──□ gateway-76d687d64b-64rtz  Pod         ✔ Running     3m9s   ready:1/1
+│     └──□ gateway-76d687d64b-dl2pq  Pod         ✔ Running     5s     ready:1/1
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet  • ScaledDown  8m26s
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown  6m53s
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  11m
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          6/6
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND         STATUS        AGE    INFO
+⟳ gateway                            Rollout      ✔ Healthy     14m
+├──# revision:6
+│  ├──⧉ gateway-5b45bc8f9f           ReplicaSet   ✔ Healthy     2m46s  stable
+│  │  ├──□ gateway-5b45bc8f9f-s6z9x  Pod          ✔ Running     2m45s  ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-q227v  Pod          ✔ Running     40s    ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-z4ffg  Pod          ✔ Running     35s    ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-9wnxp  Pod          ✔ Running     11s    ready:1/1
+│  │  └──□ gateway-5b45bc8f9f-4s4tr  Pod          ✔ Running     6s     ready:1/1
+│  └──α gateway-5b45bc8f9f-6-2       AnalysisRun  ✔ Successful  2m20s  ✔ 3
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet   • ScaledDown  9m17s
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet   • ScaledDown  11m
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet   • ScaledDown  9m39s
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet   • ScaledDown  13m
+
+$ kubectl get analysisrun -o yaml
+apiVersion: v1
+items:
+- apiVersion: argoproj.io/v1alpha1
+  kind: AnalysisRun
+  metadata:
+    annotations:
+      rollout.argoproj.io/revision: "6"
+    creationTimestamp: "2026-10-05T08:13:39Z"
+    generation: 5
+    labels:
+      app: gateway
+      rollout-type: Step
+      rollouts-pod-template-hash: 5b45bc8f9f
+      step-index: "2"
+    name: gateway-5b45bc8f9f-6-2
+    namespace: default
+    ownerReferences:
+    - apiVersion: argoproj.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Rollout
+      name: gateway
+      uid: 50466390-13fa-4ce6-8db4-390a4a95d9ee
+    resourceVersion: "2614"
+    uid: 7e3263fd-6255-42ee-a458-9635c169cb62
+  spec:
+    args:
+    - name: canary-hash
+      value: 5b45bc8f9f
+    metrics:
+    - count: 3
+      failureLimit: 1
+      initialDelay: 60s
+      interval: 20s
+      name: error-rate
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          authentication:
+            oauth2: {}
+            sigv4: {}
+          query: |
+            (
+              sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+              or on() vector(0)
+            )
+            /
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
+      successCondition: result[0] < 0.05
+  status:
+    completedAt: "2026-10-05T08:15:19Z"
+    dryRunSummary: {}
+    metricResults:
+    - consecutiveSuccess: 3
+      count: 3
+      measurements:
+      - finishedAt: "2026-10-05T08:14:39Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:14:39Z"
+        value: '[0]'
+      - finishedAt: "2026-10-05T08:14:59Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:14:59Z"
+        value: '[0]'
+      - finishedAt: "2026-10-05T08:15:19Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:15:19Z"
+        value: '[0]'
+      metadata:
+        ResolvedPrometheusQuery: |
+          (
+            sum(rate(gateway_requests_total{rs_hash="5b45bc8f9f",status=~"5.."}[60s]))
+            or on() vector(0)
+          )
+          /
+          sum(rate(gateway_requests_total{rs_hash="5b45bc8f9f"}[60s]))
+      name: error-rate
+      phase: Successful
+      successful: 3
+    phase: Successful
+    runSummary:
+      count: 1
+      successful: 1
+    startedAt: "2026-10-05T08:13:39Z"
+kind: List
+metadata:
+  resourceVersion: ""
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ✖ Degraded
+Message:         RolloutAborted: Rollout aborted update to revision 7: Step-based analysis phase error/failed: Metric "error-rate" assessed Failed due to failed (2) > failureLimit (1)
+Strategy:        Canary
+  Step:          0/6
+  SetWeight:     0
+  ActualWeight:  0
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                 KIND         STATUS               AGE    INFO
+⟳ gateway                            Rollout      ✖ Degraded           16m
+├──# revision:7
+│  ├──⧉ gateway-8567c9fdbf           ReplicaSet   • ScaledDown         105s   canary
+│  └──α gateway-8567c9fdbf-7-2       AnalysisRun  ✖ Failed             81s    ✖ 2
+├──# revision:6
+│  ├──⧉ gateway-5b45bc8f9f           ReplicaSet   ◌ Progressing        4m32s  stable
+│  │  ├──□ gateway-5b45bc8f9f-s6z9x  Pod          ✔ Running            4m31s  ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-q227v  Pod          ✔ Running            2m26s  ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-z4ffg  Pod          ✔ Running            2m21s  ready:1/1
+│  │  ├──□ gateway-5b45bc8f9f-9wnxp  Pod          ✔ Running            117s   ready:1/1
+│  │  └──□ gateway-5b45bc8f9f-ctq5c  Pod          ◌ ContainerCreating  1s     ready:0/1
+│  └──α gateway-5b45bc8f9f-6-2       AnalysisRun  ✔ Successful         4m6s   ✔ 3
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet   • ScaledDown         11m
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet   • ScaledDown         12m
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet   • ScaledDown         11m
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet   • ScaledDown         15m
+
+$ kubectl get analysisrun -o yaml
+apiVersion: v1
+items:
+- apiVersion: argoproj.io/v1alpha1
+  kind: AnalysisRun
+  metadata:
+    annotations:
+      rollout.argoproj.io/revision: "6"
+    creationTimestamp: "2026-10-05T08:13:39Z"
+    generation: 5
+    labels:
+      app: gateway
+      rollout-type: Step
+      rollouts-pod-template-hash: 5b45bc8f9f
+      step-index: "2"
+    name: gateway-5b45bc8f9f-6-2
+    namespace: default
+    ownerReferences:
+    - apiVersion: argoproj.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Rollout
+      name: gateway
+      uid: 50466390-13fa-4ce6-8db4-390a4a95d9ee
+    resourceVersion: "2614"
+    uid: 7e3263fd-6255-42ee-a458-9635c169cb62
+  spec:
+    args:
+    - name: canary-hash
+      value: 5b45bc8f9f
+    metrics:
+    - count: 3
+      failureLimit: 1
+      initialDelay: 60s
+      interval: 20s
+      name: error-rate
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          authentication:
+            oauth2: {}
+            sigv4: {}
+          query: |
+            (
+              sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+              or on() vector(0)
+            )
+            /
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
+      successCondition: result[0] < 0.05
+  status:
+    completedAt: "2026-10-05T08:15:19Z"
+    dryRunSummary: {}
+    metricResults:
+    - consecutiveSuccess: 3
+      count: 3
+      measurements:
+      - finishedAt: "2026-10-05T08:14:39Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:14:39Z"
+        value: '[0]'
+      - finishedAt: "2026-10-05T08:14:59Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:14:59Z"
+        value: '[0]'
+      - finishedAt: "2026-10-05T08:15:19Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:15:19Z"
+        value: '[0]'
+      metadata:
+        ResolvedPrometheusQuery: |
+          (
+            sum(rate(gateway_requests_total{rs_hash="5b45bc8f9f",status=~"5.."}[60s]))
+            or on() vector(0)
+          )
+          /
+          sum(rate(gateway_requests_total{rs_hash="5b45bc8f9f"}[60s]))
+      name: error-rate
+      phase: Successful
+      successful: 3
+    phase: Successful
+    runSummary:
+      count: 1
+      successful: 1
+    startedAt: "2026-10-05T08:13:39Z"
+- apiVersion: argoproj.io/v1alpha1
+  kind: AnalysisRun
+  metadata:
+    annotations:
+      rollout.argoproj.io/revision: "7"
+    creationTimestamp: "2026-10-05T08:16:24Z"
+    generation: 4
+    labels:
+      app: gateway
+      rollout-type: Step
+      rollouts-pod-template-hash: 8567c9fdbf
+      step-index: "2"
+    name: gateway-8567c9fdbf-7-2
+    namespace: default
+    ownerReferences:
+    - apiVersion: argoproj.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Rollout
+      name: gateway
+      uid: 50466390-13fa-4ce6-8db4-390a4a95d9ee
+    resourceVersion: "2948"
+    uid: 209767ab-d6d7-4306-a5fd-59a6fbbff8e7
+  spec:
+    args:
+    - name: canary-hash
+      value: 8567c9fdbf
+    metrics:
+    - count: 3
+      failureLimit: 1
+      initialDelay: 60s
+      interval: 20s
+      name: error-rate
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          authentication:
+            oauth2: {}
+            sigv4: {}
+          query: |
+            (
+              sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+              or on() vector(0)
+            )
+            /
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
+      successCondition: result[0] < 0.05
+  status:
+    completedAt: "2026-10-05T08:17:44Z"
+    dryRunSummary: {}
+    message: Metric "error-rate" assessed Failed due to failed (2) > failureLimit
+      (1)
+    metricResults:
+    - count: 2
+      failed: 2
+      measurements:
+      - finishedAt: "2026-10-05T08:17:24Z"
+        phase: Failed
+        startedAt: "2026-10-05T08:17:24Z"
+        value: '[1]'
+      - finishedAt: "2026-10-05T08:17:44Z"
+        phase: Failed
+        startedAt: "2026-10-05T08:17:44Z"
+        value: '[1]'
+      metadata:
+        ResolvedPrometheusQuery: |
+          (
+            sum(rate(gateway_requests_total{rs_hash="8567c9fdbf",status=~"5.."}[60s]))
+            or on() vector(0)
+          )
+          /
+          sum(rate(gateway_requests_total{rs_hash="8567c9fdbf"}[60s]))
+      name: error-rate
+      phase: Failed
+    phase: Failed
+    runSummary:
+      count: 1
+      failed: 1
+    startedAt: "2026-10-05T08:16:24Z"
+kind: List
+metadata:
+  resourceVersion: ""
+
+$ kubectl get analysistemplate gateway-error-rate
+NAME                 AGE
+gateway-error-rate   16m
+
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+
+$ kubectl delete -f labs/lab7/loadgen.yaml
+deployment.apps "loadgen" deleted from default namespace
+
+$ kubectl argo rollouts get rollout gateway --no-color
+Name:            gateway
+Namespace:       default
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          6/6
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND         STATUS        AGE    INFO
+⟳ gateway                            Rollout      ✔ Healthy     16m
+├──# revision:8
+│  └──⧉ gateway-5b45bc8f9f           ReplicaSet   ✔ Healthy     4m37s  stable
+│     ├──□ gateway-5b45bc8f9f-s6z9x  Pod          ✔ Running     4m36s  ready:1/1
+│     ├──□ gateway-5b45bc8f9f-q227v  Pod          ✔ Running     2m31s  ready:1/1
+│     ├──□ gateway-5b45bc8f9f-z4ffg  Pod          ✔ Running     2m26s  ready:1/1
+│     ├──□ gateway-5b45bc8f9f-9wnxp  Pod          ✔ Running     2m2s   ready:1/1
+│     └──□ gateway-5b45bc8f9f-ctq5c  Pod          ✔ Running     6s     ready:1/1
+├──# revision:7
+│  ├──⧉ gateway-8567c9fdbf           ReplicaSet   • ScaledDown  110s
+│  └──α gateway-8567c9fdbf-7-2       AnalysisRun  ✖ Failed      86s    ✖ 2
+├──# revision:6
+│  └──α gateway-5b45bc8f9f-6-2       AnalysisRun  ✔ Successful  4m11s  ✔ 3
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet   • ScaledDown  11m
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet   • ScaledDown  13m
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet   • ScaledDown  11m
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet   • ScaledDown  15m

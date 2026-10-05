@@ -1,0 +1,233 @@
+{
+  "meta": {
+    "type": "db",
+    "canSave": false,
+    "canEdit": false,
+    "canAdmin": false,
+    "canStar": false,
+    "canDelete": false,
+    "slug": "quickticket-e28094-canary-and-chaos",
+    "url": "/d/quickticket-lab7/quickticket-e28094-canary-and-chaos",
+    "expires": "0001-01-01T00:00:00Z",
+    "created": "2026-10-05T08:12:31Z",
+    "updated": "2026-10-05T08:12:31Z",
+    "updatedBy": "Anonymous",
+    "createdBy": "Anonymous",
+    "version": 1,
+    "hasAcl": false,
+    "isFolder": false,
+    "apiVersion": "v0alpha1",
+    "folderId": 0,
+    "folderUid": "",
+    "folderTitle": "General",
+    "folderUrl": "",
+    "provisioned": true,
+    "provisionedExternalId": "dashboard.json",
+    "annotationsPermissions": {
+      "dashboard": {
+        "canAdd": false,
+        "canEdit": false,
+        "canDelete": false
+      }
+    }
+  },
+  "dashboard": {
+    "annotations": {
+      "list": []
+    },
+    "editable": true,
+    "id": 3840073183993856,
+    "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "description": "Golden Signal #2: How much demand is being placed on the system",
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10
+            },
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "sum(rate(gateway_requests_total[1m])) by (path)",
+            "legendFormat": "{{path}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Request Rate (Traffic)",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "description": "Golden Signal #3: Percentage of requests failing with 5xx",
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "fillOpacity": 10
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 1
+                },
+                {
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            "unit": "percent"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "100 * ((sum(rate(gateway_requests_total{status=~\"5..\"}[1m])) or vector(0)) / sum(rate(gateway_requests_total[1m])))",
+            "legendFormat": "5xx error %",
+            "refId": "A"
+          }
+        ],
+        "title": "Error Rate",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "description": "Prometheus 'up' metric \u2014 1 = scrape succeeded, 0 = target unreachable",
+        "gridPos": {
+          "h": 4,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "up",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Service Health (up/down)",
+        "transformations": [
+          {
+            "id": "filterFieldsByName",
+            "options": {
+              "include": {
+                "names": [
+                  "job",
+                  "Value"
+                ]
+              }
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "description": "Use histogram_quantile() with gateway_request_duration_seconds_bucket",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99,sum by(le,path)(rate(gateway_request_duration_seconds_bucket[1m])))",
+            "legendFormat": "{{path}}",
+            "refId": "A"
+          }
+        ],
+        "title": "p99 latency by path",
+        "type": "timeseries"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "description": "Use events_db_pool_size gauge",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 12
+        },
+        "targets": [
+          {
+            "expr": "sum by(pod)(rate(gateway_requests_total[1m]))",
+            "legendFormat": "{{pod}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Request rate by pod",
+        "type": "timeseries"
+      }
+    ],
+    "refresh": "5s",
+    "schemaVersion": 39,
+    "tags": [
+      "quickticket",
+      "sre"
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-15m",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "QuickTicket \u2014 Canary and Chaos",
+    "uid": "quickticket-lab7",
+    "version": 1
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-10-05T08:05:29.928085+00:00",
+  "data": {
+    "gateway-64d67f89fc-5tksf": {
+      "hash": "64d67f89fc",
+      "events_requests": 27
+    },
+    "gateway-64d67f89fc-b7mtw": {
+      "hash": "64d67f89fc",
+      "events_requests": 24
+    },
+    "gateway-64d67f89fc-p7nb2": {
+      "hash": "64d67f89fc",
+      "events_requests": 34
+    },
+    "gateway-64d67f89fc-w8hbq": {
+      "hash": "64d67f89fc",
+      "events_requests": 20
+    },
+    "gateway-664755f4c4-xnkdj": {
+      "hash": "664755f4c4",
+      "events_requests": 25
+    }
+  }
+}

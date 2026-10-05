@@ -1,0 +1,32 @@
+2026-10-05T08:09:22.426266+00:00
+Name:            gateway
+Namespace:       default
+Status:          ॥ Paused
+Message:         CanaryPauseStep
+Strategy:        Canary
+  Step:          5/9
+  SetWeight:     60
+  ActualWeight:  60
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (canary, stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       3
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND        STATUS        AGE    INFO
+⟳ gateway                            Rollout     ॥ Paused      7m43s
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet  ✔ Healthy     2m40s  canary
+│     ├──□ gateway-76d687d64b-lp28t  Pod         ✔ Running     2m40s  ready:1/1
+│     ├──□ gateway-76d687d64b-xfbmw  Pod         ✔ Running     91s    ready:1/1
+│     └──□ gateway-76d687d64b-6zzgm  Pod         ✔ Running     22s    ready:1/1
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ✔ Healthy     4m35s  stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running     4m35s  ready:1/1
+│     └──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running     3m52s  ready:1/1
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown  3m2s
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown  7m22s

@@ -1,0 +1,87 @@
+apiVersion: v1
+items:
+- apiVersion: argoproj.io/v1alpha1
+  kind: AnalysisRun
+  metadata:
+    annotations:
+      rollout.argoproj.io/revision: "6"
+    creationTimestamp: "2026-10-05T08:13:39Z"
+    generation: 5
+    labels:
+      app: gateway
+      rollout-type: Step
+      rollouts-pod-template-hash: 5b45bc8f9f
+      step-index: "2"
+    name: gateway-5b45bc8f9f-6-2
+    namespace: default
+    ownerReferences:
+    - apiVersion: argoproj.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Rollout
+      name: gateway
+      uid: 50466390-13fa-4ce6-8db4-390a4a95d9ee
+    resourceVersion: "2614"
+    uid: 7e3263fd-6255-42ee-a458-9635c169cb62
+  spec:
+    args:
+    - name: canary-hash
+      value: 5b45bc8f9f
+    metrics:
+    - count: 3
+      failureLimit: 1
+      initialDelay: 60s
+      interval: 20s
+      name: error-rate
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          authentication:
+            oauth2: {}
+            sigv4: {}
+          query: |
+            (
+              sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+              or on() vector(0)
+            )
+            /
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
+      successCondition: result[0] < 0.05
+  status:
+    completedAt: "2026-10-05T08:15:19Z"
+    dryRunSummary: {}
+    metricResults:
+    - consecutiveSuccess: 3
+      count: 3
+      measurements:
+      - finishedAt: "2026-10-05T08:14:39Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:14:39Z"
+        value: '[0]'
+      - finishedAt: "2026-10-05T08:14:59Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:14:59Z"
+        value: '[0]'
+      - finishedAt: "2026-10-05T08:15:19Z"
+        phase: Successful
+        startedAt: "2026-10-05T08:15:19Z"
+        value: '[0]'
+      metadata:
+        ResolvedPrometheusQuery: |
+          (
+            sum(rate(gateway_requests_total{rs_hash="5b45bc8f9f",status=~"5.."}[60s]))
+            or on() vector(0)
+          )
+          /
+          sum(rate(gateway_requests_total{rs_hash="5b45bc8f9f"}[60s]))
+      name: error-rate
+      phase: Successful
+      successful: 3
+    phase: Successful
+    runSummary:
+      count: 1
+      successful: 1
+    startedAt: "2026-10-05T08:13:39Z"
+kind: List
+metadata:
+  resourceVersion: ""

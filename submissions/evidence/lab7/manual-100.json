@@ -1,0 +1,302 @@
+{
+  "timestamp": "2026-10-05T08:06:20.457966+00:00",
+  "data": {
+    "rollout": {
+      "apiVersion": "argoproj.io/v1alpha1",
+      "kind": "Rollout",
+      "metadata": {
+        "annotations": {
+          "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Rollout\",\"metadata\":{\"annotations\":{},\"labels\":{\"version\":\"v2\"},\"name\":\"gateway\",\"namespace\":\"default\"},\"spec\":{\"progressDeadlineSeconds\":60,\"replicas\":5,\"selector\":{\"matchLabels\":{\"app\":\"gateway\"}},\"strategy\":{\"canary\":{\"maxSurge\":0,\"maxUnavailable\":1,\"steps\":[{\"setWeight\":20},{\"pause\":{}},{\"setWeight\":60},{\"pause\":{\"duration\":\"30s\"}},{\"setWeight\":100}]}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"gateway\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"EVENTS_URL\",\"value\":\"http://events:8081\"},{\"name\":\"PAYMENTS_URL\",\"value\":\"http://payments:8082\"},{\"name\":\"GATEWAY_TIMEOUT_MS\",\"value\":\"5000\"},{\"name\":\"APP_VERSION\",\"value\":\"v2\"}],\"image\":\"ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616\",\"imagePullPolicy\":\"Always\",\"livenessProbe\":{\"failureThreshold\":3,\"initialDelaySeconds\":10,\"periodSeconds\":10,\"tcpSocket\":{\"port\":8080}},\"name\":\"gateway\",\"ports\":[{\"containerPort\":8080,\"name\":\"tcp\"}],\"readinessProbe\":{\"periodSeconds\":5,\"tcpSocket\":{\"port\":8080}},\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"256Mi\"},\"requests\":{\"cpu\":\"50m\",\"memory\":\"64Mi\"}},\"startupProbe\":{\"failureThreshold\":30,\"periodSeconds\":2,\"tcpSocket\":{\"port\":8080}}}]}}}}\n",
+          "rollout.argoproj.io/revision": "2"
+        },
+        "creationTimestamp": "2026-10-05T08:01:39Z",
+        "generation": 2,
+        "labels": {
+          "version": "v2"
+        },
+        "name": "gateway",
+        "namespace": "default",
+        "resourceVersion": "1708",
+        "uid": "50466390-13fa-4ce6-8db4-390a4a95d9ee"
+      },
+      "spec": {
+        "progressDeadlineSeconds": 60,
+        "replicas": 5,
+        "selector": {
+          "matchLabels": {
+            "app": "gateway"
+          }
+        },
+        "strategy": {
+          "canary": {
+            "maxSurge": 0,
+            "maxUnavailable": 1,
+            "steps": [
+              {
+                "setWeight": 20
+              },
+              {
+                "pause": {}
+              },
+              {
+                "setWeight": 60
+              },
+              {
+                "pause": {
+                  "duration": "30s"
+                }
+              },
+              {
+                "setWeight": 100
+              }
+            ]
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "gateway"
+            }
+          },
+          "spec": {
+            "containers": [
+              {
+                "env": [
+                  {
+                    "name": "EVENTS_URL",
+                    "value": "http://events:8081"
+                  },
+                  {
+                    "name": "PAYMENTS_URL",
+                    "value": "http://payments:8082"
+                  },
+                  {
+                    "name": "GATEWAY_TIMEOUT_MS",
+                    "value": "5000"
+                  },
+                  {
+                    "name": "APP_VERSION",
+                    "value": "v2"
+                  }
+                ],
+                "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                "imagePullPolicy": "Always",
+                "livenessProbe": {
+                  "failureThreshold": 3,
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 10,
+                  "tcpSocket": {
+                    "port": 8080
+                  }
+                },
+                "name": "gateway",
+                "ports": [
+                  {
+                    "containerPort": 8080,
+                    "name": "tcp",
+                    "protocol": "TCP"
+                  }
+                ],
+                "readinessProbe": {
+                  "periodSeconds": 5,
+                  "tcpSocket": {
+                    "port": 8080
+                  }
+                },
+                "resources": {
+                  "limits": {
+                    "cpu": "200m",
+                    "memory": "256Mi"
+                  },
+                  "requests": {
+                    "cpu": "50m",
+                    "memory": "64Mi"
+                  }
+                },
+                "startupProbe": {
+                  "failureThreshold": 30,
+                  "periodSeconds": 2,
+                  "tcpSocket": {
+                    "port": 8080
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "status": {
+        "HPAReplicas": 5,
+        "availableReplicas": 5,
+        "blueGreen": {},
+        "canary": {},
+        "conditions": [
+          {
+            "lastTransitionTime": "2026-10-05T08:06:09Z",
+            "lastUpdateTime": "2026-10-05T08:06:09Z",
+            "message": "Rollout is paused",
+            "reason": "RolloutPaused",
+            "status": "False",
+            "type": "Paused"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:06:18Z",
+            "lastUpdateTime": "2026-10-05T08:06:18Z",
+            "message": "Rollout has minimum availability",
+            "reason": "AvailableReason",
+            "status": "True",
+            "type": "Available"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:06:18Z",
+            "lastUpdateTime": "2026-10-05T08:06:18Z",
+            "message": "Rollout is healthy",
+            "reason": "RolloutHealthy",
+            "status": "True",
+            "type": "Healthy"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:06:09Z",
+            "lastUpdateTime": "2026-10-05T08:06:18Z",
+            "message": "ReplicaSet \"gateway-664755f4c4\" has successfully progressed.",
+            "reason": "NewReplicaSetAvailable",
+            "status": "True",
+            "type": "Progressing"
+          },
+          {
+            "lastTransitionTime": "2026-10-05T08:06:18Z",
+            "lastUpdateTime": "2026-10-05T08:06:18Z",
+            "message": "RolloutCompleted",
+            "reason": "RolloutCompleted",
+            "status": "True",
+            "type": "Completed"
+          }
+        ],
+        "currentPodHash": "664755f4c4",
+        "currentStepHash": "5cb55d8cbd",
+        "currentStepIndex": 5,
+        "observedGeneration": "2",
+        "phase": "Healthy",
+        "readyReplicas": 5,
+        "replicas": 5,
+        "selector": "app=gateway",
+        "stableRS": "664755f4c4",
+        "updatedReplicas": 5
+      }
+    },
+    "metrics": {
+      "sum(rate(gateway_requests_total[1m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791187580.175,
+            "8.700156007874169"
+          ]
+        }
+      ],
+      "(sum(rate(gateway_requests_total{status=~\"5..\"}[1m])) or vector(0))/sum(rate(gateway_requests_total[1m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791187580.246,
+            "0"
+          ]
+        }
+      ],
+      "sum by(pod)(rate(gateway_requests_total[1m]))": [
+        {
+          "metric": {
+            "pod": "gateway-64d67f89fc-w8hbq"
+          },
+          "value": [
+            1791187580.316,
+            "0.5213217643528707"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-64d67f89fc-5tksf"
+          },
+          "value": [
+            1791187580.316,
+            "1.7450005166976688"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-64d67f89fc-b7mtw"
+          },
+          "value": [
+            1791187580.316,
+            "1.5197637037037037"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-64d67f89fc-p7nb2"
+          },
+          "value": [
+            1791187580.316,
+            "0.6049066666666667"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-664755f4c4-xnkdj"
+          },
+          "value": [
+            1791187580.316,
+            "1.800098187173846"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-664755f4c4-z7x2f"
+          },
+          "value": [
+            1791187580.316,
+            "1.3091708333333334"
+          ]
+        },
+        {
+          "metric": {
+            "pod": "gateway-664755f4c4-v5lzf"
+          },
+          "value": [
+            1791187580.316,
+            "1.1874768354110032"
+          ]
+        }
+      ],
+      "histogram_quantile(0.99,sum by(le,path)(rate(gateway_request_duration_seconds_bucket[1m])))": [
+        {
+          "metric": {
+            "path": "/health"
+          },
+          "value": [
+            1791187580.384,
+            "0.009914738734628382"
+          ]
+        },
+        {
+          "metric": {
+            "path": "/events"
+          },
+          "value": [
+            1791187580.384,
+            "0.009886942500973146"
+          ]
+        }
+      ],
+      "sum(increase(gateway_requests_total{status=~\"5..\"}[3m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791187580.452,
+            "114.31984410517019"
+          ]
+        }
+      ]
+    }
+  }
+}

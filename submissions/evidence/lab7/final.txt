@@ -1,0 +1,38 @@
+2026-10-05T08:17:50.490568+00:00
+Name:            gateway
+Namespace:       default
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          6/6
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND         STATUS        AGE    INFO
+⟳ gateway                            Rollout      ✔ Healthy     16m
+├──# revision:8
+│  └──⧉ gateway-5b45bc8f9f           ReplicaSet   ✔ Healthy     4m37s  stable
+│     ├──□ gateway-5b45bc8f9f-s6z9x  Pod          ✔ Running     4m36s  ready:1/1
+│     ├──□ gateway-5b45bc8f9f-q227v  Pod          ✔ Running     2m31s  ready:1/1
+│     ├──□ gateway-5b45bc8f9f-z4ffg  Pod          ✔ Running     2m26s  ready:1/1
+│     ├──□ gateway-5b45bc8f9f-9wnxp  Pod          ✔ Running     2m2s   ready:1/1
+│     └──□ gateway-5b45bc8f9f-ctq5c  Pod          ✔ Running     6s     ready:1/1
+├──# revision:7
+│  ├──⧉ gateway-8567c9fdbf           ReplicaSet   • ScaledDown  110s
+│  └──α gateway-8567c9fdbf-7-2       AnalysisRun  ✖ Failed      86s    ✖ 2
+├──# revision:6
+│  └──α gateway-5b45bc8f9f-6-2       AnalysisRun  ✔ Successful  4m11s  ✔ 3
+├──# revision:5
+│  └──⧉ gateway-76d687d64b           ReplicaSet   • ScaledDown  11m
+├──# revision:4
+│  └──⧉ gateway-664755f4c4           ReplicaSet   • ScaledDown  13m
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet   • ScaledDown  11m
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet   • ScaledDown  15m

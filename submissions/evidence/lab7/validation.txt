@@ -1,0 +1,13 @@
+service/events unchanged (server dry run)
+service/gateway unchanged (server dry run)
+service/payments unchanged (server dry run)
+service/postgres unchanged (server dry run)
+service/redis unchanged (server dry run)
+deployment.apps/events unchanged (server dry run)
+deployment.apps/payments unchanged (server dry run)
+deployment.apps/postgres unchanged (server dry run)
+deployment.apps/redis unchanged (server dry run)
+analysistemplate.argoproj.io/gateway-error-rate unchanged (server dry run)
+rollout.argoproj.io/gateway configured (server dry run)
+Checking /etc/prometheus/prometheus.yml
+ SUCCESS: /etc/prometheus/prometheus.yml is valid prometheus config file syntax

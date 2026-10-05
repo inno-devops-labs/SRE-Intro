@@ -1,0 +1,30 @@
+2026-10-05T08:06:39.655032+00:00
+Name:            gateway
+Namespace:       default
+Status:          ✖ Degraded
+Message:         RolloutAborted: Rollout aborted update to revision 3
+Strategy:        Canary
+  Step:          0/5
+  SetWeight:     0
+  ActualWeight:  0
+Images:          ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616 (stable)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       0
+  Ready:         4
+  Available:     4
+
+NAME                                 KIND        STATUS         AGE    INFO
+⟳ gateway                            Rollout     ✖ Degraded     5m
+├──# revision:3
+│  └──⧉ gateway-57b4b57b58           ReplicaSet  • ScaledDown   19s    canary
+├──# revision:2
+│  └──⧉ gateway-664755f4c4           ReplicaSet  ◌ Progressing  112s   stable
+│     ├──□ gateway-664755f4c4-xnkdj  Pod         ✔ Running      112s   ready:1/1
+│     ├──□ gateway-664755f4c4-z7x2f  Pod         ✔ Running      69s    ready:1/1
+│     ├──□ gateway-664755f4c4-v5lzf  Pod         ✔ Running      65s    ready:1/1
+│     ├──□ gateway-664755f4c4-v2j4l  Pod         ✔ Running      30s    ready:1/1
+│     └──□ gateway-664755f4c4-dg7lm  Pod         ✔ Running      2s     ready:0/1
+└──# revision:1
+   └──⧉ gateway-64d67f89fc           ReplicaSet  • ScaledDown   4m39s
