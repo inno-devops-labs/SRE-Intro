@@ -1,11 +1,5 @@
 # Lab 7 - Progressive Delivery: Canary Deployments
 
-**GitHub:** `tdzdslippen`
-
-**Working branch:** `feature/lab7`
-
-**Date:** 2026-10-05
-
 ## Task 1 - Manual Canary Deployment
 
 ### 1. Argo Rollouts installation
