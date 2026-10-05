@@ -1,0 +1,26 @@
+=== Before rule ===
+ALERTS{alertname="GatewayPayP99High"}: no matching series
+
+Repeated combined scenario:
+PAYMENT_FAILURE_RATE=0.25
+PAYMENT_LATENCY_MS=600
+DB_MAX_CONNS=4
+mixedload replicas=3
+
+Sample at 2026-10-05T07:59:20Z
+payment_p99_seconds=0.842
+GatewayPayP99High=pending
+
+Sample at 2026-10-05T08:00:20Z
+payment_p99_seconds=0.847
+GatewayPayP99High=firing
+
+Sample at 2026-10-05T08:01:20Z
+payment_p99_seconds=0.848
+GatewayPayP99High=firing
+
+Recovery:
+PAYMENT_FAILURE_RATE=0.0
+PAYMENT_LATENCY_MS=0
+DB_MAX_CONNS=10
+mixedload replicas=2

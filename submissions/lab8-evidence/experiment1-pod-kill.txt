@@ -1,0 +1,19 @@
+Experiment 1 started: 2026-10-05T07:41:12Z
+Victim pod: gateway-7d79dcbb87-k2n6m
+delete issued
+0.28s: 4 ready gateway pods
+9.80s: 5 ready gateway pods
+
+=== Gateway 5xx responses in observation window ===
+Prometheus status: success
+labels: {} value: 0
+
+=== Request rate per remaining gateway pod ===
+gateway-a value: 3.41
+gateway-b value: 3.58
+gateway-c value: 3.37
+gateway-d value: 3.66
+replacement value: 0.44
+
+Observation: old victim still appeared briefly in the 1m rate window because
+the query included samples collected before deletion.

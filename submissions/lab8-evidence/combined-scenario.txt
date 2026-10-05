@@ -1,0 +1,25 @@
+Combined experiment started: 2026-10-05T07:53:40Z
+PAYMENT_FAILURE_RATE=0.25
+PAYMENT_LATENCY_MS=600
+DB_MAX_CONNS=4
+mixedload replicas=3
+
+Sample 1 at 2026-10-05T07:55:20Z
+/pay 5xx percent: 24.7
+/pay p99 seconds: 0.846
+/events p99 seconds: 0.024
+/reserve p99 seconds: 0.030
+
+Sample 2 at 2026-10-05T07:56:20Z
+/pay 5xx percent: 27.9
+/pay p99 seconds: 0.848
+/events p99 seconds: 0.023
+/reserve p99 seconds: 0.027
+
+Sample 3 at 2026-10-05T07:57:20Z
+/pay 5xx percent: 23.8
+/pay p99 seconds: 0.847
+/events p99 seconds: 0.022
+/reserve p99 seconds: 0.026
+
+Weakest link: payments
