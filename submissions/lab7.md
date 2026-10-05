@@ -383,6 +383,180 @@ buildup — that need longer observation windows to manifest, not to re-verify b
 
 ---
 
+## Bonus Task — Automated Canary Analysis (2 pts)
+
+### B.1 — In-cluster Prometheus
+
+```bash
+$ kubectl apply -f labs/lab7/prometheus.yaml
+$ kubectl -n monitoring rollout status deployment/prometheus --timeout=60s
+deployment "prometheus" successfully rolled out
+```
+
+Target verification — all 5 gateway pods discovered, each carrying the `rs_hash` label copied from
+`rollouts-pod-template-hash` (the mechanism that lets the AnalysisTemplate scope queries to canary replicas only):
+
+```bash
+$ kubectl port-forward -n monitoring svc/prometheus 9091:9090 &
+$ curl -s 'http://localhost:9091/api/v1/targets?state=active' | python3 -c "
+    import sys,json
+    for t in json.load(sys.stdin)['data']['activeTargets']:
+        print(t['labels'].get('pod'), 'rs=', t['labels'].get('rs_hash'), t['health'])"
+gateway-79bf656f44-4mhw7 rs= 79bf656f44 up
+gateway-79bf656f44-c5r4m rs= 79bf656f44 up
+gateway-79bf656f44-wg9dg rs= 79bf656f44 up
+gateway-79bf656f44-fd5k9 rs= 79bf656f44 up
+gateway-79bf656f44-kl9xs rs= 79bf656f44 up
+```
+
+### B.2 — AnalysisTemplate
+
+Applied `labs/lab7/analysis-template.yaml` (also committed as `k8s/analysis-template.yaml`):
+
+```bash
+$ kubectl apply -f labs/lab7/analysis-template.yaml
+$ kubectl get analysistemplate gateway-error-rate
+NAME                 AGE
+gateway-error-rate   0s
+```
+
+Query: canary 5xx ratio over 60 s, `initialDelay: 60s` (Prometheus discovery + scrape warm-up), `interval: 20s`,
+`count: 3`, `successCondition: result[0] < 0.05`, `failureLimit: 1`, numerator guarded with `or on() vector(0)`
+(zero errors is a real answer), denominator strict (no traffic = can't measure = fail-safe abort),
+`{{args.canary-hash}}` scopes the series to canary replicas.
+
+### B.3 — Analysis wired into the strategy
+
+`k8s/gateway.yaml` (committed version):
+
+```yaml
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 20s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
+```
+
+### B.4 — Good version auto-promotes
+
+Loadgen running, `APP_VERSION: v5` applied. **First attempt aborted automatically** — and it was right: the
+postgres `events` table had gone missing from the cluster (`psycopg2.errors.UndefinedTable: relation "events"
+does not exist`), so every pod was returning 502s on `/events`. The analysis measured the canary's real error
+rate and refused to promote:
+
+```
+gateway-65f669b67f-5-2  Failed  Metric "error-rate" assessed Failed due to failed (2) > failureLimit (1)
+  2026-10-05T06:45:16Z Failed [0.42148760330578505]
+  2026-10-05T06:45:36Z Failed [0.4173913043478261]
+```
+
+Re-seeded the database (`kubectl cp app/seed.sql … && psql -f /tmp/seed.sql` → `CREATE TABLE`, `INSERT 0 5`)
+and retried. Second attempt — no human intervention, the analysis cleared and the rollout drove itself to 100%:
+
+```
+06:54:17  Paused       step=1/6  setWeight=20   actual=20   updated=1
+06:54:38  Progressing  step=2/6  setWeight=20   actual=20   updated=1   analysisrun gateway-65f669b67f-5-2.1 Running
+06:55:41  Progressing  step=2/6  setWeight=20   actual=20   updated=1   analysisrun Running (60 s initial delay)
+06:56:12  Progressing  step=3/6  setWeight=50   actual=25   updated=3   analysisrun Successful   ← auto-promote 20→50
+06:56:23  Paused       step=4/6  setWeight=50   actual=50   updated=3   (20 s pause)
+06:56:44  Progressing  step=5/6  setWeight=100  actual=100  updated=5
+06:56:54  Healthy      step=6/6  setWeight=100  actual=100  updated=5
+```
+
+The successful AnalysisRun — 3 measurements, all `[0]`:
+
+```
+$ kubectl get analysisrun gateway-65f669b67f-5-2.1 -o jsonpath='{.status.metricResults[0].measurements}'
+phase: Successful
+2026-10-05T06:55:30Z Successful [0]
+2026-10-05T06:55:50Z Successful [0]
+2026-10-05T06:56:10Z Successful [0]
+```
+
+### B.5 — Bad version auto-aborts
+
+**Adaptation from the lab text:** the suggested `EVENTS_URL: http://broken-on-purpose:8081` (unresolvable name)
+does not work with this gateway build, because `/health` gates on the events downstream (`app/gateway/main.py:237`
+returns 503 when events is "down") — the liveness probe kills the canary pod in ~30 s (CrashLoopBackOff) before it
+ever becomes ready, so no traffic, no metrics, no analysis. Instead I pointed the canary at a service whose
+`/health` passes but whose data path fails: `EVENTS_URL: http://payments:8082`. `GET /health` → 200 (pod stays
+ready and takes traffic), `GET /events` → 404 from payments → gateway maps it to **502**
+(`app/gateway/main.py:259-261`), i.e. real 5xx on the canary's `/events`.
+
+```
+07:08:02  Progressing  step=0/6  setWeight=20  actual=0   updated=1   canary starting
+07:08:12  Paused       step=1/6  setWeight=20  actual=20  updated=1
+07:08:34  Progressing  step=2/6  setWeight=20  actual=20  updated=1   analysisrun gateway-5898845c97-7-2 Running
+07:09:58  Degraded     step=0/6  setWeight=0   actual=0   updated=0   RolloutAborted   ← AUTO-ABORT, no human
+```
+
+~96 s from canary start to abort (20 s pause + 60 s initial delay + two 20 s measurements). The failed
+AnalysisRun — 5xx ratio ≈ 45% on the canary (not 1.0 because the loadgen's `/health` calls also count as
+denominator traffic and succeed; a `/events`-only client would show ~1.0), far above the 5% threshold:
+
+```
+$ kubectl get analysisrun gateway-5898845c97-7-2 -o jsonpath='{.status.metricResults[0].measurements}'
+2026-10-05T07:09:30Z Failed [0.4491525423728813]
+2026-10-05T07:09:50Z Failed [0.4552845528455285]
+message: Metric "error-rate" assessed Failed due to failed (2) > failureLimit (1)
+```
+
+All analysis runs across the bonus exercise:
+
+```bash
+$ kubectl get analysisrun
+NAME                       STATUS       AGE
+gateway-5898845c97-7-2     Failed       5m2s
+gateway-65f669b67f-5-2     Failed       29m
+gateway-65f669b67f-5-2.1   Successful   19m
+```
+
+### B.6 — Cleanup + recovery
+
+Reverted `EVENTS_URL` to `http://events:8081` (and `APP_VERSION` back to the good `v5`), applied, then
+`kubectl argo rollouts retry rollout gateway`. Deleted the loadgen. Final state — Degraded cleared, all 5 stable
+pods serving:
+
+```
+Name:            gateway
+Status:          ✔ Healthy
+Strategy:        Canary
+  Step:          6/6
+  SetWeight:     100
+  ActualWeight:  100
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+```
+
+### What metric would you add beyond error rate for a more complete canary analysis?
+
+**Request latency (p95/p99), compared canary-vs-stable.** Error rate catches crashes and hard failures, but a
+regression that makes the canary *slow* — a missing index, a leaked connection, extra serialization, a GIL
+contention — serves 200s the whole time and sails through a 5% error threshold while user experience degrades.
+The gateway already exposes a request-duration histogram, so an `analysis` metric like
+`histogram_quantile(0.99, sum by (le) (rate(gateway_request_duration_seconds_bucket{rs_hash="{{args.canary-hash}}"}[5m])))`
+aborted when the canary's p99 exceeds, say, 1.5× the stable's p99 (computed the same way with the stable hash)
+would catch that class of defect. A relative canary-vs-stable comparison is important in absolute terms too: a
+latency threshold that makes sense for the canary makes sense for the stable, so the analysis adapts to normal
+system load instead of a hardcoded number that either cries wolf under peak load or sleeps through a real
+regression at quiet hours.
+
+---
+
 ## Summary
 
 | Item | Result |
@@ -393,3 +567,7 @@ buildup — that need longer observation windows to manifest, not to re-verify b
 | Promotion | Manual `promote` → auto 30 s pause → 100% Healthy |
 | Bad version | `v3-bad` paused at 20% → `abort` → canary gone in ~2 s, stable serving in seconds |
 | Multi-step | 20/40/60/80/100 with 60/60/60/30 s pauses, replicas 1→2→3→4→5, steady traffic throughout |
+| Bonus: in-cluster Prometheus | `monitoring` ns, 5 gateway targets with `rs_hash`, all `up` |
+| Bonus: good canary | AnalysisRun `Successful` (3× `[0]`) → auto-promoted 20→50→100, no human intervention |
+| Bonus: bad canary | 502s on `/events` → AnalysisRun `Failed` (`[0.449]`, `[0.455]`) → auto-abort in ~96 s, stable untouched |
+| Bonus: real incident caught | Missing postgres `events` table detected by the analysis on the first v5 canary; re-seeded via `app/seed.sql` |
