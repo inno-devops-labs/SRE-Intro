@@ -18,7 +18,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: payments
-          image: ghcr.io/kvakz/quickticket-payments:ce3d600329e68c55401508d9129903372307cab5
+          image: ghcr.io/kvakz/quickticket-payments:ef91c56daf28c07fa311a1dbdd35c45530bf666f
           imagePullPolicy: Always
           env:
             - name: PAYMENT_FAILURE_RATE

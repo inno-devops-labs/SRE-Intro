@@ -34,7 +34,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: gateway
-          image: ghcr.io/kvakz/quickticket-gateway:ce3d600329e68c55401508d9129903372307cab5
+          image: ghcr.io/kvakz/quickticket-gateway:ef91c56daf28c07fa311a1dbdd35c45530bf666f
           imagePullPolicy: Always
           env:
             - name: APP_VERSION
