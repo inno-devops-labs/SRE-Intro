@@ -1,0 +1,92 @@
+# Lab 6 §6.1 — continuous in-cluster background traffic.
+#
+# Same 70/20/10 read / reserve / full-purchase mix as app/loadgen/run.sh, but
+# it runs inside the cluster against the `gateway` Service so it does not
+# depend on a host port-forward staying alive for the length of an incident.
+#
+# `reaper` sidecar: the events service increments `event:<id>:held` in Redis on
+# every reservation and only ever decrements it on confirmation — an expired
+# reservation leaks its hold forever (see the Lab 6 postmortem action items).
+# Over a multi-hour load test every event sells out and the purchase flow
+# stops producing traffic, which would silently invalidate the experiment. The
+# sidecar clears the leaked holds every 60s so the load profile stays stable.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: default
+  labels:
+    app: loadgen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadgen
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      containers:
+        - name: traffic
+          image: curlimages/curl:8.11.1
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+          command: ["sh", "-c"]
+          args:
+            - |
+              GW=http://gateway:8080
+              # BIG_EVENT is the only event the purchase flow buys from. The
+              # first version of this script derived the event id from the same
+              # counter as the request-type selector, so the two stayed in
+              # lockstep and every purchase hit event 5 — which sold out after
+              # 80 orders and silently killed the pay traffic mid-lab. Reads and
+              # reserves still rotate over all five events; only confirmed
+              # orders permanently consume inventory, so the purchase flow is
+              # pinned to the event with the largest capacity (500).
+              BIG_EVENT=3
+              i=0; n=0
+              while true; do
+                # Deterministic 70/20/10 read / reserve / purchase mix.
+                i=$(( (i + 1) % 10 ))
+                n=$(( n + 3 ))
+                E=$(( (n % 5) + 1 ))
+                if [ "$i" -lt 7 ]; then
+                  curl -s -o /dev/null "$GW/events"
+                elif [ "$i" -lt 9 ]; then
+                  curl -s -o /dev/null -X POST -H 'Content-Type: application/json' \
+                    -d '{"quantity":1}' "$GW/events/$E/reserve"
+                else
+                  RID=$(curl -s -X POST -H 'Content-Type: application/json' \
+                    -d '{"quantity":1}' "$GW/events/$BIG_EVENT/reserve" \
+                    | sed -n 's/.*"reservation_id":"\([^"]*\)".*/\1/p')
+                  if [ -n "$RID" ]; then
+                    curl -s -o /dev/null -X POST "$GW/reserve/$RID/pay"
+                  fi
+                fi
+                sleep 1
+              done
+        - name: reaper
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          command: ["sh", "-c"]
+          args:
+            - |
+              while true; do
+                sleep 60
+                redis-cli -h redis del event:1:held event:2:held event:3:held \
+                  event:4:held event:5:held > /dev/null
+              done

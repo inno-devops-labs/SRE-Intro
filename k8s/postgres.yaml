@@ -1,0 +1,153 @@
+# QuickTicket — PostgreSQL (stateful backing store for the events service)
+#
+# Translated from the `postgres` service in app/docker-compose.yaml:
+#   image, POSTGRES_* env vars, port 5432, named volume -> PVC,
+#   ./seed.sql:/docker-entrypoint-initdb.d/01-seed.sql -> ConfigMap mount.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-seed
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: quickticket
+data:
+  # Mirrors app/seed.sql. The official postgres image runs every *.sql in
+  # /docker-entrypoint-initdb.d/ once, when the data directory is empty.
+  # Keep this in sync with app/seed.sql if that file changes.
+  01-seed.sql: |
+    -- QuickTicket seed data
+
+    CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        venue TEXT NOT NULL,
+        event_date TIMESTAMPTZ NOT NULL,
+        total_tickets INT NOT NULL,
+        price_cents INT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        event_id INT REFERENCES events(id),
+        quantity INT NOT NULL,
+        total_cents INT NOT NULL,
+        payment_ref TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'confirmed',
+        created_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    -- Seed events
+    INSERT INTO events (name, venue, event_date, total_tickets, price_cents) VALUES
+        ('Go Conference 2026', 'Main Hall A', '2026-09-15 09:00:00+00', 100, 5000),
+        ('SRE Meetup', 'Room 204', '2026-10-01 18:00:00+00', 30, 0),
+        ('Cloud Native Summit', 'Expo Center', '2026-11-20 10:00:00+00', 500, 15000),
+        ('Python Workshop', 'Lab 301', '2026-09-22 14:00:00+00', 25, 2000),
+        ('Kubernetes Deep Dive', 'Auditorium B', '2026-10-10 10:00:00+00', 80, 8000)
+    ON CONFLICT DO NOTHING;
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: quickticket
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  # k3d ships the rancher local-path provisioner as the default StorageClass,
+  # so no storageClassName is needed here.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: quickticket
+spec:
+  replicas: 1
+  # The PVC is ReadWriteOnce: never let a new pod start before the old one
+  # has released the volume.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        app.kubernetes.io/part-of: quickticket
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_DB
+              value: "quickticket"
+            - name: POSTGRES_USER
+              value: "quickticket"
+            - name: POSTGRES_PASSWORD
+              value: "quickticket"
+          ports:
+            - name: postgres
+              containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: seed
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          # pg_isready is the same check docker-compose used as a healthcheck.
+          # Readiness gates traffic; liveness only catches a wedged postmaster,
+          # so it is deliberately slower and more forgiving.
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "quickticket", "-d", "quickticket"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "quickticket", "-d", "quickticket"]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+        - name: seed
+          configMap:
+            name: postgres-seed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    app.kubernetes.io/part-of: quickticket
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

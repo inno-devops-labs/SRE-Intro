@@ -1,0 +1,132 @@
+# Lab 6 §6.3 — Grafana-managed alert rules, provisioned as code.
+#
+# Two SLO-derived rules against the 99.5% availability SLO defined in Lab 3:
+#   1. QuickTicket High Error Rate (critical) — fast, symptom-level page.
+#   2. QuickTicket SLO Burn Rate (warning)    — slow, budget-level ticket.
+#
+# Both read the `quickticket-prom` datasource (monitoring/grafana/provisioning/
+# datasources/datasources.yml).
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: quickticket-slo
+    folder: QuickTicket
+    interval: 1m
+    rules:
+      # ---------------------------------------------------------------- #
+      # Alert 1 — High Error Rate (critical)
+      # ---------------------------------------------------------------- #
+      - uid: qt-high-error-rate
+        title: QuickTicket High Error Rate
+        condition: C
+        for: 2m
+        isPaused: false
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: critical
+          service: gateway
+        annotations:
+          summary: "Gateway error rate is {{ $value }}%"
+          description: "Error rate exceeded 5% for 2 minutes. Check payments service health."
+          runbook_url: "https://github.com/Vanady39/SRE-Intro-Ivan-Vavilov/blob/main/submissions/lab6.md#runbook-quickticket-high-error-rate"
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: quickticket-prom
+            model:
+              refId: A
+              editorMode: code
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              expr: 'sum(rate(gateway_requests_total{status=~"5.."}[5m])) / sum(rate(gateway_requests_total[5m])) * 100'
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - type: query
+                  evaluator:
+                    type: gt
+                    params: [5]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                    params: []
+
+      # ---------------------------------------------------------------- #
+      # Alert 2 — SLO Burn Rate (warning)
+      # 6x burn against a 99.5% availability SLO exhausts a 30-day budget
+      # in 5 days.
+      # ---------------------------------------------------------------- #
+      - uid: qt-slo-burn-rate
+        title: QuickTicket SLO Burn Rate
+        condition: C
+        for: 5m
+        isPaused: false
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+          service: gateway
+        annotations:
+          summary: "Error budget burning at {{ $value }}x the sustainable rate"
+          description: "The 30m availability burn rate for the 99.5% SLO has been above 6x for 5 minutes. At this rate the 30-day error budget is exhausted in under 5 days."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: quickticket-prom
+            model:
+              refId: A
+              editorMode: code
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              expr: '(1 - (sum(rate(gateway_requests_total{status!~"5.."}[30m])) / sum(rate(gateway_requests_total[30m])))) / (1 - 0.995)'
+          - refId: C
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - type: query
+                  evaluator:
+                    type: gt
+                    params: [6]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                    params: []
