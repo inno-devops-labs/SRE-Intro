@@ -1,5 +1,7 @@
 # Lab 7 - Progressive Delivery: Canary Deployments
 
+**Student:** Diana Kalugina
+
 ## Task 1 - Manual Canary Deployment
 
 ### 1. Argo Rollouts installation
