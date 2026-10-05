@@ -92,17 +92,19 @@ def _normalize_path(path: str) -> str:
 
 
 async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
-    """Call `func` with retry-on-transient-error.
-
-    No-op default: calls func once and returns. Lab 11 task 11.4 replaces this
-    body with exponential backoff + jitter, retryable/non-retryable branching,
-    and Prometheus counters on the `gateway_retry_total{target,result}` metric.
-
-    See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
-    will pick up your implementation automatically.
-    """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    """Call `func` with retry-on-transient-error."""
+    for attempt in range(max_retries + 1):
+        try:
+            return await func()
+        except Exception as exc:
+            if attempt >= max_retries:
+                RETRY_TOTAL.labels(target, "failed").inc()
+                raise
+            RETRY_TOTAL.labels(target, "retry").inc()
+            delay_s = (RETRY_BASE_DELAY_MS / 1000.0) * (2 ** attempt)
+            jitter_s = random.uniform(0.05, 0.25)
+            await asyncio.sleep(delay_s + jitter_s)
+    raise RuntimeError(f"retry loop exhausted for {target}")
 
 
 class CircuitOpenError(Exception):
@@ -139,13 +141,32 @@ class CircuitBreaker:
         self.state = new_state
 
     async def call(self, func):
-        """Run func with circuit-breaker protection.
+        """Run func with circuit-breaker protection."""
+        now = time.monotonic()
 
-        No-op default: just calls func. Lab 11 task 11.7 replaces this with
-        the state machine. Raise `CircuitOpenError` when the circuit is open.
-        """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == self.OPEN:
+            if now - self.opened_at < self.cooldown:
+                raise CircuitOpenError(f"circuit[{self.name}] is OPEN")
+            self._transition(self.HALF_OPEN)
+
+        try:
+            result = await func()
+        except Exception:
+            if self.state == self.HALF_OPEN:
+                self.failures = self.threshold
+                self._transition(self.OPEN)
+                self.opened_at = time.monotonic()
+            else:
+                self.failures += 1
+                if self.failures >= self.threshold:
+                    self._transition(self.OPEN)
+                    self.opened_at = time.monotonic()
+            raise
+
+        if self.state == self.HALF_OPEN:
+            self._transition(self.CLOSED)
+        self.failures = 0
+        return result
 
 
 class RateLimiter:
