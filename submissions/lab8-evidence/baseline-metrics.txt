@@ -1,0 +1,16 @@
+deployment.apps/mixedload successfully rolled out
+Baseline captured: 2026-10-05T07:39:30Z
+
+=== Total gateway requests per second ===
+Prometheus status: success
+labels: {} value: 17.42
+
+=== Gateway 5xx ratio ===
+Prometheus status: success
+labels: {} value: 0
+
+=== p99 latency per path, seconds ===
+labels: {'path': '/reserve/{id}/pay'} value: 0.0604
+labels: {'path': '/health'} value: 0.0619
+labels: {'path': '/events'} value: 0.0227
+labels: {'path': '/events/{id}/reserve'} value: 0.0521

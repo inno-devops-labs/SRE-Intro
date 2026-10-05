@@ -1,0 +1,22 @@
+Experiment 3 started: 2026-10-05T07:48:03Z
+deployment.apps/redis scaled to 0
+
+=== Requests through Gateway ===
+GET /events: HTTP 200 in 0.019s
+POST /reserve: client timeout after 2.00s
+GET /health: HTTP 503
+{"status":"degraded","checks":{"events":"degraded","payments":"ok","circuit_payments":"CLOSED"}}
+
+=== Gateway 5xx responses in overlapping 3m range ===
+Prometheus status: success
+labels: {} value: 21.6
+
+Redis recovery started: 2026-10-05T07:48:20Z
+deployment.apps/redis scaled to 1
+deployment "redis" successfully rolled out
+
+Final Gateway Rollout:
+Status: Healthy
+Desired: 5
+Ready: 5
+Available: 5

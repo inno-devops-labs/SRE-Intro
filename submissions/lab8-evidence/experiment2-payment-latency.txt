@@ -1,0 +1,16 @@
+Experiment 2 started: 2026-10-05T07:44:08Z
+deployment.apps/payments env updated
+deployment "payments" successfully rolled out
+
+=== Gateway 5xx ratio ===
+Prometheus status: success
+labels: {} value: 0
+
+=== Gateway p99 latency per path, seconds ===
+labels: {'path': '/health'} value: 0.0312
+labels: {'path': '/events'} value: 0.0246
+labels: {'path': '/reserve/{id}/pay'} value: 2.4300
+labels: {'path': '/events/{id}/reserve'} value: 0.0814
+
+PAYMENT_LATENCY_MS restored to 0
+Payments deployment successfully rolled out
