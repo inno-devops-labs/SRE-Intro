@@ -15,10 +15,10 @@ excluded from the error ratio.
 
 | SLO | Target | Observed | Status |
 |-----|--------|----------|--------|
-| Availability (non-5xx), 60 s window @ 10u | 99.5% | 100.00% (0/471) | ✅ met |
-| Availability (non-5xx), 60 s window @ 50u | 99.5% | 100.00% (0/2222) | ✅ met |
-| Availability (non-5xx), 60 s window @ 100u | 99.5% | 54.60% / 56.59% (two runs) | ❌ breached — overload, see §2 |
-| p99 latency @ ≤ 50u | < 500 ms (capacity threshold) | 15 ms / 110 ms | ✅ met |
+| Availability (non-5xx), 60 s window @ 10u | 99.5% | 100.00% (0/471) | met |
+| Availability (non-5xx), 60 s window @ 50u | 99.5% | 100.00% (0/2222) | met |
+| Availability (non-5xx), 60 s window @ 100u | 99.5% | 54.60% / 56.59% (two runs) | BREACHED — overload, see section 2 |
+| p99 latency @ ≤ 50u | < 500 ms (capacity threshold) | 15 ms / 110 ms | met |
 
 At nominal load (≤ 50 users ≈ 37 RPS) the SLO is met with a wide margin. The 100u
 breach is the deliberate overload that defines the capacity ceiling, not a
@@ -74,8 +74,8 @@ $ kubectl get analysisrun -o jsonpath='{.items[*].status.phase}' | tr ' ' '\n' |
 | Change Failure Rate | 50% (2/4 AnalysisRuns Failed) | `gateway-5898845c97-7-2` Failed, `gateway-65f669b67f-5-2` Failed, then `…-5-2.1` Successful; the two failures were the **intentional bad deploys** from the Lab 7 canary + Lab 8 chaos exercises — the analysis caught them before full rollout, which is the mechanism working as designed |
 | Recovery Time | ≈ 2 min (analysis abort) / ≈ 3 min (git revert) | AnalysisTemplate: 60 s initial delay + 3×20 s checks → abort; revert path = commit revert + 3-min ArgoCD poll |
 
-Against DORA elite targets: deploy on demand ✅, lead time < 1 day ✅,
-recovery < 1 h ✅, change failure rate 0–15% ❌ (50% — inflated by deliberate
+Against DORA elite targets: deploy on demand (met), lead time < 1 day (met),
+recovery < 1 h (met), change failure rate 0–15% (not met — 50%, inflated by deliberate
 failure injection; without the two intentional bad deploys it would be 0%).
 
 ## 4. Top 3 Reliability Risks
