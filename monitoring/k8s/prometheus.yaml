@@ -1,0 +1,181 @@
+# Lab 6 — in-cluster Prometheus for the k3d cluster `quickticket`.
+#
+# Why this exists: labs 1-3 ran Prometheus + Grafana with docker-compose on the
+# host. From Lab 4 onward QuickTicket lives in k3d, and a host-side Prometheus
+# cannot reach pod IPs inside the k3d bridge network. So the monitoring stack
+# moves into the cluster, in namespace `monitoring`.
+#
+# This is a SUPERSET of `labs/lab7/prometheus.yaml`:
+#   * the `gateway` job is byte-identical to Lab 7's (including the
+#     `rollouts_pod_template_hash -> rs_hash` relabel that Lab 7's
+#     AnalysisTemplate depends on) — do not change it;
+#   * it additionally scrapes `events` and `payments`, which Lab 6's runbook
+#     needs for diagnosis (payments_charges_total{result="failed"});
+#   * it loads the Lab 3 SLO recording rules from monitoring/prometheus/rules.yml,
+#     which the Lab 3 golden-signals dashboard reads.
+#
+# Deploy with monitoring/k8s/deploy.sh (it builds the rules ConfigMap from
+# monitoring/prometheus/rules.yml so there is a single source of truth).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+  - apiGroups: [""]
+    resources: [pods, services, endpoints]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: monitoring
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 5s
+      evaluation_interval: 5s
+
+    rule_files:
+      - /etc/prometheus/rules/rules.yml
+
+    scrape_configs:
+      # --- Lab 7 contract: keep this job exactly as it is ---------------
+      - job_name: gateway
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [default]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: gateway
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_ip]
+            regex: (.+)
+            target_label: __address__
+            replacement: ${1}:8080
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_label_rollouts_pod_template_hash]
+            target_label: rs_hash
+      # ------------------------------------------------------------------
+      - job_name: events
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [default]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: events
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_ip]
+            regex: (.+)
+            target_label: __address__
+            replacement: ${1}:8081
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+      - job_name: payments
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [default]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: payments
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_ip]
+            regex: (.+)
+            target_label: __address__
+            replacement: ${1}:8082
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v3.11.2
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=2d
+            - --web.listen-address=:9090
+            - --web.enable-lifecycle
+          ports:
+            - containerPort: 9090
+              name: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/prometheus
+            - name: rules
+              mountPath: /etc/prometheus/rules
+            - name: tsdb
+              mountPath: /prometheus
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+        - name: rules
+          configMap:
+            name: prometheus-rules
+        - name: tsdb
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  selector:
+    app: prometheus
+  ports:
+    - port: 9090
+      targetPort: 9090
+      name: http

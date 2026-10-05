@@ -1,0 +1,157 @@
+# QuickTicket — gateway (public entry point, fans out to events + payments)
+#
+# Translated from the `gateway` service in app/docker-compose.yaml.
+# There is no Ingress yet: reach it with
+#   kubectl port-forward svc/gateway 3080:8080
+#
+# Lab 7 §7.2 — this is no longer a Deployment. It is an Argo Rollout with a
+# canary strategy. Everything below `template:` is byte-for-byte the Lab 5
+# pod spec; only `apiVersion`, `kind`, `replicas` and `strategy` changed.
+#
+# Operational consequences for later labs:
+#   * `kubectl get deployment gateway` returns NotFound. Use
+#     `kubectl get rollout gateway` / `kubectl argo rollouts get rollout gateway`.
+#   * `kubectl rollout status deployment/gateway` does not work either;
+#     `kubectl argo rollouts status gateway` is the equivalent.
+#   * A Rollout implements the `scale` subresource, so HPAs and
+#     `kubectl scale rollout/gateway` work normally.
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    app.kubernetes.io/part-of: quickticket
+    # Lab 5 §5.6 — marker used to prove the GitOps loop: this label was added
+    # in Git only, never with kubectl, and ArgoCD reconciled it into the cluster.
+    version: "v2"
+spec:
+  # Lab 7: 5 replicas so a canary weight of 20% is exactly 1 pod. With
+  # replicas: 1 the only achievable weights are 0% and 100%.
+  replicas: 5
+  # Lab 7 bonus §B.3 — canary gated by automated analysis.
+  #
+  # There is no service mesh / ingress traffic-shaping provider here, so Argo
+  # Rollouts approximates `setWeight: N` by replica count: it scales the canary
+  # ReplicaSet to round(N% * 5) pods and the Service (selector `app: gateway`,
+  # which matches stable *and* canary pods) spreads traffic over them via
+  # kube-proxy. 20% => 1 of 5 pods.
+  #
+  # Earlier iterations of this file used, in order:
+  #   §7.2  [20, pause{}, 60, pause 30s, 100]                 — manual promotion
+  #   §7.8  [20, 60s, 40, 60s, 60, 60s, 80, 30s, 100]         — multi-step observation
+  # Both are reproduced in submissions/lab7.md. The version kept here is the
+  # one with the automated gate, because it is the only one that can abort a
+  # bad release without a human watching.
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        # Settle window before analysis starts. The AnalysisTemplate adds its
+        # own `initialDelay: 60s` on top, so Prometheus has time to discover
+        # (SD refresh ~10s) and scrape (5s interval) the new canary pod before
+        # the first measurement is taken.
+        - pause: {duration: 20s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              # Passes the canary ReplicaSet's pod-template-hash to the
+              # template, which the Prometheus query uses as rs_hash="…" so it
+              # measures canary replicas only. Prometheus gets that label from
+              # the rollouts-pod-template-hash pod label via a relabel rule.
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        app.kubernetes.io/part-of: quickticket
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      # ghcr.io packages are private by default; this secret holds a classic PAT
+      # with read:packages. Inert while imagePullPolicy is Never (no pull is
+      # attempted) — required as soon as the policy flips to Always.
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: gateway
+          image: ghcr.io/vanady39/quickticket-gateway:ae1a4579f016fd3e7b68ad97a4b998660af38d3c
+          # Lab 5 §5.3: the manifests now carry the ghcr.io reference that CI
+          # writes on every push. The registry copy does not exist yet (the fork
+          # has not been pushed), so the image in the cluster is the locally
+          # built one re-tagged with this name and loaded via `k3d image import`,
+          # and the policy stays Never. Flip to Always once CI has published.
+          imagePullPolicy: Never
+          env:
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+            # Lab 7 §7.3 — the only thing that distinguishes "v1" from "v2" in
+            # this lab. Changing it changes the pod template hash, which is
+            # what actually triggers a new canary.
+            - name: APP_VERSION
+              value: "v2"
+          ports:
+            - name: http
+              containerPort: 8080
+          # Readiness = "should this pod receive traffic?". The gateway's
+          # /health returns 503 when events or payments is unreachable, so a
+          # downstream outage pulls this pod out of the Service endpoints.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 2
+          # Liveness = "is this process wedged?". Measured in lab 4 §4.10: with
+          # `httpGet /health` here, a 2-minute Redis outage restarted the
+          # gateway 5 times — /health checks downstreams, and restarting the
+          # gateway cannot bring Redis back. A TCP accept on 8080 proves the
+          # uvicorn event loop is alive without dragging dependencies in.
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    app.kubernetes.io/part-of: quickticket
+spec:
+  type: ClusterIP
+  # Selector deliberately matches ONLY `app: gateway` — no pod-template-hash —
+  # so both stable and canary pods are endpoints and kube-proxy performs the
+  # traffic split. (Lab 7 common pitfall.)
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
