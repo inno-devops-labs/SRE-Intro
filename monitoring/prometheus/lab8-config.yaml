@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 5s
+      evaluation_interval: 5s
+    scrape_configs:
+    - job_name: gateway
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - default
+      relabel_configs:
+      - source_labels:
+        - __meta_kubernetes_pod_label_app
+        regex: gateway
+        action: keep
+      - source_labels:
+        - __meta_kubernetes_pod_ip
+        regex: (.+)
+        target_label: __address__
+        replacement: ${1}:8080
+      - source_labels:
+        - __meta_kubernetes_pod_name
+        target_label: pod
+      - source_labels:
+        - __meta_kubernetes_pod_label_rollouts_pod_template_hash
+        target_label: rs_hash
+    rule_files:
+    - /etc/prometheus/latency-rules.yml
+  latency-rules.yml: |
+    groups:
+    - name: quickticket-latency
+      rules:
+      - alert: QuickTicketPaymentLatencyHigh
+        expr: histogram_quantile(0.99, sum by (le) (rate(gateway_request_duration_seconds_bucket{path="/reserve/{id}/pay"}[1m])))
+          > 1
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: Payment p99 latency exceeds 1 second
+          description: Checkout may be slow even when requests succeed. Check payment
+            latency and gateway timeouts.
