@@ -1,0 +1,60 @@
+  File "/usr/local/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "/app/main.py", line 218, in reserve_tickets
+    redis_client.setex(
+    ~~~~~~~~~~~~~~~~~~^
+        f"reservation:{reservation_id}",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        RESERVATION_TTL,
+        ^^^^^^^^^^^^^^^^
+        json.dumps(reservation),
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/redis/commands/core.py", line 2693, in setex
+    return self.execute_command("SETEX", name, time, value)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/redis/client.py", line 716, in execute_command
+    return self._execute_command(*args, **options)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/redis/client.py", line 722, in _execute_command
+    conn = self.connection or pool.get_connection()
+                              ~~~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/site-packages/redis/utils.py", line 236, in wrapper
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 3041, in get_connection
+    connection.connect()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 976, in connect
+    self.retry.call_with_retry(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        lambda: self.connect_check_health(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        lambda error: self.disconnect(error),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+    raise error
+  File "/usr/local/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+    return do()
+  File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 977, in <lambda>
+    lambda: self.connect_check_health(
+            ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        check_health=True, retry_socket_connect=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ),
+    ^
+  File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 1025, in connect_check_health
+    raise e
+redis.exceptions.ConnectionError: Error 111 connecting to redis:6379. Connection refused.
+INFO:     10.42.1.1:49676 - "GET /health HTTP/1.1" 503 Service Unavailable
+INFO:     10.42.1.1:33974 - "GET /health HTTP/1.1" 503 Service Unavailable
+INFO:     10.42.1.1:32934 - "GET /health HTTP/1.1" 503 Service Unavailable
+INFO:     10.42.1.1:59670 - "GET /health HTTP/1.1" 503 Service Unavailable
+INFO:     10.42.1.1:49314 - "GET /health HTTP/1.1" 503 Service Unavailable
+INFO:     10.42.1.1:49326 - "GET /health HTTP/1.1" 503 Service Unavailable

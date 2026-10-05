@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-10-05T08:20:08.412583+00:00",
+  "data": {
+    "victim": "gateway-5b45bc8f9f-9wnxp",
+    "replacement_observed_seconds": 0.16270445800000743,
+    "five_ready_seconds": 6.478039792000004
+  }
+}

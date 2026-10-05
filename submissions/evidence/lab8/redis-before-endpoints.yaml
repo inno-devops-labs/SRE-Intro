@@ -1,0 +1,93 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Endpoints
+  metadata:
+    annotations:
+      endpoints.kubernetes.io/last-change-trigger-time: "2026-10-05T08:27:36Z"
+    creationTimestamp: "2026-10-05T08:00:10Z"
+    labels:
+      endpoints.kubernetes.io/managed-by: endpoint-controller
+    name: events
+    namespace: default
+    resourceVersion: "3744"
+    uid: 71b47604-c0b5-45af-b272-968337a86d4b
+  subsets:
+  - notReadyAddresses:
+    - ip: 10.42.1.5
+      nodeName: k3d-quickticket-lab78-server-0
+      targetRef:
+        kind: Pod
+        name: events-7cbfc9d5fb-gd98q
+        namespace: default
+        uid: a49ae755-a404-481b-9da2-97ef5b4b033c
+    ports:
+    - name: tcp
+      port: 8081
+      protocol: TCP
+- apiVersion: v1
+  kind: Endpoints
+  metadata:
+    annotations:
+      endpoints.kubernetes.io/last-change-trigger-time: "2026-10-05T08:20:06Z"
+    creationTimestamp: "2026-10-05T08:00:11Z"
+    labels:
+      endpoints.kubernetes.io/managed-by: endpoint-controller
+    name: gateway
+    namespace: default
+    resourceVersion: "3189"
+    uid: 61f23804-6394-4838-978e-4aba8f401df0
+  subsets:
+  - addresses:
+    - ip: 10.42.0.16
+      nodeName: k3d-quickticket-lab78-agent-0
+      targetRef:
+        kind: Pod
+        name: gateway-5b45bc8f9f-q227v
+        namespace: default
+        uid: 83536083-5fda-4aee-8086-206dac27f32a
+    - ip: 10.42.0.19
+      nodeName: k3d-quickticket-lab78-agent-0
+      targetRef:
+        kind: Pod
+        name: gateway-5b45bc8f9f-kmmtj
+        namespace: default
+        uid: ad1cf927-ec7a-4943-acb0-75c5bb6f4904
+    - ip: 10.42.1.23
+      nodeName: k3d-quickticket-lab78-server-0
+      targetRef:
+        kind: Pod
+        name: gateway-5b45bc8f9f-s6z9x
+        namespace: default
+        uid: 9ad506a7-6c77-41e9-b307-267f4927be4a
+    - ip: 10.42.1.24
+      nodeName: k3d-quickticket-lab78-server-0
+      targetRef:
+        kind: Pod
+        name: gateway-5b45bc8f9f-z4ffg
+        namespace: default
+        uid: d2df454b-6f7c-43e9-9311-c22616f34899
+    - ip: 10.42.1.27
+      nodeName: k3d-quickticket-lab78-server-0
+      targetRef:
+        kind: Pod
+        name: gateway-5b45bc8f9f-ctq5c
+        namespace: default
+        uid: 35eda829-8918-40e6-9d9a-d200276fef63
+    ports:
+    - name: tcp
+      port: 8080
+      protocol: TCP
+- apiVersion: v1
+  kind: Endpoints
+  metadata:
+    creationTimestamp: "2026-10-05T08:00:11Z"
+    labels:
+      endpoints.kubernetes.io/managed-by: endpoint-controller
+    name: redis
+    namespace: default
+    resourceVersion: "3723"
+    uid: cf84a929-7fcd-4406-8527-a3e5807edbaf
+kind: List
+metadata:
+  resourceVersion: ""

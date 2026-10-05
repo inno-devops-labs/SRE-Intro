@@ -1,0 +1,10 @@
+[pod/mixedload-7df44847cd-4vpn6/curl] events 200 0.013690s
+[pod/mixedload-7df44847cd-4vpn6/curl] reserve failed: {"detail":"Events service timeout"}
+[pod/mixedload-7df44847cd-4vpn6/curl] events 200 0.014069s
+[pod/mixedload-7df44847cd-4vpn6/curl] reserve failed: {"detail":"Events service timeout"}
+[pod/mixedload-7df44847cd-4vpn6/curl] events 200 0.010610s
+[pod/mixedload-7df44847cd-hlrw8/curl] events 200 0.014223s
+[pod/mixedload-7df44847cd-hlrw8/curl] reserve failed: {"detail":"Events service timeout"}
+[pod/mixedload-7df44847cd-hlrw8/curl] events 200 0.013963s
+[pod/mixedload-7df44847cd-hlrw8/curl] reserve failed: {"detail":"Events service timeout"}
+[pod/mixedload-7df44847cd-hlrw8/curl] events 200 0.011574s

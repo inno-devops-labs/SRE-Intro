@@ -1,0 +1,4 @@
+{
+  "timestamp": "2026-10-05T08:22:39.562882+00:00",
+  "data": "Payments latency of 2000ms remains below the gateway 5000ms timeout: pay p99 rises, reads stay fast, and slow successful payments produce no 5xx."
+}

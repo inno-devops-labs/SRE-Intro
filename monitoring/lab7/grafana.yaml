@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lab7-grafana
+  namespace: monitoring
+data:
+  datasources.yaml: "apiVersion: 1\ndatasources:\n- access: proxy\n  isDefault: true\n\
+    \  name: Prometheus\n  type: prometheus\n  uid: prometheus\n  url: http://prometheus:9090\n"
+  dashboards.yaml: "apiVersion: 1\nproviders:\n- name: labs\n  options:\n    path:\
+    \ /var/lib/grafana/dashboards\n  type: file\n"
+  dashboard.json: '{"annotations": {"list": []}, "editable": true, "panels": [{"title":
+    "Request Rate (Traffic)", "description": "Golden Signal #2: How much demand is
+    being placed on the system", "type": "timeseries", "gridPos": {"h": 8, "w": 12,
+    "x": 0, "y": 0}, "targets": [{"expr": "sum(rate(gateway_requests_total[1m])) by
+    (path)", "legendFormat": "{{path}}", "refId": "A"}], "fieldConfig": {"defaults":
+    {"unit": "reqps", "custom": {"drawStyle": "line", "fillOpacity": 10}}}, "datasource":
+    {"type": "prometheus", "uid": "prometheus"}}, {"title": "Error Rate", "description":
+    "Golden Signal #3: Percentage of requests failing with 5xx", "type": "timeseries",
+    "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}, "targets": [{"expr": "100 * ((sum(rate(gateway_requests_total{status=~\"5..\"}[1m]))
+    or vector(0)) / sum(rate(gateway_requests_total[1m])))", "legendFormat": "5xx
+    error %", "refId": "A"}], "fieldConfig": {"defaults": {"unit": "percent", "custom":
+    {"drawStyle": "line", "fillOpacity": 10}, "thresholds": {"mode": "absolute", "steps":
+    [{"color": "green", "value": null}, {"color": "yellow", "value": 1}, {"color":
+    "red", "value": 5}]}, "color": {"mode": "thresholds"}}}, "datasource": {"type":
+    "prometheus", "uid": "prometheus"}}, {"title": "Service Health (up/down)", "description":
+    "Prometheus ''up'' metric \u2014 1 = scrape succeeded, 0 = target unreachable",
+    "type": "table", "gridPos": {"h": 4, "w": 24, "x": 0, "y": 8}, "targets": [{"expr":
+    "up", "format": "table", "instant": true, "refId": "A"}], "transformations": [{"id":
+    "filterFieldsByName", "options": {"include": {"names": ["job", "Value"]}}}], "datasource":
+    {"type": "prometheus", "uid": "prometheus"}}, {"title": "p99 latency by path",
+    "description": "Use histogram_quantile() with gateway_request_duration_seconds_bucket",
+    "type": "timeseries", "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}, "datasource":
+    {"type": "prometheus", "uid": "prometheus"}, "targets": [{"expr": "histogram_quantile(0.99,sum
+    by(le,path)(rate(gateway_request_duration_seconds_bucket[1m])))", "legendFormat":
+    "{{path}}", "refId": "A"}], "fieldConfig": {"defaults": {"unit": "s"}}}, {"title":
+    "Request rate by pod", "description": "Use events_db_pool_size gauge", "type":
+    "timeseries", "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}, "datasource": {"type":
+    "prometheus", "uid": "prometheus"}, "targets": [{"expr": "sum by(pod)(rate(gateway_requests_total[1m]))",
+    "legendFormat": "{{pod}}", "refId": "A"}], "fieldConfig": {"defaults": {"unit":
+    "reqps"}}}], "refresh": "5s", "schemaVersion": 39, "tags": ["quickticket", "sre"],
+    "templating": {"list": []}, "time": {"from": "now-15m", "to": "now"}, "timepicker":
+    {}, "timezone": "browser", "title": "QuickTicket \u2014 Canary and Chaos", "uid":
+    "quickticket-lab7"}'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab7-grafana
+  template:
+    metadata:
+      labels:
+        app: lab7-grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:13.0.1
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: 'true'
+        - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+          value: Viewer
+        volumeMounts:
+        - name: config
+          mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+          subPath: datasources.yaml
+        - name: config
+          mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+          subPath: dashboards.yaml
+        - name: config
+          mountPath: /var/lib/grafana/dashboards/dashboard.json
+          subPath: dashboard.json
+      volumes:
+      - name: config
+        configMap:
+          name: lab7-grafana
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  selector:
+    app: lab7-grafana
+  ports:
+  - port: 3000
+    targetPort: 3000

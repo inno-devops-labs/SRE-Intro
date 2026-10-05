@@ -1,0 +1,4 @@
+{
+  "timestamp": "2026-10-05T08:27:24.352096+00:00",
+  "data": "Redis outage should break reservations and health while DB-only event lists remain functional. Dependency-based events readiness may unexpectedly remove the entire events Service."
+}

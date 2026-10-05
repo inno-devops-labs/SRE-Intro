@@ -1,0 +1,48 @@
+{
+  "before": {
+    "evaluation_time": 1791188934.536,
+    "metrics": {
+      "(sum(rate(gateway_requests_total{path=\"/events\",status=~\"5..\"}[1m])) or vector(0))/sum(rate(gateway_requests_total{path=\"/events\"}[1m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791188934.536,
+            "1"
+          ]
+        }
+      ],
+      "histogram_quantile(0.99,sum by(le)(rate(gateway_request_duration_seconds_bucket{path=\"/events\"}[1m])))": [
+        {
+          "metric": {},
+          "value": [
+            1791188934.536,
+            "2.4869977938583645"
+          ]
+        }
+      ]
+    }
+  },
+  "after": {
+    "evaluation_time": 1791189474.706,
+    "metrics": {
+      "(sum(rate(gateway_requests_total{path=\"/events\",status=~\"5..\"}[1m])) or vector(0))/sum(rate(gateway_requests_total{path=\"/events\"}[1m]))": [
+        {
+          "metric": {},
+          "value": [
+            1791189474.706,
+            "0"
+          ]
+        }
+      ],
+      "histogram_quantile(0.99,sum by(le)(rate(gateway_request_duration_seconds_bucket{path=\"/events\"}[1m])))": [
+        {
+          "metric": {},
+          "value": [
+            1791189474.706,
+            "0.024633330942640468"
+          ]
+        }
+      ]
+    }
+  }
+}

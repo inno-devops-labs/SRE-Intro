@@ -1,0 +1,4 @@
+{
+  "timestamp": "2026-10-05T08:20:01.887711+00:00",
+  "data": "Deleting one of five gateway pods under mixed load should leave four endpoints serving and trigger a replacement within seconds; in-flight connections may fail."
+}
