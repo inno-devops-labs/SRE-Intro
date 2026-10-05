@@ -273,24 +273,6 @@ Write a runbook following the same structure as step 6.5.
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab6
-git add submissions/lab6.md
-git commit -m "feat(lab6): add alerting config, runbook, and postmortem"
-git push -u origin feature/lab6
-```
-
-PR checklist:
-```text
-- [x] Task 1 done — alerts created, incident simulated, runbook followed
-- [ ] Task 2 done — blameless postmortem written
-- [ ] Bonus Task done — cross-tested runbook with classmate
-```
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -312,6 +294,24 @@ PR checklist:
 - ✅ Runbook updated based on feedback
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab6
+git add <proof of work + lab6.md>
+git commit -m "feat(lab6): add alerting config, runbook, and postmortem"
+git push -u origin feature/lab6
+```
+
+PR checklist:
+```text
+- [x] Task 1 done — alerts created, incident simulated, runbook followed
+- [ ] Task 2 done — blameless postmortem written
+- [ ] Bonus Task done — cross-tested runbook with classmate
+```
+
+---
+
 
 ## Rubric
 

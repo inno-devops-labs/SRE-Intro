@@ -291,32 +291,6 @@ PAYMENT_FAILURE_RATE=0.0 PAYMENT_LATENCY_MS=0 docker compose up -d payments
 
 ---
 
-## How to Submit
-
-1. Create a branch and push:
-
-   ```bash
-   git switch -c feature/lab1
-   git add submissions/lab1.md
-   git commit -m "docs(lab1): add submission1 — deploy and failure exploration"
-   git push -u origin feature/lab1
-   ```
-
-2. Open a PR from your fork's `feature/lab1` → **course repo main branch**.
-
-3. In the PR description, include:
-
-   ```text
-   - [x] Task 1 done — deployed QuickTicket, failure exploration complete
-   - [ ] Task 2 done — graceful degradation in gateway
-   - [x] Task 3 done — GitHub community engagement
-   - [ ] Bonus Task done — resource usage under load
-   ```
-
-4. **Submit PR URL** via Moodle before the deadline.
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -340,6 +314,32 @@ PAYMENT_FAILURE_RATE=0.0 PAYMENT_LATENCY_MS=0 docker compose up -d payments
 - ✅ Stats tables for all 3 scenarios (idle, load, chaos)
 - ✅ Analysis of which service uses most memory/CPU and why
 - ✅ Observation on how fault injection affects gateway resources
+
+---
+
+## How to Submit
+
+1. Create a branch and push:
+
+   ```bash
+   git switch -c feature/lab1
+   git add <proof of work + lab1.md>
+   git commit -m "docs(lab1): add submission1 — deploy and failure exploration"
+   git push -u origin feature/lab1
+   ```
+
+2. Open a PR from your fork's `feature/lab1` → **course repo main branch**.
+
+3. In the PR description, include:
+
+   ```text
+   - [x] Task 1 done — deployed QuickTicket, failure exploration complete
+   - [ ] Task 2 done — graceful degradation in gateway
+   - [x] Task 3 done — GitHub community engagement
+   - [ ] Bonus Task done — resource usage under load
+   ```
+
+4. **Submit PR URL** via Moodle before the deadline.
 
 ---
 

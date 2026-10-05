@@ -403,24 +403,6 @@ kubectl delete -f labs/lab7/loadgen.yaml
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab7
-git add k8s/gateway.yaml k8s/analysis-template.yaml submissions/lab7.md
-git commit -m "feat(lab7): add canary rollout for gateway"
-git push -u origin feature/lab7
-```
-
-PR checklist:
-```text
-- [x] Task 1 done — Argo Rollouts installed, canary deployed, promoted + aborted
-- [ ] Task 2 done — multi-step canary with Grafana observation
-- [ ] Bonus Task done — automated canary analysis with Prometheus
-```
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -442,6 +424,24 @@ PR checklist:
 - ✅ Auto-abort on bad version
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab7
+git add <proof of work + lab7.md>
+git commit -m "feat(lab7): add canary rollout for gateway"
+git push -u origin feature/lab7
+```
+
+PR checklist:
+```text
+- [x] Task 1 done — Argo Rollouts installed, canary deployed, promoted + aborted
+- [ ] Task 2 done — multi-step canary with Grafana observation
+- [ ] Bonus Task done — automated canary analysis with Prometheus
+```
+
+---
+
 
 ## Rubric
 

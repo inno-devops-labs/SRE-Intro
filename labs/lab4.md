@@ -395,31 +395,6 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
 ---
 
-## How to Submit
-
-1. Create a branch and push:
-
-   ```bash
-   git switch -c feature/lab4
-   git add k8s/ submissions/lab4.md monitoring/prometheus/prometheus.yml
-   git commit -m "docs(lab4): add lab4 — K8s manifests and deployment"
-   git push -u origin feature/lab4
-   ```
-
-2. Open a PR from your fork's `feature/lab4` → **course repo main branch**.
-
-3. In the PR description, include:
-
-   ```text
-   - [x] Task 1 done — K8s manifests written, QuickTicket deployed to k3d
-   - [ ] Task 2 done — probes and resource limits added
-   - [ ] Bonus Task done — Helm chart created
-   ```
-
-4. **Submit PR URL** via Moodle before the deadline.
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -442,6 +417,31 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 - ✅ Pods running after Helm install
 
 ---
+## How to Submit
+
+1. Create a branch and push:
+
+   ```bash
+   git switch -c feature/lab4
+   git add <proof of work + lab4.md>
+   git commit -m "docs(lab4): add lab4 — K8s manifests and deployment"
+   git push -u origin feature/lab4
+   ```
+
+2. Open a PR from your fork's `feature/lab4` → **course repo main branch**.
+
+3. In the PR description, include:
+
+   ```text
+   - [x] Task 1 done — K8s manifests written, QuickTicket deployed to k3d
+   - [ ] Task 2 done — probes and resource limits added
+   - [ ] Bonus Task done — Helm chart created
+   ```
+
+4. **Submit PR URL** via Moodle before the deadline.
+
+---
+
 
 ## Rubric
 

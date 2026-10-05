@@ -286,24 +286,6 @@ Kill payments for 1 minute — watch the gauge drop.
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab3
-git add monitoring/prometheus/ submissions/lab3.md
-git commit -m "feat(lab3): add monitoring config and SLO definitions"
-git push -u origin feature/lab3
-```
-
-PR checklist:
-```text
-- [x] Task 1 done — monitoring deployed, dashboard completed
-- [ ] Task 2 done — SLOs defined, recording rules created
-- [ ] Bonus Task done — failure correlation
-```
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (6 pts)
@@ -325,6 +307,24 @@ PR checklist:
 - ✅ Root cause explanation
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab3
+git add <proof of work + lab3.md>
+git commit -m "feat(lab3): add monitoring config and SLO definitions"
+git push -u origin feature/lab3
+```
+
+PR checklist:
+```text
+- [x] Task 1 done — monitoring deployed, dashboard completed
+- [ ] Task 2 done — SLOs defined, recording rules created
+- [ ] Bonus Task done — failure correlation
+```
+
+---
+
 
 ## Rubric
 

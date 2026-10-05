@@ -565,27 +565,6 @@ kubectl set env deployment/payments PAYMENT_LATENCY_MS=0
 
 ---
 
-## How to Submit
-
-```bash
-git switch -c feature/lab11
-git add app/notifications/ app/gateway/main.py app/docker-compose.yaml k8s/notifications.yaml k8s/gateway.yaml submissions/lab11.md
-git commit -m "feat(lab11): add notifications service and resilience patterns"
-git push -u origin feature/lab11
-```
-
-PR checklist:
-
-```text
-- [x] Task 1 done — notifications service, k8s manifest, fire-and-forget wiring, retry with backoff (Tests #1 + #2)
-- [ ] Task 2 done — circuit breaker + rate limiter, tested under failure
-- [ ] Bonus Task done — bulkhead isolation, concurrent /pay vs /events test, cap proven to bind
-```
-
-> 📝 **About the Bonus Task.** Lab 11 is itself a bonus lab, but its internal **Bonus Task (2 pts)** is still a real extension — and a genuinely harder one (it's the fourth pattern Reading 11 explicitly marks "concept-only"). The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
-
----
-
 ## Acceptance Criteria
 
 ### Task 1 (4 pts)
@@ -611,6 +590,27 @@ PR checklist:
 - ✅ Submission answers both design prompts (bulkhead vs CB ordering; bulkhead vs rate-limiter purpose).
 
 ---
+## How to Submit
+
+```bash
+git switch -c feature/lab11
+git add <proof of work + lab11.md>
+git commit -m "feat(lab11): add notifications service and resilience patterns"
+git push -u origin feature/lab11
+```
+
+PR checklist:
+
+```text
+- [x] Task 1 done — notifications service, k8s manifest, fire-and-forget wiring, retry with backoff (Tests #1 + #2)
+- [ ] Task 2 done — circuit breaker + rate limiter, tested under failure
+- [ ] Bonus Task done — bulkhead isolation, concurrent /pay vs /events test, cap proven to bind
+```
+
+> 📝 **About the Bonus Task.** Lab 11 is itself a bonus lab, but its internal **Bonus Task (2 pts)** is still a real extension — and a genuinely harder one (it's the fourth pattern Reading 11 explicitly marks "concept-only"). The lab's full 10 pts contribute toward your bonus-labs grade weight (see the course README).
+
+---
+
 
 ## Rubric
 
