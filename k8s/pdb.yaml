@@ -1,0 +1,53 @@
+# k8s/pdb.yaml — PodDisruptionBudgets for QuickTicket (Lab 12)
+#
+# gateway:        critical path, 5 replicas — survive 3 simultaneous evictions
+# events/payments: must keep 1 live at all times (2 replicas)
+# notifications:  best-effort fire-and-forget — softer bar
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+  labels:
+    app: gateway
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+  labels:
+    app: events
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+  labels:
+    app: payments
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payments
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+  labels:
+    app: notifications
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: notifications

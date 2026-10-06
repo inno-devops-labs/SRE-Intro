@@ -32,6 +32,18 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
+      # Spread gateway replicas across nodes: max 1-pod skew between the
+      # most- and least-loaded hostname (2/2/1 over 3 nodes, never 5/0/0).
+      # ScheduleAnyway so a single-node cluster (k3d) doesn't get stuck Pending.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
+      # Give in-flight requests time to finish after SIGTERM (10s preStop + up to 30s drain).
+      terminationGracePeriodSeconds: 40
       containers:
         - name: gateway
           image: quickticket-gateway:v1
@@ -47,6 +59,15 @@ spec:
               value: "http://notifications:8083"
             - name: GATEWAY_TIMEOUT_MS
               value: "5000"
+          lifecycle:
+            # Sleep BEFORE SIGTERM reaches the app. Gives kube-proxy / endpoints
+            # controllers time to propagate this pod's NotReady state to every
+            # node's iptables, so new traffic stops routing here BEFORE uvicorn
+            # shuts down. Without this, there's a ~5-10s window where SIGTERM
+            # + incoming traffic overlap and requests get RST.
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           ports:
             - containerPort: 8080
           livenessProbe:
@@ -60,8 +81,8 @@ spec:
             httpGet:
               path: /health
               port: 8080
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
           resources:
             requests:
               cpu: 50m

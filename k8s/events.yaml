@@ -5,7 +5,7 @@ metadata:
   labels:
     app: events
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -16,10 +16,15 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
+      # Graceful shutdown (Lab 12 pattern): 10s preStop lets the pod go NotReady
+      # and drain from Service endpoints BEFORE uvicorn exits, so rolling
+      # updates (Deploy A / Deploy B of the expand-and-contract rename) drop
+      # zero requests.
+      terminationGracePeriodSeconds: 40
       containers:
         - name: events
-          image: ghcr.io/kvakz/quickticket-events:ef91c56daf28c07fa311a1dbdd35c45530bf666f
-          imagePullPolicy: Always
+          image: quickticket-events:v1
+          imagePullPolicy: Never
           env:
             - name: DB_HOST
               value: "postgres"
@@ -41,6 +46,10 @@ spec:
               value: "1000"
             - name: RESERVATION_TTL
               value: "300"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           ports:
             - containerPort: 8081
           livenessProbe:
@@ -54,8 +63,8 @@ spec:
             httpGet:
               path: /health
               port: 8081
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
           resources:
             requests:
               cpu: 50m
