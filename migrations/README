@@ -1,0 +1,25 @@
+Lab 9 schema migrations
+=======================
+
+Install dependencies:
+    python3 -m venv .venv-lab9
+    .venv-lab9/bin/pip install -r migrations/requirements.txt
+
+Forward the cluster PostgreSQL Service:
+    kubectl --context k3d-quickticket -n default port-forward svc/postgres 5432:5432
+
+These revisions operate on the existing app/seed.sql schema.
+The baseline revision intentionally contains no CREATE TABLE statements.
+
+For an existing seeded database that has never used Alembic:
+    .venv-lab9/bin/alembic stamp 9a0000000001
+    .venv-lab9/bin/alembic upgrade head
+
+For a database already managed by Alembic:
+    .venv-lab9/bin/alembic current
+    .venv-lab9/bin/alembic upgrade head
+
+Do not stamp head instead of running the email migration.
+Adding this nullable column avoids a table rewrite, but requires a short
+exclusive table lock. The migration uses a 3-second lock timeout.
+The connection URL contains credentials for this local lab environment.
