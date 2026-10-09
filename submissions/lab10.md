@@ -25,9 +25,14 @@ To reduce local resource use, the full Grafana/operator monitoring stack and
 Argo CD controllers were temporarily scaled to zero. The lightweight in-cluster
 Prometheus required for measurements remained available.
 
-# QuickTicket Reliability Review
+## Task 1 — Load Testing and Reliability Review
 
-## 1. SLO Compliance
+The required QuickTicket reliability review is organized into the seven
+sections below. Sections 1-6 contain the load-test, DORA, risk, toil, and
+monitoring analysis. Section 7 is the detailed numerical capacity plan from
+Task 2.
+
+### 1. SLO Compliance
 
 | SLO | Target | Observed | Status |
 |---|---:|---:|---|
@@ -49,9 +54,9 @@ some 503 counters from cluster startup and the initial Locust image pull before
 the timed process began; those background counters were excluded from the
 load-specific result.
 
-## 2. Load Test Results
+### 2. Load Test Results
 
-### Results
+#### Results
 
 | Users | Ramp | Requests | RPS | p50 | p95 | p99 | 5xx error rate | 409 inventory |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -65,7 +70,7 @@ only the 5xx fraction in the 5xx column. The transport failures are additional
 evidence of overload, but they were not incorrectly counted as either 409 or
 HTTP 5xx responses.
 
-### Representative Locust output
+#### Representative Locust output
 
 ```text
 10 users:
@@ -83,7 +88,7 @@ average=430ms median=290ms p95=1500ms p99=2200ms rps=55.18
 HTTP 500/502/503=1333, connection refused=62, HTTP 409=0
 ```
 
-### Breaking point
+#### Breaking point
 
 The first tested breaking point was **50 users at 33.44 RPS**. At that level,
 the 5xx rate was 9.45%, above the 0.5% threshold, and p99 was 1,500 ms, above
@@ -95,26 +100,7 @@ At 50 users, failures included 500 responses on reservation, 502 responses on
 event listing and reservation, and 503 responses from health checks. Only two
 requests returned 409, so inventory exhaustion did not explain the failure.
 
-The CPU sample at the breaking point was:
-
-```text
-gateway-9dfff959b-4wjq7   56m   41Mi
-gateway-9dfff959b-84shv   40m   41Mi
-gateway-9dfff959b-js9hm   33m   41Mi
-gateway-9dfff959b-ldvgp   36m   40Mi
-gateway-9dfff959b-thbst   30m   40Mi
-events-68cc9578bd-wxh5n  117m   51Mi
-payments-5cfc7f5f5-m2sgw  17m   35Mi
-postgres-57d896d6bd-8mtx5 89m   39Mi
-redis-bcc6dc4d-g9ndf      10m    4Mi
-```
-
-Events was the most CPU-loaded application dependency and it had only one
-replica. PostgreSQL was second. Payments and Redis were mostly idle. Gateway
-traffic was distributed across all five replicas, so adding more Gateway pods
-alone would not remove the observed dependency bottleneck.
-
-## 3. DORA Metrics
+### 3. DORA Metrics
 
 | Metric | Measured value | Interpretation |
 |---|---:|---|
@@ -155,7 +141,7 @@ The 12.13-second Rollout recovery was about 12.1 times faster than the
 the stable ReplicaSet in place and avoided waiting for a commit, push, Argo CD
 poll, and replacement pod startup.
 
-## 4. Top 3 Reliability Risks
+### 4. Top 3 Reliability Risks
 
 1. **Events is a single-replica bottleneck.** One Events pod served all read and
    reservation traffic and reached 117m CPU at the first failure point. Scale
@@ -170,7 +156,7 @@ poll, and replacement pod startup.
    latency SLO first. Add per-route latency, Events pool utilization, dependency
    timeout, and saturation alerts before the error budget is consumed.
 
-## 5. Toil Identification
+### 5. Toil Identification
 
 | Repeated manual task | Observed frequency | Automation proposal | Expected saving |
 |---|---:|---|---|
@@ -183,7 +169,7 @@ The highest-value automation is the combined diagnostic bundle. It reduces
 human correlation work during every incident and produces evidence in the same
 format for the postmortem.
 
-## 6. Monitoring Gaps
+### 6. Monitoring Gaps
 
 - A per-route p95/p99 latency alert was missing. It would have detected slow
   Payments in Lab 8 even while calls still returned 200.
@@ -204,16 +190,39 @@ The alert most likely to catch the actual load-test failure would combine
 Events pool saturation with Gateway `/events` and reservation p99 above 500 ms
 for two minutes. Error rate should remain a second, faster severity escalator.
 
-## 7. Capacity Plan
+## Task 2 (Optional) — Capacity Plan with Numbers
 
-### Current capacity
+### 7. Capacity Plan
+
+#### Per-pod headroom at the breaking point
+
+The CPU sample captured while the 50-user breaking-point test was running was:
+
+```text
+gateway-9dfff959b-4wjq7   56m   41Mi
+gateway-9dfff959b-84shv   40m   41Mi
+gateway-9dfff959b-js9hm   33m   41Mi
+gateway-9dfff959b-ldvgp   36m   40Mi
+gateway-9dfff959b-thbst   30m   40Mi
+events-68cc9578bd-wxh5n  117m   51Mi
+payments-5cfc7f5f5-m2sgw  17m   35Mi
+postgres-57d896d6bd-8mtx5 89m   39Mi
+redis-bcc6dc4d-g9ndf      10m    4Mi
+```
+
+Events was the most CPU-loaded application dependency and it had only one
+replica. PostgreSQL was second. Payments and Redis were mostly idle. Gateway
+traffic was distributed across all five replicas, so adding more Gateway pods
+alone would not remove the observed dependency bottleneck.
+
+#### Current capacity
 
 The measured ceiling is **33.44 RPS at 50 users**, where both SLO thresholds
 were already exceeded. The 10-user result, 7.67 RPS with 0% 5xx and 370 ms p99,
 is the demonstrated healthy reference point. Production admission control
 should leave at least 30% headroom below a re-tested healthy ceiling.
 
-### Plan for approximately 2x tested ceiling
+#### Plan for approximately 2x tested ceiling
 
 The target is approximately **67 RPS** with p99 below 500 ms and 5xx below
 0.5%.
@@ -239,7 +248,7 @@ and cross-zone traffic are excluded. The scale-up should be applied only after
 a repeat test proves that Events and the database pool, rather than another
 limit, can sustain 67 RPS.
 
-### Validation criteria
+#### Validation criteria
 
 The plan is complete only after repeating the same in-cluster 60-second Locust
 test at 67 RPS or higher and demonstrating:
@@ -250,6 +259,17 @@ test at 67 RPS or higher and demonstrating:
 - 409 reported separately;
 - Events and database pool below 70% sustained saturation;
 - one-pod failure does not violate the SLO.
+
+## Bonus Task — 5-minute Walkthrough (Option B)
+
+Bonus Option B was completed as
+`submissions/runbooks/quickticket-handbook.md`. The handbook contains:
+
+- an architecture diagram and component summary;
+- the exact GitOps deployment and verification flow;
+- golden-signal queries and monitoring guidance;
+- a condensed incident-response and escalation runbook;
+- the PostgreSQL backup and restore procedure from Lab 9.
 
 ## Conclusion
 
