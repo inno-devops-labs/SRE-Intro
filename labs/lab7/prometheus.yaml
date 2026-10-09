@@ -7,16 +7,19 @@
 # Apply with:  kubectl apply -f labs/lab7/prometheus.yaml
 # Verify:      kubectl get pods -n monitoring
 # Query UI:    kubectl port-forward -n monitoring svc/prometheus 9091:9090
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: monitoring
+
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: prometheus
   namespace: monitoring
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -26,6 +29,7 @@ rules:
   - apiGroups: [""]
     resources: [pods, services, endpoints]
     verbs: [get, list, watch]
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -39,6 +43,7 @@ subjects:
   - kind: ServiceAccount
     name: prometheus
     namespace: monitoring
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -50,29 +55,37 @@ data:
     global:
       scrape_interval: 5s
       evaluation_interval: 5s
+
+    rule_files:
+      - /etc/prometheus-rules/*.yml
+
     scrape_configs:
       - job_name: gateway
         kubernetes_sd_configs:
           - role: pod
             namespaces:
               names: [default]
+
         relabel_configs:
           # Only scrape pods labeled app=gateway.
           - source_labels: [__meta_kubernetes_pod_label_app]
             regex: gateway
             action: keep
-          # Use the pod IP:8080 directly (bypass the Service — we want per-pod series).
+
+          # Use the pod IP:8080 directly.
           - source_labels: [__meta_kubernetes_pod_ip]
             regex: (.+)
             target_label: __address__
             replacement: ${1}:8080
+
           - source_labels: [__meta_kubernetes_pod_name]
             target_label: pod
-          # CRITICAL for Argo Rollouts canary analysis: copy the
-          # rollouts-pod-template-hash label (set automatically by Argo Rollouts)
-          # into rs_hash so the AnalysisTemplate query can filter canary vs stable.
-          - source_labels: [__meta_kubernetes_pod_label_rollouts_pod_template_hash]
+
+          # Required for Argo Rollouts canary analysis.
+          - source_labels:
+              [__meta_kubernetes_pod_label_rollouts_pod_template_hash]
             target_label: rs_hash
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -84,28 +97,43 @@ spec:
   selector:
     matchLabels:
       app: prometheus
+
   template:
     metadata:
       labels:
         app: prometheus
+
     spec:
       serviceAccountName: prometheus
+
       containers:
         - name: prometheus
           image: prom/prometheus:v3.11.2
+
           args:
             - --config.file=/etc/prometheus/prometheus.yml
             - --storage.tsdb.path=/prometheus
             - --web.listen-address=:9090
+
           ports:
             - containerPort: 9090
+
           volumeMounts:
             - name: config
               mountPath: /etc/prometheus
+
+            - name: rules
+              mountPath: /etc/prometheus-rules
+
       volumes:
         - name: config
           configMap:
             name: prometheus-config
+
+        - name: rules
+          configMap:
+            name: prometheus-rules
+
 ---
 apiVersion: v1
 kind: Service
@@ -115,6 +143,7 @@ metadata:
 spec:
   selector:
     app: prometheus
+
   ports:
     - port: 9090
       targetPort: 9090
