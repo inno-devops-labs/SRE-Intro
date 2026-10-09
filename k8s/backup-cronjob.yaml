@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  timeZone: Etc/UTC
+  suspend: false
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:17-alpine
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: quickticket
+                - name: PGDATABASE
+                  value: quickticket
+                - name: PGPASSWORD
+                  value: quickticket
+                - name: PGCONNECT_TIMEOUT
+                  value: "10"
+              command:
+                - sh
+                - -ec
+                - |
+                  cd /backups
+                  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+                  final="quickticket_${stamp}.dump"
+                  temporary=".${final}.${HOSTNAME}.partial"
+                  trap 'rm -f "$temporary"' EXIT HUP INT TERM
+
+                  # Refuse to overwrite another backup with the same timestamp.
+                  test ! -e "$final"
+                  echo "Backup started at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                  pg_dump -Fc -f "$temporary"
+                  test -s "$temporary"
+                  pg_restore --list "$temporary" > /dev/null
+                  mv "$temporary" "$final"
+                  echo "Published $final ($(wc -c < "$final") bytes)"
+
+                  # Publish a valid dump before deleting any older backups.
+                  ls -1t quickticket_*.dump | tail -n +6 |
+                    while IFS= read -r old; do
+                      rm -v -- "$old"
+                    done
+                  echo "Retained backups:"
+                  ls -1t quickticket_*.dump
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
