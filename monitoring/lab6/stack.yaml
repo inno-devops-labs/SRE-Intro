@@ -1,0 +1,218 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v3.11.2
+        ports:
+        - containerPort: 9090
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: lab6-prometheus
+          mountPath: /etc/prometheus
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          periodSeconds: 5
+      volumes:
+      - name: lab6-prometheus
+        configMap:
+          name: lab6-prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - port: 9090
+    targetPort: 9090
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:13.0.1
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: lab6-alerts
+          mountPath: /etc/grafana/provisioning/alerting
+          readOnly: true
+        - name: lab6-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+          readOnly: true
+        - name: lab6-dashboard-provider
+          mountPath: /etc/grafana/provisioning/dashboards
+          readOnly: true
+        - name: lab6-dashboards
+          mountPath: /var/lib/grafana/dashboards
+          readOnly: true
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lab6-grafana-admin
+              key: password
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          periodSeconds: 5
+      volumes:
+      - name: lab6-alerts
+        configMap:
+          name: lab6-alerts
+      - name: lab6-datasources
+        configMap:
+          name: lab6-datasources
+      - name: lab6-dashboard-provider
+        configMap:
+          name: lab6-dashboard-provider
+      - name: lab6-dashboards
+        configMap:
+          name: lab6-dashboards
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+  - port: 3000
+    targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-receiver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-receiver
+  template:
+    metadata:
+      labels:
+        app: alert-receiver
+    spec:
+      containers:
+      - name: alert-receiver
+        image: python:3.13-slim
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: lab6-receiver
+          mountPath: /app
+          readOnly: true
+        command:
+        - python
+        - -u
+        - /app/receiver.py
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 5
+      volumes:
+      - name: lab6-receiver
+        configMap:
+          name: lab6-receiver
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-receiver
+spec:
+  selector:
+    app: alert-receiver
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab6-loadgen
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: lab6-loadgen
+  template:
+    metadata:
+      labels:
+        app: lab6-loadgen
+    spec:
+      containers:
+      - name: lab6-loadgen
+        image: python:3.13-slim
+        ports: []
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: lab6-loadgen
+          mountPath: /app
+          readOnly: true
+        command:
+        - python
+        - -u
+        - /app/loadgen.py
+      volumes:
+      - name: lab6-loadgen
+        configMap:
+          name: lab6-loadgen

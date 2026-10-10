@@ -1,0 +1,2 @@
+Defaulted container "events" out of: events, wait-for-postgres (init), wait-for-redis (init)
+{"status":"healthy","checks":{"postgres":"ok","redis":"ok"}}

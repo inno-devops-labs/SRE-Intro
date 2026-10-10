@@ -1,0 +1,125 @@
+{
+  "status": "success",
+  "data": {
+    "groups": [
+      {
+        "name": "quickticket-slo",
+        "file": "QuickTicket",
+        "folderUid": "afzifownl3ojkf",
+        "rules": [
+          {
+            "state": "inactive",
+            "name": "QuickTicket High Error Rate",
+            "query": "((sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) or 0 * sum(rate(gateway_requests_total[5m]))) / sum(rate(gateway_requests_total[5m]))) * 100",
+            "queriedDatasourceUIDs": [
+              "prometheus"
+            ],
+            "duration": 120,
+            "annotations": {
+              "description": "Threshold 5, pending 2m. Check payments health and failure_rate.",
+              "runbook_url": "https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate",
+              "summary": "Gateway 5xx rate is {{ $values.A.Value }}%"
+            },
+            "alerts": [
+              {
+                "labels": {
+                  "alertname": "QuickTicket High Error Rate",
+                  "grafana_folder": "QuickTicket",
+                  "service": "gateway",
+                  "severity": "critical"
+                },
+                "annotations": {
+                  "description": "Threshold 5, pending 2m. Check payments health and failure_rate.",
+                  "runbook_url": "https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate",
+                  "summary": "Gateway 5xx rate is 2.671472376160338%"
+                },
+                "state": "Normal",
+                "activeAt": "2026-09-27T10:58:10Z",
+                "value": ""
+              }
+            ],
+            "totals": {
+              "normal": 1
+            },
+            "totalsFiltered": {
+              "normal": 1
+            },
+            "uid": "quickticket-errors",
+            "folderUid": "afzifownl3ojkf",
+            "labels": {
+              "service": "gateway",
+              "severity": "critical"
+            },
+            "health": "ok",
+            "type": "alerting",
+            "lastEvaluation": "2026-09-27T11:02:10Z",
+            "evaluationTime": 0.001880708,
+            "isPaused": false,
+            "provenance": "file"
+          },
+          {
+            "state": "pending",
+            "name": "QuickTicket SLO Burn Rate",
+            "query": "((sum(rate(gateway_requests_total{status=~\"5..\"}[30m])) or 0 * sum(rate(gateway_requests_total[30m]))) / sum(rate(gateway_requests_total[30m]))) * (1 / (1 - 0.995))",
+            "queriedDatasourceUIDs": [
+              "prometheus"
+            ],
+            "duration": 300,
+            "annotations": {
+              "description": "Threshold 6, pending 5m. Check payments health and failure_rate.",
+              "runbook_url": "https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate",
+              "summary": "Gateway budget burn is {{ $values.A.Value }}x"
+            },
+            "alerts": [
+              {
+                "labels": {
+                  "alertname": "QuickTicket SLO Burn Rate",
+                  "grafana_folder": "QuickTicket",
+                  "service": "gateway",
+                  "severity": "warning"
+                },
+                "annotations": {
+                  "description": "Threshold 6, pending 5m. Check payments health and failure_rate.",
+                  "runbook_url": "https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate",
+                  "summary": "Gateway budget burn is 10.95022300947391x"
+                },
+                "state": "Pending",
+                "activeAt": "2026-09-27T11:03:10Z",
+                "value": "1e+00"
+              }
+            ],
+            "totals": {
+              "pending": 1
+            },
+            "totalsFiltered": {
+              "pending": 1
+            },
+            "uid": "quickticket-burn",
+            "folderUid": "afzifownl3ojkf",
+            "labels": {
+              "service": "gateway",
+              "severity": "warning"
+            },
+            "health": "ok",
+            "type": "alerting",
+            "lastEvaluation": "2026-09-27T11:03:10Z",
+            "evaluationTime": 0.004754458,
+            "isPaused": false,
+            "provenance": "file"
+          }
+        ],
+        "totals": {
+          "inactive": 1,
+          "pending": 1
+        },
+        "interval": 60,
+        "lastEvaluation": "2026-09-27T11:03:10Z",
+        "evaluationTime": 0.004754458
+      }
+    ],
+    "totals": {
+      "inactive": 1,
+      "pending": 1
+    }
+  }
+}

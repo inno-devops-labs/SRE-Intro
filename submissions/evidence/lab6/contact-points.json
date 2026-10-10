@@ -1,0 +1,13 @@
+[
+  {
+    "uid": "quickticket-webhook",
+    "name": "quickticket-alerts",
+    "type": "webhook",
+    "settings": {
+      "httpMethod": "POST",
+      "url": "http://alert-receiver:8080/alerts"
+    },
+    "disableResolveMessage": false,
+    "provenance": "file"
+  }
+]

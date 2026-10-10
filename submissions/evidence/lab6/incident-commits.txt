@@ -1,0 +1,3 @@
+fe7e973 Revert "test(lab6): inject 50 percent payment failures in training cluster"
+19f056b test(lab6): inject 50 percent payment failures in training cluster
+8648fea Revert "test(lab5): deploy nonexistent gateway tag for rollback exercise"

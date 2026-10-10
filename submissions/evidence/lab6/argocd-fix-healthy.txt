@@ -1,0 +1,50 @@
+TIMESTAMP                  GROUP        KIND   NAMESPACE                  NAME    STATUS    HEALTH        HOOK  MESSAGE
+2026-09-27T14:05:52+03:00            Service     default                events    Synced   Healthy
+2026-09-27T14:05:52+03:00            Service     default               gateway    Synced   Healthy
+2026-09-27T14:05:52+03:00            Service     default              payments    Synced   Healthy
+2026-09-27T14:05:52+03:00            Service     default              postgres    Synced   Healthy
+2026-09-27T14:05:52+03:00            Service     default                 redis    Synced   Healthy
+2026-09-27T14:05:52+03:00   apps  Deployment     default               gateway    Synced   Healthy
+2026-09-27T14:05:52+03:00   apps  Deployment     default              payments  OutOfSync  Healthy
+2026-09-27T14:05:52+03:00   apps  Deployment     default                 redis    Synced   Healthy
+2026-09-27T14:05:52+03:00   apps  Deployment     default                events    Synced   Healthy
+2026-09-27T14:05:52+03:00   apps  Deployment     default              postgres    Synced   Healthy
+2026-09-27T14:05:53+03:00   apps  Deployment     default              postgres    Synced   Healthy              deployment.apps/postgres unchanged
+2026-09-27T14:05:53+03:00            Service     default                 redis    Synced   Healthy              service/redis unchanged
+2026-09-27T14:05:53+03:00            Service     default              payments    Synced   Healthy              service/payments unchanged
+2026-09-27T14:05:53+03:00            Service     default              postgres    Synced   Healthy              service/postgres unchanged
+2026-09-27T14:05:53+03:00            Service     default               gateway    Synced   Healthy              service/gateway unchanged
+2026-09-27T14:05:53+03:00   apps  Deployment     default                events    Synced   Healthy              deployment.apps/events unchanged
+2026-09-27T14:05:53+03:00   apps  Deployment     default                 redis    Synced   Healthy              deployment.apps/redis unchanged
+2026-09-27T14:05:53+03:00   apps  Deployment     default              payments  OutOfSync  Healthy              deployment.apps/payments configured
+2026-09-27T14:05:53+03:00            Service     default                events    Synced   Healthy              service/events unchanged
+2026-09-27T14:05:53+03:00   apps  Deployment     default               gateway    Synced   Healthy              deployment.apps/gateway unchanged
+2026-09-27T14:05:53+03:00   apps  Deployment     default              payments    Synced  Progressing              deployment.apps/payments configured
+2026-09-27T14:05:53+03:00   apps  Deployment     default              payments    Synced  Progressing              deployment.apps/payments unchanged
+
+Name:               argocd/quickticket
+Project:            default
+Server:             https://kubernetes.default.svc
+Namespace:          default
+URL:                https://localhost:8443/applications/quickticket
+Source:
+- Repo:             https://github.com/Walkerino/SRE-Intro.git
+  Target:           experiment/lab6-payments
+  Path:             k8s
+SyncWindow:         Sync Allowed
+Sync Policy:        Automated (Prune)
+Sync Status:        Synced to experiment/lab6-payments (fe7e973)
+Health Status:      Healthy
+
+
+GROUP  KIND        NAMESPACE  NAME      STATUS  HEALTH   HOOK  MESSAGE
+apps   Deployment  default    payments  Synced  Healthy        deployment.apps/payments unchanged
+       Service     default    events    Synced  Healthy
+       Service     default    gateway   Synced  Healthy
+       Service     default    payments  Synced  Healthy
+       Service     default    postgres  Synced  Healthy
+       Service     default    redis     Synced  Healthy
+apps   Deployment  default    events    Synced  Healthy
+apps   Deployment  default    gateway   Synced  Healthy
+apps   Deployment  default    postgres  Synced  Healthy
+apps   Deployment  default    redis     Synced  Healthy

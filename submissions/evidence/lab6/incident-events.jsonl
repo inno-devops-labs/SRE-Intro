@@ -1,0 +1,7 @@
+{"time": "2026-09-27T11:01:13.409166+00:00", "event": "Failure injection started: commit PAYMENT_FAILURE_RATE=0.5"}
+{"time": "2026-09-27T11:01:23.449623+00:00", "event": "Faulty payments rollout healthy and synced"}
+{"time": "2026-09-27T11:05:46.682459+00:00", "event": "Critical alert firing and webhook received; investigation started"}
+{"time": "2026-09-27T11:05:47.851169+00:00", "event": "Root cause identified: healthy dependencies, payment failure_rate=0.5 and injected 500s"}
+{"time": "2026-09-27T11:05:47.851467+00:00", "event": "Mitigation started: git revert of injected configuration"}
+{"time": "2026-09-27T11:05:58.579549+00:00", "event": "Mitigation deployed: ArgoCD Synced/Healthy after Git revert"}
+{"time": "2026-09-27T11:10:53.051870+00:00", "event": "Critical alert Normal and resolved webhook confirmed"}

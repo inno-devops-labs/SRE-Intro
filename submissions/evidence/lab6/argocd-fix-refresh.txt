@@ -1,0 +1,25 @@
+Name:               argocd/quickticket
+Project:            default
+Server:             https://kubernetes.default.svc
+Namespace:          default
+URL:                https://localhost:8443/applications/quickticket
+Source:
+- Repo:             https://github.com/Walkerino/SRE-Intro.git
+  Target:           experiment/lab6-payments
+  Path:             k8s
+SyncWindow:         Sync Allowed
+Sync Policy:        Automated (Prune)
+Sync Status:        OutOfSync from experiment/lab6-payments (fe7e973)
+Health Status:      Healthy
+
+GROUP  KIND        NAMESPACE  NAME      STATUS     HEALTH   HOOK  MESSAGE
+       Service     default    events    Synced     Healthy
+       Service     default    gateway   Synced     Healthy
+       Service     default    payments  Synced     Healthy
+       Service     default    postgres  Synced     Healthy
+       Service     default    redis     Synced     Healthy
+apps   Deployment  default    events    Synced     Healthy
+apps   Deployment  default    gateway   Synced     Healthy
+apps   Deployment  default    payments  OutOfSync  Healthy
+apps   Deployment  default    postgres  Synced     Healthy
+apps   Deployment  default    redis     Synced     Healthy

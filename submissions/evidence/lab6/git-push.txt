@@ -1,0 +1,2 @@
+To github.com:Walkerino/SRE-Intro.git
+   19f056b..fe7e973  experiment/lab6-payments -> experiment/lab6-payments

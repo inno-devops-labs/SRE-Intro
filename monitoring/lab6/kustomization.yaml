@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - stack.yaml
+configMapGenerator:
+  - name: lab6-prometheus
+    files: [prometheus.yml]
+  - name: lab6-alerts
+    files: [alerts.yml, notifications.yml]
+  - name: lab6-datasources
+    files: [datasources.yml]
+  - name: lab6-dashboard-provider
+    files: [dashboards.yml]
+  - name: lab6-dashboards
+    files: [golden-signals.json]
+  - name: lab6-receiver
+    files: [receiver.py]
+  - name: lab6-loadgen
+    files: [loadgen.py]

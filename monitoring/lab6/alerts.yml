@@ -1,0 +1,121 @@
+apiVersion: 1
+groups:
+- orgId: 1
+  name: quickticket-slo
+  folder: QuickTicket
+  interval: 1m
+  rules:
+  - uid: quickticket-errors
+    title: QuickTicket High Error Rate
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 1800
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: ((sum(rate(gateway_requests_total{status=~"5.."}[5m])) or 0 * sum(rate(gateway_requests_total[5m])))
+          / sum(rate(gateway_requests_total[5m]))) * 100
+        instant: true
+        range: false
+        intervalMs: 15000
+        maxDataPoints: 43200
+        datasource:
+          type: prometheus
+          uid: prometheus
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        datasource:
+          type: __expr__
+          uid: __expr__
+        conditions:
+        - type: query
+          evaluator:
+            type: gt
+            params:
+            - 5
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            type: last
+            params: []
+    noDataState: NoData
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: Gateway 5xx rate is {{ $values.A.Value }}%
+      description: Threshold 5, pending 2m. Check payments health and failure_rate.
+      runbook_url: https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate
+    labels:
+      severity: critical
+      service: gateway
+    isPaused: false
+  - uid: quickticket-burn
+    title: QuickTicket SLO Burn Rate
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 1800
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        expr: ((sum(rate(gateway_requests_total{status=~"5.."}[30m])) or 0 * sum(rate(gateway_requests_total[30m])))
+          / sum(rate(gateway_requests_total[30m]))) * (1 / (1 - 0.995))
+        instant: true
+        range: false
+        intervalMs: 15000
+        maxDataPoints: 43200
+        datasource:
+          type: prometheus
+          uid: prometheus
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: __expr__
+      model:
+        refId: C
+        type: threshold
+        expression: A
+        datasource:
+          type: __expr__
+          uid: __expr__
+        conditions:
+        - type: query
+          evaluator:
+            type: gt
+            params:
+            - 6
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            type: last
+            params: []
+    noDataState: NoData
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: Gateway budget burn is {{ $values.A.Value }}x
+      description: Threshold 6, pending 5m. Check payments health and failure_rate.
+      runbook_url: https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate
+    labels:
+      severity: warning
+      service: gateway
+    isPaused: false

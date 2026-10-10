@@ -1,0 +1,188 @@
+[
+  {
+    "id": 1,
+    "uid": "quickticket-errors",
+    "orgID": 1,
+    "folderUID": "afzifownl3ojkf",
+    "ruleGroup": "quickticket-slo",
+    "title": "QuickTicket High Error Rate",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 1800,
+          "to": 0
+        },
+        "datasourceUid": "prometheus",
+        "model": {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "((sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) or 0 * sum(rate(gateway_requests_total[5m]))) / sum(rate(gateway_requests_total[5m]))) * 100",
+          "instant": true,
+          "intervalMs": 15000,
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  5
+                ],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "updated": "2026-09-27T10:57:14Z",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "2m",
+    "keep_firing_for": "0s",
+    "annotations": {
+      "description": "Threshold 5, pending 2m. Check payments health and failure_rate.",
+      "runbook_url": "https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate",
+      "summary": "Gateway 5xx rate is {{ $values.A.Value }}%"
+    },
+    "labels": {
+      "service": "gateway",
+      "severity": "critical"
+    },
+    "provenance": "file",
+    "isPaused": false,
+    "notification_settings": null,
+    "record": null
+  },
+  {
+    "id": 2,
+    "uid": "quickticket-burn",
+    "orgID": 1,
+    "folderUID": "afzifownl3ojkf",
+    "ruleGroup": "quickticket-slo",
+    "title": "QuickTicket SLO Burn Rate",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 1800,
+          "to": 0
+        },
+        "datasourceUid": "prometheus",
+        "model": {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "((sum(rate(gateway_requests_total{status=~\"5..\"}[30m])) or 0 * sum(rate(gateway_requests_total[30m]))) / sum(rate(gateway_requests_total[30m]))) * (1 / (1 - 0.995))",
+          "instant": true,
+          "intervalMs": 15000,
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  6
+                ],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "datasource": {
+            "type": "__expr__",
+            "uid": "__expr__"
+          },
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "updated": "2026-09-27T10:57:14Z",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "5m",
+    "keep_firing_for": "0s",
+    "annotations": {
+      "description": "Threshold 6, pending 5m. Check payments health and failure_rate.",
+      "runbook_url": "https://github.com/Walkerino/SRE-Intro/blob/feature/lab6/submissions/lab6.md#runbook-quickticket-high-error-rate",
+      "summary": "Gateway budget burn is {{ $values.A.Value }}x"
+    },
+    "labels": {
+      "service": "gateway",
+      "severity": "warning"
+    },
+    "provenance": "file",
+    "isPaused": false,
+    "notification_settings": null,
+    "record": null
+  }
+]

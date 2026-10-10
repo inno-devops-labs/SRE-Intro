@@ -1,0 +1,18 @@
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: quickticket-alerts
+    receivers:
+      - uid: quickticket-webhook
+        type: webhook
+        disableResolveMessage: false
+        settings:
+          url: http://alert-receiver:8080/alerts
+          httpMethod: POST
+policies:
+  - orgId: 1
+    receiver: quickticket-alerts
+    group_by: [alertname]
+    group_wait: 30s
+    group_interval: 1m
+    repeat_interval: 5m

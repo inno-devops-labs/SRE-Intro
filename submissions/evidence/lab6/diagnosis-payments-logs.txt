@@ -1,0 +1,40 @@
+{"time":"2026-09-27 11:05:42,596","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 9291e053-c332-4feb-8d0f-c4400d0eddb6"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+INFO:     10.42.0.30:50810 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-09-27 11:05:42,874","level":"INFO","service":"payments","msg":"Payment success: PAY-17E1248B for 2867747d-86c7-4ca9-9f36-63450f760cfd"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 200 OK
+{"time":"2026-09-27 11:05:43,157","level":"INFO","service":"payments","msg":"Payment success: PAY-4280E11A for 927ded8d-4a0b-428b-a599-7c11df6e80cf"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 200 OK
+INFO:     10.42.0.1:34506 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-09-27 11:05:43,436","level":"WARNING","service":"payments","msg":"Payment failed (injected) for b672b253-9633-4c5b-aa2d-07e6ee043168"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:43,718","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 54521060-d2fb-47d3-a846-5753539236af"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:43,994","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 21f0f69d-2cf4-4857-87fa-ed8939bbfbd9"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:44,268","level":"WARNING","service":"payments","msg":"Payment failed (injected) for c0006fc0-b5c6-4d45-bacd-a58028546d12"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:44,558","level":"WARNING","service":"payments","msg":"Payment failed (injected) for eccdf177-acc8-4596-9ee3-8b281324b3a6"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:44,878","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 89301ddf-fe49-4368-81e4-31324d09c390"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:45,156","level":"INFO","service":"payments","msg":"Payment success: PAY-785A8261 for 2a82e73e-681a-450c-81ef-4fa5053ae9b2"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 200 OK
+{"time":"2026-09-27 11:05:45,443","level":"INFO","service":"payments","msg":"Payment success: PAY-AE680198 for 6606fc20-01bc-4b09-9bf7-4c177dfd9535"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 200 OK
+{"time":"2026-09-27 11:05:45,730","level":"WARNING","service":"payments","msg":"Payment failed (injected) for b432712a-d6c5-45ac-862d-5e3736731124"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:46,009","level":"WARNING","service":"payments","msg":"Payment failed (injected) for c5a0a3bb-efe3-4756-9496-5e803bf8ebe7"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:46,286","level":"WARNING","service":"payments","msg":"Payment failed (injected) for beffad89-32dc-499e-ac11-43dc9cea4957"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:46,572","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 9534831d-85b3-4623-ac2b-714674465f15"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+{"time":"2026-09-27 11:05:46,906","level":"INFO","service":"payments","msg":"Payment success: PAY-FBEDFD14 for 8be109f4-d6ad-41d6-8b32-958fd7e1785a"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 200 OK
+INFO:     10.42.0.30:50810 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-09-27 11:05:47,174","level":"WARNING","service":"payments","msg":"Payment failed (injected) for d985118a-7289-4e92-9d84-3cc668cda8f3"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:42566 - "GET /health HTTP/1.1" 200 OK
+{"time":"2026-09-27 11:05:47,437","level":"INFO","service":"payments","msg":"Payment success: PAY-E51FFDF3 for 4829a877-934a-4908-98c3-13f9902f2e4d"}
+INFO:     10.42.0.30:50810 - "POST /charge HTTP/1.1" 200 OK

@@ -1,0 +1,10 @@
+{
+  "receiver": "quickticket-alerts",
+  "group_by": [
+    "alertname"
+  ],
+  "group_wait": "30s",
+  "group_interval": "1m",
+  "repeat_interval": "5m",
+  "provenance": "file"
+}

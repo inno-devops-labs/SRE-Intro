@@ -1,0 +1,89 @@
+{
+  "incident_requests": {
+    "query": "sum(increase(gateway_requests_total[285s]))",
+    "evaluated_at": 1790507158.579549,
+    "response": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1790507158.58,
+              "3087.246296596828"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "incident_5xx": {
+    "query": "sum(increase(gateway_requests_total{status=~\"5..\"}[285s]))",
+    "evaluated_at": 1790507158.579549,
+    "response": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1790507158.58,
+              "486.5307887417965"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "incident_payments_by_result": {
+    "query": "sum by (result) (increase(payments_charges_total[285s]))",
+    "evaluated_at": 1790507158.579549,
+    "response": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {
+              "result": "success"
+            },
+            "value": [
+              1790507158.58,
+              "498.1890096215808"
+            ]
+          },
+          {
+            "metric": {
+              "result": "failed"
+            },
+            "value": [
+              1790507158.58,
+              "491.9881620812925"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "current_error_percent": {
+    "query": "(sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) or 0 * sum(rate(gateway_requests_total[5m]))) / sum(rate(gateway_requests_total[5m])) * 100",
+    "evaluated_at": null,
+    "response": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1790507242.466,
+              "12.544226439369572"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
