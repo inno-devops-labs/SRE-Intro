@@ -311,13 +311,9 @@ async def _notify_order_confirmed(reservation_id: str):
 
 
 @app.post("/reserve/{reservation_id}/pay")
+@app.post("/reserve/{reservation_id}/pay")
 async def pay_reservation(reservation_id: str):
-    # 1. Call payments — wrapped in circuit breaker + retry.
-    #
-    # Composition order matters: cb.call(retry(_charge)) means each CB-tracked
-    # invocation includes its retries internally; the CB only sees the FINAL
-    # outcome. The reverse — retry(cb.call(_charge)) — would retry past the
-    # CircuitOpenError, defeating the fast-fail. See lab 11 §11.4.
+    """Pay for reservation with graceful degradation when payments service is down."""
     async def _charge():
         resp = await client.post(
             f"{PAYMENTS_URL}/charge",
@@ -327,20 +323,27 @@ async def pay_reservation(reservation_id: str):
         return resp
 
     try:
+        # Try to call payments with circuit breaker + retry
         pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
-    except CircuitOpenError:
-        log.error("circuit open, skipping payments call")
-        raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
-    except httpx.TimeoutException:
-        raise HTTPException(504, "Payment service timeout")
+    except (CircuitOpenError, httpx.ConnectError, httpx.TimeoutException, httpx.RequestError) as e:
+        # === GRACEFUL DEGRADATION ===
+        log.warning(f"Payments service unavailable for reservation {reservation_id}: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held — try again in a few minutes.",
+                "reservation_id": reservation_id
+            }
+        )
     except httpx.HTTPStatusError as e:
         raise HTTPException(e.response.status_code, "Payment failed")
     except Exception as e:
         log.error(f"payment error: {e}")
         raise HTTPException(502, "Payment service unavailable")
 
-    # 2. Confirm reservation in events.
+    # 2. Confirm reservation in events (only if payment succeeded)
     try:
         confirm_resp = await client.post(
             f"{EVENTS_URL}/reservations/{reservation_id}/confirm",
@@ -352,7 +355,7 @@ async def pay_reservation(reservation_id: str):
         log.error(f"confirm error after payment: {e}")
         raise HTTPException(500, "Payment succeeded but confirmation failed — contact support")
 
-    # 3. Fire-and-forget notify (don't await → don't add latency, don't fail user).
+    # 3. Fire-and-forget notify
     asyncio.create_task(_notify_order_confirmed(reservation_id))
 
     return result
