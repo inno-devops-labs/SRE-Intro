@@ -1,0 +1,62 @@
+# This CronJob creates periodic PostgreSQL backups for QuickTicket.
+# It writes custom-format pg_dump files to the postgres-backups PVC and keeps
+# only the five newest dumps so backup storage does not grow without bound.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  # Run every five minutes, as required by Lab 9.
+  schedule: "*/5 * * * *"
+
+  # Do not start a new backup if the previous backup job is still running.
+  concurrencyPolicy: Forbid
+
+  # Keep a small amount of Job history so Kubernetes metadata does not grow forever.
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-dump
+              image: postgres:17-alpine
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: quickticket
+                - name: PGDATABASE
+                  value: quickticket
+                - name: PGPASSWORD
+                  value: quickticket
+              command:
+                - sh
+                - -ec
+                - |
+                  cd /backups
+                  ts=$(date -u +%Y%m%dT%H%M%SZ)
+                  dump="quickticket_${ts}.dump"
+                  echo "creating ${dump}"
+                  pg_dump -Fc -f "${dump}"
+                  echo "backup files before retention:"
+                  ls -1t quickticket_*.dump
+                  old_files=$(ls -1t quickticket_*.dump | tail -n +6 || true)
+                  if [ -n "${old_files}" ]; then
+                    echo "removing old backups:"
+                    echo "${old_files}" | xargs -r rm -v
+                  else
+                    echo "no old backups to remove"
+                  fi
+                  echo "backup files after retention:"
+                  ls -1t quickticket_*.dump
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
