@@ -67,18 +67,108 @@
       ]
     },
     {
-      "title": "YOUR TURN: Add Latency panel here (p50 / p95 / p99)",
-      "description": "Use histogram_quantile() with gateway_request_duration_seconds_bucket",
-      "type": "text",
+      "title": "Latency",
+      "description": "Golden Signal #1: p50, p95 and p99 gateway latency",
+      "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
-      "options": { "mode": "markdown", "content": "## Add a Latency panel here\n\nReplace this text panel with a timeseries panel showing:\n- p50: `histogram_quantile(0.50, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))`\n- p95: `histogram_quantile(0.95, ...)`\n- p99: `histogram_quantile(0.99, ...)`\n\nSet unit to **seconds**." }
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "drawStyle": "line", "fillOpacity": 10 }
+        }
+      }
     },
     {
-      "title": "YOUR TURN: Add Saturation panel here",
-      "description": "Use events_db_pool_size gauge",
-      "type": "text",
+      "title": "Saturation",
+      "description": "Golden Signal #4: active DB connections in the events pool",
+      "type": "gauge",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
-      "options": { "mode": "markdown", "content": "## Add a Saturation panel here\n\nReplace this text panel with a gauge showing:\n- Query: `events_db_pool_size`\n- Min: 0, Max: 10\n- Thresholds: green < 7, yellow < 9, red ≥ 9\n\nThis shows how many DB connections are active out of the pool maximum." }
+      "targets": [
+        {
+          "expr": "events_db_pool_size",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 10,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 7 },
+              { "color": "red", "value": 9 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "title": "SLO Availability",
+      "description": "5 minute availability SLI as a percent",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 20 },
+      "targets": [
+        {
+          "expr": "gateway:sli_availability:ratio_rate5m * 100",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 99,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 99 },
+              { "color": "yellow", "value": 99.5 },
+              { "color": "green", "value": 99.9 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
     }
   ],
   "refresh": "5s",
