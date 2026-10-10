@@ -1,0 +1,12 @@
+NAME                             READY   STATUS    RESTARTS   AGE   IP           NODE                       NOMINATED NODE   READINESS GATES
+events-675d86c77-j5x9w           1/1     Running   0          31h   10.42.0.15   k3d-quickticket-server-0   <none>           <none>
+events-675d86c77-kwf4m           1/1     Running   0          92s   10.42.0.92   k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-6nfmn         1/1     Running   0          87s   10.42.0.97   k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-cb9bb         1/1     Running   0          70s   10.42.0.99   k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-gxfh7         1/1     Running   0          70s   10.42.0.98   k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-j9v9t         1/1     Running   0          87s   10.42.0.96   k3d-quickticket-server-0   <none>           <none>
+gateway-64f8c55856-mmd68         1/1     Running   0          87s   10.42.0.95   k3d-quickticket-server-0   <none>           <none>
+notifications-84d99c9f94-88g6f   1/1     Running   0          31h   10.42.0.31   k3d-quickticket-server-0   <none>           <none>
+notifications-84d99c9f94-tqxbr   1/1     Running   0          92s   10.42.0.94   k3d-quickticket-server-0   <none>           <none>
+payments-d7dc94485-m8hw8         1/1     Running   0          30h   10.42.0.78   k3d-quickticket-server-0   <none>           <none>
+payments-d7dc94485-nhhxt         1/1     Running   0          92s   10.42.0.93   k3d-quickticket-server-0   <none>           <none>

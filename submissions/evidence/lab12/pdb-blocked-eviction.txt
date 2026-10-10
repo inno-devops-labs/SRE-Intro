@@ -1,0 +1,4 @@
+NAME         MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+events-pdb   1               N/A               0                     3m36s
+
+Error from server (TooManyRequests): Cannot evict pod as it would violate the pod's disruption budget.

@@ -1,0 +1,16 @@
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/events          2/2     2            2           31h
+deployment.apps/mixedload       2/2     2            2           6m5s
+deployment.apps/notifications   2/2     2            2           32h
+deployment.apps/payments        2/2     2            2           31h
+deployment.apps/postgres        1/1     1            1           31h
+deployment.apps/redis           1/1     1            1           31h
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           31h
+
+NAME                                           MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+poddisruptionbudget.policy/events-pdb          1               N/A               1                     5m12s
+poddisruptionbudget.policy/gateway-pdb         2               N/A               3                     5m12s
+poddisruptionbudget.policy/notifications-pdb   N/A             1                 1                     5m12s
+poddisruptionbudget.policy/payments-pdb        1               N/A               1                     5m12s
