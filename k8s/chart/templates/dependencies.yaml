@@ -1,0 +1,64 @@
+{{- range $name := list "postgres" "redis" }}
+{{- $app := index $.Values $name }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+spec:
+  replicas: {{ $app.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+        - name: {{ $name }}
+          image: {{ $app.image }}
+          ports:
+            - containerPort: {{ $app.port }}
+          {{- if eq $name "postgres" }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ $app.database }}
+            - name: POSTGRES_USER
+              value: {{ $app.user }}
+            - name: POSTGRES_PASSWORD
+              value: {{ $app.password }}
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", {{ $app.user | quote }}]
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", {{ $app.user | quote }}]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          {{- else }}
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          {{- end }}
+          resources:
+{{ toYaml $.Values.resources | indent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+spec:
+  selector:
+    app: {{ $name }}
+  ports:
+    - port: {{ $app.port }}
+      targetPort: {{ $app.port }}
+---
+{{- end }}
