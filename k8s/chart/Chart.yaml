@@ -1,0 +1,5 @@
+apiVersion: v2
+name: quickticket
+description: QuickTicket SRE learning project
+version: 0.1.0
+appVersion: "1.0.0"

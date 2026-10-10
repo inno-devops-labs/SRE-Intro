@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    env:
+      REGISTRY: ghcr.io
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve image owner
+        id: meta
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "owner=${owner}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push service images
+        run: |
+          owner="${{ steps.meta.outputs.owner }}"
+          for service in gateway events payments; do
+            image="${REGISTRY}/${owner}/quickticket-${service}:${GITHUB_SHA}"
+            docker build -t "${image}" "./app/${service}"
+            docker push "${image}"
+          done
+
+      - name: Update image tags in manifests
+        run: |
+          owner="${{ steps.meta.outputs.owner }}"
+          sha="${GITHUB_SHA}"
+          sed -i "s|image: ghcr.io/.*/quickticket-gateway:.*|image: ghcr.io/${owner}/quickticket-gateway:${sha}|" k8s/gateway.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-events:.*|image: ghcr.io/${owner}/quickticket-events:${sha}|" k8s/events.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-payments:.*|image: ghcr.io/${owner}/quickticket-payments:${sha}|" k8s/payments.yaml
+
+      - name: Commit and push manifest update
+        run: |
+          if git diff --quiet -- k8s; then
+            echo "No manifest image tag changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add k8s/
+          git commit -m "ci: update image tags to ${GITHUB_SHA}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
