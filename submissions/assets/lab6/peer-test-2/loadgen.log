@@ -1,0 +1,6 @@
+QuickTicket Load Generator
+Target: http://localhost:3080 | RPS: 3 | Duration: 900s
+---
+[30s] requests=28 success=22 fail=6 error_rate=21.4%
+[30s] requests=29 success=23 fail=6 error_rate=20.6%
+[30s] requests=30 success=24 fail=6 error_rate=20.0%

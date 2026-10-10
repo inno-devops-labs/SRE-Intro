@@ -1,0 +1,20 @@
+{
+  "gateway": [
+    503,
+    "{\"status\":\"degraded\",\"checks\":{\"events\":\"ok\",\"payments\":\"down\",\"circuit_payments\":\"CLOSED\"}}"
+  ],
+  "payments": [
+    0,
+    "<urlopen error [Errno 61] Connection refused>"
+  ],
+  "events": [
+    200,
+    {
+      "status": "healthy",
+      "checks": {
+        "postgres": "ok",
+        "redis": "ok"
+      }
+    }
+  ]
+}

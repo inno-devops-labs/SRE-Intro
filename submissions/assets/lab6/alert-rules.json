@@ -1,0 +1,166 @@
+[
+  {
+    "id": 1,
+    "uid": "qt-high-errors",
+    "orgID": 1,
+    "folderUID": "quickticket-lab6",
+    "ruleGroup": "quickticket-1m",
+    "title": "QuickTicket High Error Rate",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 300,
+          "to": 0
+        },
+        "datasourceUid": "PBFA97CFB590B2093",
+        "model": {
+          "expr": "sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) / sum(rate(gateway_requests_total[5m])) * 100",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  5
+                ],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "updated": "2026-09-27T11:00:00Z",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "2m",
+    "keep_firing_for": "0s",
+    "annotations": {
+      "description": "Error rate exceeded 5% for 2 minutes. Check payments service health.",
+      "summary": "Gateway error rate is {{ $value }}%"
+    },
+    "labels": {
+      "severity": "critical"
+    },
+    "isPaused": false,
+    "notification_settings": null,
+    "record": null
+  },
+  {
+    "id": 2,
+    "uid": "qt-slo-burn",
+    "orgID": 1,
+    "folderUID": "quickticket-lab6",
+    "ruleGroup": "quickticket-1m",
+    "title": "QuickTicket SLO Burn Rate",
+    "condition": "C",
+    "data": [
+      {
+        "refId": "A",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 1800,
+          "to": 0
+        },
+        "datasourceUid": "PBFA97CFB590B2093",
+        "model": {
+          "expr": "(1 - (sum(rate(gateway_requests_total{status!~\"5..\"}[30m])) / sum(rate(gateway_requests_total[30m])))) / (1 - 0.995)",
+          "instant": true,
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "range": false,
+          "refId": "A"
+        }
+      },
+      {
+        "refId": "C",
+        "queryType": "",
+        "relativeTimeRange": {
+          "from": 0,
+          "to": 0
+        },
+        "datasourceUid": "__expr__",
+        "model": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [
+                  6
+                ],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": [
+                  "C"
+                ]
+              },
+              "reducer": {
+                "params": [],
+                "type": "last"
+              },
+              "type": "query"
+            }
+          ],
+          "expression": "A",
+          "intervalMs": 1000,
+          "maxDataPoints": 43200,
+          "refId": "C",
+          "type": "threshold"
+        }
+      }
+    ],
+    "updated": "2026-09-27T11:00:00Z",
+    "noDataState": "NoData",
+    "execErrState": "Error",
+    "for": "5m",
+    "keep_firing_for": "0s",
+    "annotations": {
+      "description": "Availability SLO 99.5%; 30m window.",
+      "summary": "QuickTicket availability budget burn exceeds 6x"
+    },
+    "labels": {
+      "severity": "warning"
+    },
+    "isPaused": false,
+    "notification_settings": null,
+    "record": null
+  }
+]

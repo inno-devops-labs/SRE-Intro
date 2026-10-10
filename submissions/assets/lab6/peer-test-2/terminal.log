@@ -1,0 +1,82 @@
+START 2026-09-27T21:21:29Z
+Follow the peer handout independently. Type exit when verification is complete.
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ DC=(docker compose -f docker-</SRE/SRE-Intro/app $ DC=(docker compose -f docker-c                         ompose.yaml -f ../docker-<ocker compose -f docker-compose.yaml -f ../docker-c                         ompose.monitoring.yaml)
+peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ curl -sS --max-time 5 http://</SRE/SRE-Intro/app $ curl -sS --max-time 5 http://l                         ocalhost:3080/health
+{"status":"degraded","checks":{"events":"down","payments":"ok","circuit_payments":"CLOSED"}}peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ curl -sS --max-time 5 http://</SRE/SRE-Intro/app $ curl -sS --max-time 5 http://l                         ocalhost:8081/health
+{"status":"degraded","checks":{"postgres":"ok","redis":"down"}}peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ "${DC[@]}" ps -a redis events
+NAME           IMAGE            COMMAND                  SERVICE   CREATED        STATUS                     PORTS
+app-events-1   app-events       "uvicorn main:app --…"   events    10 hours ago   Up 3 minutes               0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+app-redis-1    redis:7-alpine   "docker-entrypoint.s…"   redis     2 weeks ago    Exited (0) 2 minutes ago   
+peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ "${DC[@]}" logs events --tail</SRE/SRE-Intro/app $ "${DC[@]}" logs events --tail=                         40 --since=5m
+events-1  |            ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/client.py", line 722, in _execute_command
+events-1  |     conn = self.connection or pool.get_connection()
+events-1  |                               ~~~~~~~~~~~~~~~~~~~^^
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/utils.py", line 236, in wrapper
+events-1  |     return func(*args, **kwargs)
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 3041, in get_connection
+events-1  |     connection.connect()
+events-1  |     ~~~~~~~~~~~~~~~~~~^^
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 976, in connect
+events-1  |     self.retry.call_with_retry(
+events-1  |     ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+events-1  |         lambda: self.connect_check_health(
+events-1  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+events-1  |     ...<2 lines>...
+events-1  |         lambda error: self.disconnect(error),
+events-1  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+events-1  |     )
+events-1  |     ^
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/retry.py", line 132, in call_with_retry
+events-1  |     raise error
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/retry.py", line 120, in call_with_retry
+events-1  |     return do()
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 977, in <lambda>
+events-1  |     lambda: self.connect_check_health(
+events-1  |             ~~~~~~~~~~~~~~~~~~~~~~~~~^
+events-1  |         check_health=True, retry_socket_connect=False
+events-1  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+events-1  |     ),
+events-1  |     ^
+events-1  |   File "/usr/local/lib/python3.13/site-packages/redis/connection.py", line 1025, in connect_check_health
+events-1  |     raise e
+events-1  | redis.exceptions.ConnectionError: Error -2 connecting to redis:6379. Name or service not known.
+events-1  | INFO:     172.19.0.6:41398 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.6:36862 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.6:54240 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.6:44430 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.6:52402 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.6:53524 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.1:63658 - "GET /health HTTP/1.1" 503 Service Unavailable
+peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ "${DC[@]}" exec -T redis redi</SRE/SRE-Intro/app $ "${DC[@]}" exec -T redis redis                         -cli ping
+service "redis" is not running
+peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ "${DC[@]}" start redis
+[?25l[0G[+] start 0/1
+ ⠋ Container app-redis-1 Starting                                           0.1s
+[?25h[?25l[2A[0G[+] start 1/1
+ ✔ Container app-redis-1 Started                                            0.1s
+[?25hpeer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ "${DC[@]}" exec -T redis redi</SRE/SRE-Intro/app $ "${DC[@]}" exec -T redis redis                         -cli ping
+PONG
+peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ curl -sS --max-time 5 http://</SRE/SRE-Intro/app $ curl -sS --max-time 5 http://l                         ocalhost:3080/health
+{"status":"healthy","checks":{"events":"ok","payments":"ok","circuit_payments":"CLOSED"}}peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ curl -sS --max-time 5 http://</SRE/SRE-Intro/app $ curl -sS --max-time 5 http://l                         ocalhost:8081/health
+{"status":"healthy","checks":{"postgres":"ok","redis":"ok"}}peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ curl -sS --max-time 5 -X POST</SRE/SRE-Intro/app $ curl -sS --max-time 5 -X POST                          -H 'Content-Type: applica<-sS --max-time 5 -X POST -H 'Content-Type: applicat                         ion/json' -d '{"quantity"<H 'Content-Type: application/json' -d '{"quantity":                         1}' http://localhost:3080<on/json' -d '{"quantity":1}' http://localhost:3080/                         events/3/reserve
+{"reservation_id":"b9e5d88e-53b1-4bb4-bb1a-12b9d8e570f8","event_id":3,"quantity":1,"total_cents":15000,"expires_in_seconds":300}peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ curl -sS --max-time 5 -X POST</SRE/SRE-Intro/app $ curl -sS --max-time 5 -X POST                          http://localhost:3080/res<-sS --max-time 5 -X POST http://localhost:3080/rese                         rve/b9e5d88e-53b1-4bb4-bb<ttp://localhost:3080/reserve/b9e5d88e-53b1-4bb4-bb1                         a-12b9d8e570f8/pay
+{"order_id":"b9e5d88e-53b1-4bb4-bb1a-12b9d8e570f8","event_id":3,"quantity":1,"total_cents":15000,"status":"confirmed"}peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ "${DC[@]}" logs events --tail</SRE/SRE-Intro/app $ "${DC[@]}" logs events --tail=                         40 --since=1m
+events-1  | INFO:     172.19.0.6:52402 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.6:53524 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.1:63658 - "GET /health HTTP/1.1" 503 Service Unavailable
+events-1  | INFO:     172.19.0.6:41156 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.8:38572 - "GET /health HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.1:58684 - "GET /health HTTP/1.1" 200 OK
+events-1  | {"time":"2026-09-27 21:21:58,075","level":"INFO","service":"events","msg":"Reserved 1 tickets for event 3: b9e5d88e-53b1-4bb4-bb1a-12b9d8e570f8"}
+events-1  | INFO:     172.19.0.8:38572 - "POST /events/3/reserve HTTP/1.1" 200 OK
+events-1  | INFO:     172.19.0.6:41652 - "GET /metrics HTTP/1.1" 200 OK
+events-1  | {"time":"2026-09-27 21:22:06,083","level":"INFO","service":"events","msg":"Order confirmed: b9e5d88e-53b1-4bb4-bb1a-12b9d8e570f8"}
+events-1  | INFO:     172.19.0.8:48402 - "POST /reservations/b9e5d88e-53b1-4bb4-bb1a-12b9d8e570f8/confirm HTTP/1.1" 200 OK
+peer-test ~/notes/uni/f2026/SRE/SRE-Intro/app $ exit
+exit
+END 2026-09-27T21:22:09Z

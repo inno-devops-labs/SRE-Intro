@@ -1,0 +1,20 @@
+payments-1  | {"time":"2026-09-27 11:02:23,760","level":"INFO","service":"payments","msg":"Payment success: PAY-642FCDCA for b509df82-f7ee-4754-ac55-e3da360c63a2"}
+payments-1  | INFO:     172.19.0.8:34274 - "POST /charge HTTP/1.1" 200 OK
+payments-1  | INFO:     172.19.0.6:56278 - "GET /metrics HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:02:29,370","level":"INFO","service":"payments","msg":"Payment success: PAY-E7FF30E9 for cac913cf-f438-4073-9eef-4ab9f79b5018"}
+payments-1  | INFO:     172.19.0.8:34288 - "POST /charge HTTP/1.1" 200 OK
+payments-1  | INFO:     172.19.0.6:52530 - "GET /metrics HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:02:40,580","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 24102a90-d877-4707-867b-c04b001e21fe"}
+payments-1  | INFO:     172.19.0.8:43818 - "POST /charge HTTP/1.1" 500 Internal Server Error
+payments-1  | INFO:     172.19.0.6:57248 - "GET /metrics HTTP/1.1" 200 OK
+payments-1  | INFO:     172.19.0.6:55022 - "GET /metrics HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:03:10,350","level":"WARNING","service":"payments","msg":"Payment failed (injected) for bf154793-3f9d-4aaf-99e6-64769a0e7889"}
+payments-1  | INFO:     172.19.0.8:37150 - "POST /charge HTTP/1.1" 500 Internal Server Error
+payments-1  | {"time":"2026-09-27 11:03:23,357","level":"INFO","service":"payments","msg":"Payment success: PAY-EDD2FF2B for 324fa52a-e1df-4437-b9c7-8dde7f1e4f5c"}
+payments-1  | INFO:     172.19.0.8:38736 - "POST /charge HTTP/1.1" 200 OK
+payments-1  | INFO:     172.19.0.6:49982 - "GET /metrics HTTP/1.1" 200 OK
+payments-1  | INFO:     172.19.0.6:58212 - "GET /metrics HTTP/1.1" 200 OK
+payments-1  | INFO:     Shutting down
+payments-1  | INFO:     Waiting for application shutdown.
+payments-1  | INFO:     Application shutdown complete.
+payments-1  | INFO:     Finished server process [1]
