@@ -1,0 +1,51 @@
+Name:                   gateway
+Namespace:              default
+CreationTimestamp:      Sun, 27 Sep 2026 13:56:03 +0300
+Labels:                 version=v2
+Annotations:            argocd.argoproj.io/tracking-id: quickticket:apps/Deployment:default/gateway
+                        deployment.kubernetes.io/revision: 4
+Selector:               app=gateway
+Replicas:               1 desired | 1 updated | 2 total | 1 available | 1 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=gateway
+  Containers:
+   gateway:
+    Image:      ghcr.io/walkerino/quickticket-gateway:does-not-exist
+    Port:       8080/TCP (tcp)
+    Host Port:  0/TCP (tcp)
+    Limits:
+      cpu:     200m
+      memory:  256Mi
+    Requests:
+      cpu:      50m
+      memory:   64Mi
+    Liveness:   tcp-socket :8080 delay=10s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:8080/health delay=0s timeout=5s period=5s #success=1 #failure=2
+    Startup:    tcp-socket :8080 delay=0s timeout=1s period=2s #success=1 #failure=30
+    Environment:
+      EVENTS_URL:          http://events:8081
+      PAYMENTS_URL:        http://payments:8082
+      GATEWAY_TIMEOUT_MS:  5000
+    Mounts:                <none>
+  Volumes:                 <none>
+  Node-Selectors:          <none>
+  Tolerations:             <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    False   ProgressDeadlineExceeded
+OldReplicaSets:  gateway-575bcd699f (0/0 replicas created), gateway-6b49c64ff9 (0/0 replicas created), gateway-7fcbf786f8 (1/1 replicas created)
+NewReplicaSet:   gateway-7b755c5bc (1/1 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  4m15s  deployment-controller  Scaled up replica set gateway-575bcd699f from 0 to 1
+  Normal  ScalingReplicaSet  2m53s  deployment-controller  Scaled up replica set gateway-6b49c64ff9 from 0 to 1
+  Normal  ScalingReplicaSet  2m39s  deployment-controller  Scaled down replica set gateway-575bcd699f from 1 to 0
+  Normal  ScalingReplicaSet  2m25s  deployment-controller  Scaled up replica set gateway-7fcbf786f8 from 0 to 1
+  Normal  ScalingReplicaSet  2m21s  deployment-controller  Scaled down replica set gateway-6b49c64ff9 from 1 to 0
+  Normal  ScalingReplicaSet  94s    deployment-controller  Scaled up replica set gateway-7b755c5bc from 0 to 1

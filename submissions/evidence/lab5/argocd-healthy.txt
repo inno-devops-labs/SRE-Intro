@@ -1,0 +1,25 @@
+Name:               argocd/quickticket
+Project:            default
+Server:             https://kubernetes.default.svc
+Namespace:          default
+URL:                https://localhost:8443/applications/quickticket
+Source:
+- Repo:             https://github.com/Walkerino/SRE-Intro.git
+  Target:           feature/lab5
+  Path:             k8s
+SyncWindow:         Sync Allowed
+Sync Policy:        Automated (Prune)
+Sync Status:        Synced to feature/lab5 (96323bf)
+Health Status:      Healthy
+
+GROUP  KIND        NAMESPACE  NAME      STATUS  HEALTH   HOOK  MESSAGE
+       Service     default    gateway   Synced  Healthy        service/gateway unchanged
+       Service     default    postgres  Synced  Healthy        service/postgres unchanged
+       Service     default    redis     Synced  Healthy        service/redis unchanged
+       Service     default    payments  Synced  Healthy        service/payments unchanged
+       Service     default    events    Synced  Healthy        service/events unchanged
+apps   Deployment  default    redis     Synced  Healthy        deployment.apps/redis unchanged
+apps   Deployment  default    postgres  Synced  Healthy        deployment.apps/postgres unchanged
+apps   Deployment  default    events    Synced  Healthy        deployment.apps/events configured
+apps   Deployment  default    payments  Synced  Healthy        deployment.apps/payments configured
+apps   Deployment  default    gateway   Synced  Healthy        deployment.apps/gateway configured

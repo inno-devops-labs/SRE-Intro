@@ -1,0 +1,2 @@
+NAME                       STATUS   ROLES                  AGE    VERSION
+k3d-quickticket-server-0   Ready    control-plane,master   4m6s   v1.33.3+k3s1

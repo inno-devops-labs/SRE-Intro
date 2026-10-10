@@ -1,0 +1,7 @@
+NAME: quickticket
+LAST DEPLOYED: Mon Sep 21 11:25:59 2026
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None

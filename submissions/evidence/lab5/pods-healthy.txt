@@ -1,0 +1,10 @@
+NAME                              READY   STATUS    RESTARTS   AGE
+alert-receiver-7b5bc4cf88-lnw2t   1/1     Running   0          117s
+events-7cbfc9d5fb-d96lq           1/1     Running   0          45s
+gateway-7fcbf786f8-5qb8j          1/1     Running   0          45s
+grafana-56b4dfc74f-5d6mb          1/1     Running   0          117s
+lab6-loadgen-559594c575-p4qwj     1/1     Running   0          45s
+payments-7d8847677f-txcqq         1/1     Running   0          45s
+postgres-56db6d697c-bcpkl         1/1     Running   0          2m35s
+prometheus-6df9866b87-zx8f5       1/1     Running   0          116s
+redis-6d695466ff-b5dd5            1/1     Running   0          2m35s

@@ -1,0 +1,26 @@
+Name:      ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616
+MediaType: application/vnd.oci.image.index.v1+json
+Digest:    sha256:c2d3bf53028646ef73b7da2c466e734702ff7a1c5d64e174d67d71d606af2312
+
+Manifests:
+  Name:        ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616@sha256:2ccc622c0061a9662ba8763fd695327abf2ce558f1c4f58e0487fc3cc4606de8
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    linux/amd64
+
+  Name:        ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616@sha256:e6c1460544a7915b4dcbfe85e1fe3597d25e1b4a26702dc677cdfa7701e75512
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    linux/arm64
+
+  Name:        ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616@sha256:25707f6bd0888953d7c5dfbfb95bcfe030baf419e605725e6b2cd9ba5e22b652
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    unknown/unknown
+  Annotations:
+    vnd.docker.reference.digest: sha256:2ccc622c0061a9662ba8763fd695327abf2ce558f1c4f58e0487fc3cc4606de8
+    vnd.docker.reference.type:   attestation-manifest
+
+  Name:        ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616@sha256:f95ba547723503a2063877f1f9cb1f0f9cdd49956f461eee05e0912f6a6d960c
+  MediaType:   application/vnd.oci.image.manifest.v1+json
+  Platform:    unknown/unknown
+  Annotations:
+    vnd.docker.reference.digest: sha256:e6c1460544a7915b4dcbfe85e1fe3597d25e1b4a26702dc677cdfa7701e75512
+    vnd.docker.reference.type:   attestation-manifest

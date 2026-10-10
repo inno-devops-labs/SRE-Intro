@@ -1,0 +1,18 @@
+{
+  "health": {
+    "status": "healthy",
+    "checks": {
+      "events": "ok",
+      "payments": "ok",
+      "circuit_payments": "CLOSED"
+    }
+  },
+  "event_count": 5,
+  "checkout": {
+    "order_id": "cc69aeef-7da2-403d-82da-effd2f3b8002",
+    "event_id": 3,
+    "quantity": 1,
+    "total_cents": 15000,
+    "status": "confirmed"
+  }
+}

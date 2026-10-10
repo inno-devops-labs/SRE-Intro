@@ -1,0 +1,19 @@
+{{- range $name := list "postgres" "redis" "events" "payments" "gateway" }}
+{{- $component := index $.Values $name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ $name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+  ports:
+    - name: tcp
+      port: {{ $component.port }}
+      targetPort: tcp
+{{- end }}

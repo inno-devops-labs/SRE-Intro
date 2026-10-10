@@ -1,0 +1,108 @@
+2026-09-21T08:24:08+00:00 Delete Redis pod normally
+NAME                        READY   STATUS    RESTARTS   AGE
+events-56ff56dd58-jgtbt     1/1     Running   0          2m33s
+gateway-6764b89544-lv8nz    1/1     Running   0          35s
+payments-58f46b478f-srrl7   1/1     Running   0          2m33s
+postgres-56db6d697c-k4pgz   1/1     Running   0          2m33s
+redis-6d695466ff-776qn      1/1     Running   0          2m33s
+redis-6d695466ff-776qn      1/1     Terminating   0          2m33s
+2026-09-21T08:24:08+00:00 pod "redis-6d695466ff-776qn" deleted
+
+redis-6d695466ff-7fcp6      0/1     Pending       0          0s
+redis-6d695466ff-7fcp6      0/1     Pending       0          0s
+redis-6d695466ff-7fcp6      0/1     ContainerCreating   0          0s
+redis-6d695466ff-776qn      0/1     Completed           0          2m33s
+redis-6d695466ff-7fcp6      0/1     Running             0          1s
+redis-6d695466ff-776qn      0/1     Completed           0          2m34s
+redis-6d695466ff-776qn      0/1     Completed           0          2m34s
+redis-6d695466ff-7fcp6      1/1     Running             0          1s
+2026-09-21T08:24:28+00:00 NAME                        READY   STATUS    RESTARTS   AGE
+events-56ff56dd58-jgtbt     1/1     Running   0          2m53s
+gateway-6764b89544-lv8nz    1/1     Running   0          55s
+payments-58f46b478f-srrl7   1/1     Running   0          2m53s
+postgres-56db6d697c-k4pgz   1/1     Running   0          2m53s
+redis-6d695466ff-7fcp6      1/1     Running   0          20s
+
+2026-09-21T08:24:28+00:00 Hold Redis unavailable by scaling to zero so the probe sampling cannot miss the failure
+2026-09-21T08:24:28+00:00 deployment.apps/redis scaled
+
+redis-6d695466ff-7fcp6      1/1     Terminating         0          20s
+redis-6d695466ff-7fcp6      0/1     Completed           0          20s
+redis-6d695466ff-7fcp6      0/1     Completed           0          21s
+redis-6d695466ff-7fcp6      0/1     Completed           0          21s
+events-56ff56dd58-jgtbt     0/1     Running             0          3m7s
+2026-09-21T08:24:42+00:00 events became NotReady after 13.98s
+2026-09-21T08:24:42+00:00 NAME                        READY   STATUS    RESTARTS   AGE
+events-56ff56dd58-jgtbt     0/1     Running   0          3m7s
+gateway-6764b89544-lv8nz    1/1     Running   0          69s
+payments-58f46b478f-srrl7   1/1     Running   0          3m7s
+postgres-56db6d697c-k4pgz   1/1     Running   0          3m7s
+
+2026-09-21T08:24:42+00:00 apiVersion: v1
+items:
+- addressType: IPv4
+  apiVersion: discovery.k8s.io/v1
+  endpoints:
+  - addresses:
+    - 10.42.0.9
+    conditions:
+      ready: false
+      serving: false
+      terminating: false
+    nodeName: k3d-quickticket-server-0
+    targetRef:
+      kind: Pod
+      name: events-56ff56dd58-jgtbt
+      namespace: default
+      uid: 4bd9c030-d363-48bb-a8ff-0e282be337ec
+  kind: EndpointSlice
+  metadata:
+    annotations:
+      endpoints.kubernetes.io/last-change-trigger-time: "2026-09-21T08:24:42Z"
+    creationTimestamp: "2026-09-21T08:21:35Z"
+    generateName: events-
+    generation: 4
+    labels:
+      endpointslice.kubernetes.io/managed-by: endpointslice-controller.k8s.io
+      kubernetes.io/service-name: events
+    name: events-9vqpg
+    namespace: default
+    ownerReferences:
+    - apiVersion: v1
+      blockOwnerDeletion: true
+      controller: true
+      kind: Service
+      name: events
+      uid: 741fceff-6e08-4b59-8cad-6a7b96b53f6c
+    resourceVersion: "1079"
+    uid: 48b164ac-54c8-498a-9640-a9b3ffc4da78
+  ports:
+  - name: tcp
+    port: 8081
+    protocol: TCP
+kind: List
+metadata:
+  resourceVersion: ""
+
+2026-09-21T08:24:42+00:00 deployment.apps/redis scaled
+
+redis-6d695466ff-vgtv6      0/1     Pending             0          0s
+redis-6d695466ff-vgtv6      0/1     Pending             0          0s
+redis-6d695466ff-vgtv6      0/1     ContainerCreating   0          0s
+redis-6d695466ff-vgtv6      0/1     Running             0          1s
+redis-6d695466ff-vgtv6      1/1     Running             0          1s
+2026-09-21T08:24:43+00:00 Waiting for deployment "redis" rollout to finish: 0 of 1 updated replicas are available...
+deployment "redis" successfully rolled out
+
+events-56ff56dd58-jgtbt     1/1     Running             0          3m9s
+2026-09-21T08:24:44+00:00 Waiting for deployment "events" rollout to finish: 0 of 1 updated replicas are available...
+deployment "events" successfully rolled out
+
+2026-09-21T08:24:44+00:00 deployment "gateway" successfully rolled out
+
+2026-09-21T08:24:44+00:00 NAME                        READY   STATUS    RESTARTS   AGE
+events-56ff56dd58-jgtbt     1/1     Running   0          3m9s
+gateway-6764b89544-lv8nz    1/1     Running   0          71s
+payments-58f46b478f-srrl7   1/1     Running   0          3m9s
+postgres-56db6d697c-k4pgz   1/1     Running   0          3m9s
+redis-6d695466ff-vgtv6      1/1     Running   0          2s

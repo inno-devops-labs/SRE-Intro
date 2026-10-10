@@ -1,0 +1,3 @@
+96323bf feat(lab5): verify GitOps label sync with public GHCR images
+3800c40 ci: update image tags to 17b2fdb163812e011ade153c83cf598de034a616
+17b2fdb feat(lab5): build multi-platform images and automate GitOps image updates

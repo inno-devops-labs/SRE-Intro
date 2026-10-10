@@ -1,0 +1,3 @@
+8648fea Revert "test(lab5): deploy nonexistent gateway tag for rollback exercise"
+205a41c test(lab5): deploy nonexistent gateway tag for rollback exercise
+96323bf feat(lab5): verify GitOps label sync with public GHCR images

@@ -1,0 +1,86 @@
+name: QuickTicket CI
+on:
+  push:
+    branches: [main, feature/lab5]
+    paths:
+      - 'app/**'
+      - '.github/workflows/ci.yml'
+      - 'scripts/update-image-tags.py'
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/ci.yml'
+      - 'scripts/update-image-tags.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quickticket-ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [gateway, events, payments]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Registry namespace
+        id: registry
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: echo "owner=${OWNER,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./app/${{ matrix.service }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/${{ steps.registry.outputs.owner }}/quickticket-${{ matrix.service }}:${{ github.sha }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  update-manifests:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Update only if built application is still current
+        env:
+          BUILD_SHA: ${{ github.sha }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          # A newer source push must never be deployed using older images.
+          if ! git diff --quiet "$BUILD_SHA" HEAD -- app/ .github/workflows/ci.yml scripts/update-image-tags.py; then
+            echo 'Newer application source exists; its CI run will update tags.'
+            exit 0
+          fi
+          python3 scripts/update-image-tags.py "${OWNER,,}" "$BUILD_SHA"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "ci: update image tags to $BUILD_SHA"
+          # No force push: concurrent human changes cause a safe failure.
+          git push origin "HEAD:$GITHUB_REF_NAME"

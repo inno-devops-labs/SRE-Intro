@@ -1,0 +1,133 @@
+Name:             events-56ff56dd58-jgtbt
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             k3d-quickticket-server-0/172.19.0.3
+Start Time:       Mon, 21 Sep 2026 11:21:35 +0300
+Labels:           app=events
+                  pod-template-hash=56ff56dd58
+Annotations:      <none>
+Status:           Running
+IP:               10.42.0.9
+IPs:
+  IP:           10.42.0.9
+Controlled By:  ReplicaSet/events-56ff56dd58
+Init Containers:
+  wait-for-postgres:
+    Container ID:  containerd://9f06d141eb56bcfd48e33f50bbeb9a90585f6fd28e8d56eb1e3e761fc0255bc2
+    Image:         postgres:17-alpine
+    Image ID:      sha256:ff80089083d7365046af7f03d949a2defa14e0b09e14bd5b8f08a242291be8b2
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      -c
+      until pg_isready -h postgres -U quickticket -d quickticket; do sleep 2; done
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 21 Sep 2026 11:21:35 +0300
+      Finished:     Mon, 21 Sep 2026 11:21:42 +0300
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  256Mi
+    Requests:
+      cpu:        50m
+      memory:     64Mi
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-j6nnz (ro)
+  wait-for-redis:
+    Container ID:  containerd://4c360f70de6ad72c866016e80cb32192258806ecf83e2e4bdc77a352bc5086bb
+    Image:         redis:7-alpine
+    Image ID:      sha256:9a56851f1a97e0586f85f8d7f7652e65cb589b2409d965c5d6e275dfc2551907
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      -c
+      until redis-cli -h redis ping | grep -q PONG; do sleep 2; done
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Mon, 21 Sep 2026 11:21:42 +0300
+      Finished:     Mon, 21 Sep 2026 11:21:42 +0300
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  256Mi
+    Requests:
+      cpu:        50m
+      memory:     64Mi
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-j6nnz (ro)
+Containers:
+  events:
+    Container ID:   containerd://11c153d80aa390a23afdc79adf2c8298ba125adeada69dac17b23cd0b7f56d84
+    Image:          quickticket-events:v1
+    Image ID:       sha256:31323c884d76bd4fd19c765c9f79bdda431adf1cc6ff8be49bbddae245a5e0c4
+    Port:           8081/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Mon, 21 Sep 2026 11:21:43 +0300
+    Ready:          False
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  256Mi
+    Requests:
+      cpu:      50m
+      memory:   64Mi
+    Liveness:   tcp-socket :8081 delay=10s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:8081/health delay=0s timeout=5s period=5s #success=1 #failure=2
+    Startup:    tcp-socket :8081 delay=0s timeout=1s period=2s #success=1 #failure=30
+    Environment:
+      DB_HOST:           postgres
+      DB_PORT:           5432
+      DB_NAME:           quickticket
+      DB_USER:           quickticket
+      DB_PASS:           quickticket
+      DB_MAX_CONNS:      10
+      REDIS_HOST:        redis
+      REDIS_PORT:        6379
+      REDIS_TIMEOUT_MS:  1000
+      RESERVATION_TTL:   300
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-j6nnz (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       False
+  ContainersReady             False
+  PodScheduled                True
+Volumes:
+  kube-api-access-j6nnz:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age              From               Message
+  ----     ------     ----             ----               -------
+  Normal   Scheduled  3m7s             default-scheduler  Successfully assigned default/events-56ff56dd58-jgtbt to k3d-quickticket-server-0
+  Normal   Pulled     3m7s             kubelet            Container image "postgres:17-alpine" already present on machine
+  Normal   Created    3m7s             kubelet            Created container: wait-for-postgres
+  Normal   Started    3m7s             kubelet            Started container wait-for-postgres
+  Normal   Pulled     3m               kubelet            Container image "redis:7-alpine" already present on machine
+  Normal   Created    3m               kubelet            Created container: wait-for-redis
+  Normal   Started    3m               kubelet            Started container wait-for-redis
+  Normal   Pulled     2m59s            kubelet            Container image "quickticket-events:v1" already present on machine
+  Normal   Created    2m59s            kubelet            Created container: events
+  Normal   Started    2m59s            kubelet            Started container events
+  Warning  Unhealthy  2m57s            kubelet            Startup probe failed: dial tcp 10.42.0.9:8081: connect: connection refused
+  Warning  Unhealthy  0s (x2 over 5s)  kubelet            Readiness probe failed: Get "http://10.42.0.9:8081/health": context deadline exceeded (Client.Timeout exceeded while awaiting headers)

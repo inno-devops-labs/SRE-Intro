@@ -1,0 +1,6 @@
+NAME                        READY   STATUS    RESTARTS   AGE
+events-7867fcfd55-ktjwd     1/1     Running   0          14s
+gateway-74c8b87478-5skbd    1/1     Running   0          14s
+payments-7794787857-z7wx2   1/1     Running   0          14s
+postgres-8547cb95cc-5wxhm   1/1     Running   0          14s
+redis-5dbb6fcbff-lp5zx      1/1     Running   0          14s

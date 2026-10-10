@@ -1,0 +1,137 @@
+# Local lab defaults, including demo database credentials. One release per namespace.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+events:
+  replicas: 1
+  image: quickticket-events:v1
+  imagePullPolicy: Never
+  port: 8081
+  env:
+    DB_HOST: postgres
+    DB_PORT: '5432'
+    DB_NAME: quickticket
+    DB_USER: quickticket
+    DB_PASS: quickticket
+    DB_MAX_CONNS: '10'
+    REDIS_HOST: redis
+    REDIS_PORT: '6379'
+    REDIS_TIMEOUT_MS: '1000'
+    RESERVATION_TTL: '300'
+  startupProbe:
+    tcpSocket:
+      port: 8081
+    periodSeconds: 2
+    failureThreshold: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8081
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 2
+  livenessProbe:
+    tcpSocket:
+      port: 8081
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+gateway:
+  replicas: 1
+  image: quickticket-gateway:v1
+  imagePullPolicy: Never
+  port: 8080
+  env:
+    EVENTS_URL: http://events:8081
+    PAYMENTS_URL: http://payments:8082
+    GATEWAY_TIMEOUT_MS: '5000'
+  startupProbe:
+    tcpSocket:
+      port: 8080
+    periodSeconds: 2
+    failureThreshold: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 2
+  livenessProbe:
+    tcpSocket:
+      port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+postgres:
+  replicas: 1
+  image: postgres:17-alpine
+  imagePullPolicy: IfNotPresent
+  port: 5432
+  env:
+    POSTGRES_DB: quickticket
+    POSTGRES_USER: quickticket
+    POSTGRES_PASSWORD: quickticket
+  readinessProbe:
+    exec:
+      command:
+      - pg_isready
+      - -U
+      - quickticket
+      - -d
+      - quickticket
+    periodSeconds: 5
+    timeoutSeconds: 3
+  livenessProbe:
+    tcpSocket:
+      port: 5432
+    initialDelaySeconds: 10
+    periodSeconds: 10
+payments:
+  replicas: 1
+  image: quickticket-payments:v1
+  imagePullPolicy: Never
+  port: 8082
+  env:
+    PAYMENT_FAILURE_RATE: '0.0'
+    PAYMENT_LATENCY_MS: '0'
+  startupProbe:
+    tcpSocket:
+      port: 8082
+    periodSeconds: 2
+    failureThreshold: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8082
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 2
+  livenessProbe:
+    tcpSocket:
+      port: 8082
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+redis:
+  replicas: 1
+  image: redis:7-alpine
+  imagePullPolicy: IfNotPresent
+  port: 6379
+  env: {}
+  readinessProbe:
+    exec:
+      command:
+      - redis-cli
+      - ping
+    periodSeconds: 5
+    timeoutSeconds: 3
+  livenessProbe:
+    tcpSocket:
+      port: 6379
+    initialDelaySeconds: 10
+    periodSeconds: 10
