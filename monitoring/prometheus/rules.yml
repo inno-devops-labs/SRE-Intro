@@ -1,0 +1,33 @@
+# QuickTicket SLO recording rules (Lab 3, Task 2)
+#
+# Naming follows the Prometheus convention level:metric:operations.
+# Rules inside one group are evaluated in order, which is why the burn rate
+# may reference the availability SLI recorded two rules above it.
+
+groups:
+  - name: slo_rules
+    interval: 30s
+    rules:
+      # SLI 1 — availability: share of gateway requests that did not fail 5xx.
+      - record: gateway:sli_availability:ratio_rate5m
+        expr: |
+          sum(rate(gateway_requests_total{status!~"5.."}[5m]))
+          /
+          sum(rate(gateway_requests_total[5m]))
+
+      # SLI 2 — latency: share of gateway requests served in under 500 ms.
+      # The le="0.5" bucket is cumulative, so it already counts everything
+      # faster than the boundary; _count is the same population unfiltered.
+      - record: gateway:sli_latency_500ms:ratio_rate5m
+        expr: |
+          sum(rate(gateway_request_duration_seconds_bucket{le="0.5"}[5m]))
+          /
+          sum(rate(gateway_request_duration_seconds_count[5m]))
+
+      # Error budget burn rate against the 99.5% availability SLO.
+      # 1 means the budget is being spent exactly at the sustainable pace.
+      - record: gateway:error_budget_burn_rate:ratio_rate5m
+        expr: |
+          (1 - gateway:sli_availability:ratio_rate5m)
+          /
+          (1 - 0.995)
