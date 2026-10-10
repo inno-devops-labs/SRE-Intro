@@ -1,0 +1,11 @@
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: quickticket-alerts
+    group_by:
+      - grafana_folder
+      - alertname
+    group_wait: 5s
+    group_interval: 30s
+    repeat_interval: 5m
