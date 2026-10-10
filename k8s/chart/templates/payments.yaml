@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+spec:
+  replicas: {{ .Values.payments.replicas }}
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      containers:
+        - name: payments
+          image: {{ .Values.payments.image }}
+          imagePullPolicy: Never
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: {{ .Values.payments.failureRate }}
+            - name: PAYMENT_LATENCY_MS
+              value: {{ .Values.payments.latencyMs }}
+          ports:
+            - containerPort: {{ .Values.payments.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+spec:
+  selector:
+    app: payments
+  ports:
+    - port: {{ .Values.payments.port }}
+      targetPort: {{ .Values.payments.port }}
