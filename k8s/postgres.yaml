@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  labels:
+    app: postgres
+data:
+  01-seed.sql: |
+    -- QuickTicket seed data
+
+    CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        venue TEXT NOT NULL,
+        event_date TIMESTAMPTZ NOT NULL,
+        total_tickets INT NOT NULL,
+        price_cents INT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        event_id INT REFERENCES events(id),
+        quantity INT NOT NULL,
+        total_cents INT NOT NULL,
+        payment_ref TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'confirmed',
+        created_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    INSERT INTO events (name, venue, event_date, total_tickets, price_cents) VALUES
+        ('Go Conference 2026', 'Main Hall A', '2026-09-15 09:00:00+00', 100, 5000),
+        ('SRE Meetup', 'Room 204', '2026-10-01 18:00:00+00', 30, 0),
+        ('Cloud Native Summit', 'Expo Center', '2026-11-20 10:00:00+00', 500, 15000),
+        ('Python Workshop', 'Lab 301', '2026-09-22 14:00:00+00', 25, 2000),
+        ('Kubernetes Deep Dive', 'Auditorium B', '2026-10-10 10:00:00+00', 80, 8000)
+    ON CONFLICT DO NOTHING;
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  labels:
+    app: postgres
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: quickticket
+            - name: POSTGRES_USER
+              value: quickticket
+            - name: POSTGRES_PASSWORD
+              value: quickticket
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "quickticket"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "quickticket"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-init
+              mountPath: /docker-entrypoint-initdb.d/01-seed.sql
+              subPath: 01-seed.sql
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+        - name: postgres-init
+          configMap:
+            name: postgres-init
