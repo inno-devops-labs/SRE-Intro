@@ -1,0 +1,82 @@
+{
+  "status": "success",
+  "data": {
+    "activeTargets": [
+      {
+        "discoveredLabels": {
+          "__address__": "events:8081",
+          "__metrics_path__": "/metrics",
+          "__scheme__": "http",
+          "__scrape_interval__": "15s",
+          "__scrape_timeout__": "10s",
+          "job": "events"
+        },
+        "labels": {
+          "instance": "events:8081",
+          "job": "events"
+        },
+        "scrapePool": "events",
+        "scrapeUrl": "http://events:8081/metrics",
+        "globalUrl": "http://events:8081/metrics",
+        "lastError": "",
+        "lastScrape": "2026-09-21T08:33:22.418515836Z",
+        "lastScrapeDuration": 0.004707542,
+        "health": "up",
+        "scrapeInterval": "15s",
+        "scrapeTimeout": "10s"
+      },
+      {
+        "discoveredLabels": {
+          "__address__": "gateway:8080",
+          "__metrics_path__": "/metrics",
+          "__scheme__": "http",
+          "__scrape_interval__": "15s",
+          "__scrape_timeout__": "10s",
+          "job": "gateway"
+        },
+        "labels": {
+          "instance": "gateway:8080",
+          "job": "gateway"
+        },
+        "scrapePool": "gateway",
+        "scrapeUrl": "http://gateway:8080/metrics",
+        "globalUrl": "http://gateway:8080/metrics",
+        "lastError": "",
+        "lastScrape": "2026-09-21T08:33:22.139431169Z",
+        "lastScrapeDuration": 0.007218584,
+        "health": "up",
+        "scrapeInterval": "15s",
+        "scrapeTimeout": "10s"
+      },
+      {
+        "discoveredLabels": {
+          "__address__": "payments:8082",
+          "__metrics_path__": "/metrics",
+          "__scheme__": "http",
+          "__scrape_interval__": "15s",
+          "__scrape_timeout__": "10s",
+          "job": "payments"
+        },
+        "labels": {
+          "instance": "payments:8082",
+          "job": "payments"
+        },
+        "scrapePool": "payments",
+        "scrapeUrl": "http://payments:8082/metrics",
+        "globalUrl": "http://payments:8082/metrics",
+        "lastError": "",
+        "lastScrape": "2026-09-21T08:33:17.426245667Z",
+        "lastScrapeDuration": 0.009435584,
+        "health": "up",
+        "scrapeInterval": "15s",
+        "scrapeTimeout": "10s"
+      }
+    ],
+    "droppedTargets": [],
+    "droppedTargetCounts": {
+      "events": 0,
+      "gateway": 0,
+      "payments": 0
+    }
+  }
+}

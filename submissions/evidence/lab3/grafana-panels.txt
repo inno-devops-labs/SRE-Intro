@@ -1,0 +1,6 @@
+1 timeseries   Request Rate (Traffic)
+2 timeseries   Error Rate
+3 table        Service Health (up/down)
+4 timeseries   Latency (p50 / p95 / p99)
+5 gauge        DB pool saturation
+6 gauge        Availability SLI — rolling 5m (target 99.5%)

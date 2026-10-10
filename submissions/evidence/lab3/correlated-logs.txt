@@ -1,0 +1,5 @@
+gateway-1   | 2026-09-21T08:21:09.752869719Z INFO:     192.168.65.1:38921 - "POST /reserve/84869f24-f4c9-4436-aeb1-e37e55993d45/pay HTTP/1.1" 502 Bad Gateway
+gateway-1   | 2026-09-21T08:21:09.752867969Z {"time":"2026-09-21 08:21:09,751","level":"ERROR","service":"gateway","msg":"payment error: [Errno -2] Name or service not known"}
+payments-1  | 2026-09-21T08:24:08.605763594Z {"time":"2026-09-21 08:24:08,605","level":"INFO","service":"payments","msg":"Injecting 1000ms latency for afd8b6df-44ce-455c-881c-66c4d9adb060"}
+payments-1  | 2026-09-21T08:24:09.606726511Z {"time":"2026-09-21 08:24:09,606","level":"WARNING","service":"payments","msg":"Payment failed (injected) for afd8b6df-44ce-455c-881c-66c4d9adb060"}
+gateway-1   | 2026-09-21T08:24:09.608155469Z INFO:     192.168.65.1:60962 - "POST /reserve/afd8b6df-44ce-455c-881c-66c4d9adb060/pay HTTP/1.1" 500 Internal Server Error

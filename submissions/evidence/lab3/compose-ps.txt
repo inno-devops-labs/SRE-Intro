@@ -1,0 +1,8 @@
+NAME                    IMAGE                     COMMAND                  SERVICE      CREATED          STATUS                    PORTS
+sre-lab3-events-1       sre-lab3-events           "uvicorn main:app --…"   events       10 minutes ago   Up 10 minutes             0.0.0.0:8081->8081/tcp, [::]:8081->8081/tcp
+sre-lab3-gateway-1      sre-lab3-gateway          "uvicorn main:app --…"   gateway      10 minutes ago   Up 10 minutes             0.0.0.0:3080->8080/tcp, [::]:3080->8080/tcp
+sre-lab3-grafana-1      grafana/grafana:13.0.1    "/run.sh"                grafana      10 minutes ago   Up 10 minutes             0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp
+sre-lab3-payments-1     sre-lab3-payments         "uvicorn main:app --…"   payments     3 minutes ago    Up 3 minutes              0.0.0.0:8082->8082/tcp, [::]:8082->8082/tcp
+sre-lab3-postgres-1     postgres:17-alpine        "docker-entrypoint.s…"   postgres     10 minutes ago   Up 10 minutes (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+sre-lab3-prometheus-1   prom/prometheus:v3.11.2   "/bin/prometheus --c…"   prometheus   10 minutes ago   Up 10 minutes             0.0.0.0:9090->9090/tcp, [::]:9090->9090/tcp
+sre-lab3-redis-1        redis:7-alpine            "docker-entrypoint.s…"   redis        10 minutes ago   Up 10 minutes (healthy)   0.0.0.0:6379->6379/tcp, [::]:6379->6379/tcp

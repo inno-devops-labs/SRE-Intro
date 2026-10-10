@@ -1,0 +1,87 @@
+rule_files:
+  - rules.yml
+evaluation_interval: 30s
+fuzzy_compare: true
+tests:
+  - name: healthy traffic without a 5xx series
+    interval: 1m
+    input_series:
+      - series: 'gateway_requests_total{status="200"}'
+        values: '0+100x10'
+      - series: 'gateway_request_duration_seconds_bucket{le="0.5"}'
+        values: '0+100x10'
+      - series: gateway_request_duration_seconds_count
+        values: '0+100x10'
+    promql_expr_test:
+      - expr: gateway:sli_availability:ratio_rate5m
+        eval_time: 5m
+        exp_samples:
+          - labels: gateway:sli_availability:ratio_rate5m
+            value: 1
+      - expr: gateway:error_budget_burn_rate:ratio_rate5m
+        eval_time: 5m
+        exp_samples:
+          - labels: gateway:error_budget_burn_rate:ratio_rate5m
+            value: 0
+      - expr: gateway:sli_latency_500ms:ratio_rate5m
+        eval_time: 5m
+        exp_samples:
+          - labels: gateway:sli_latency_500ms:ratio_rate5m
+            value: 1
+  - name: ten percent errors and twenty percent slow requests
+    interval: 1m
+    input_series:
+      - series: 'gateway_requests_total{status="200"}'
+        values: '0+90x10'
+      - series: 'gateway_requests_total{status="500"}'
+        values: '0+10x10'
+      - series: 'gateway_request_duration_seconds_bucket{le="0.5"}'
+        values: '0+80x10'
+      - series: gateway_request_duration_seconds_count
+        values: '0+100x10'
+    promql_expr_test:
+      - expr: gateway:sli_availability:ratio_rate5m
+        eval_time: 5m
+        exp_samples:
+          - labels: gateway:sli_availability:ratio_rate5m
+            value: 0.9
+      - expr: round(gateway:error_budget_burn_rate:ratio_rate5m, 0.001)
+        eval_time: 5m
+        exp_samples:
+          - labels: '{}'
+            value: 20
+      - expr: gateway:sli_latency_500ms:ratio_rate5m
+        eval_time: 5m
+        exp_samples:
+          - labels: gateway:sli_latency_500ms:ratio_rate5m
+            value: 0.8
+  - name: no traffic is unknown rather than healthy
+    interval: 1m
+    input_series:
+      - series: 'gateway_requests_total{status="200"}'
+        values: '0+0x10'
+      - series: 'gateway_request_duration_seconds_bucket{le="0.5"}'
+        values: '0+0x10'
+      - series: gateway_request_duration_seconds_count
+        values: '0+0x10'
+    promql_expr_test:
+      - expr: gateway:sli_availability:ratio_rate5m != bool gateway:sli_availability:ratio_rate5m
+        eval_time: 5m
+        exp_samples:
+          - labels: '{}'
+            value: 1
+      - expr: gateway:sli_latency_500ms:ratio_rate5m != bool gateway:sli_latency_500ms:ratio_rate5m
+        eval_time: 5m
+        exp_samples:
+          - labels: '{}'
+            value: 1
+  - name: missing metrics do not manufacture a healthy SLI
+    interval: 1m
+    input_series: []
+    promql_expr_test:
+      - expr: gateway:sli_availability:ratio_rate5m
+        eval_time: 5m
+        exp_samples: []
+      - expr: gateway:sli_latency_500ms:ratio_rate5m
+        eval_time: 5m
+        exp_samples: []
