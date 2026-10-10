@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 240
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:17-alpine
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: quickticket
+                - name: PGDATABASE
+                  value: quickticket
+                - name: PGPASSWORD
+                  value: quickticket
+              command: [sh, -ec]
+              args:
+                - |
+                  umask 077
+                  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+                  dump="/backups/quickticket_${stamp}.dump"
+                  partial="${dump}.partial"
+                  [ ! -e "$dump" ] || { echo "Backup name collision: $dump" >&2; exit 1; }
+                  trap 'rm -f -- "$partial"' EXIT
+                  pg_dump -Fc -f "$partial"
+                  pg_restore --list "$partial" > /dev/null
+                  mv "$partial" "$dump"
+                  echo "Created $dump"
+                  cd /backups
+                  ls -1t quickticket_*.dump | tail -n +6 |
+                    while IFS= read -r stale; do
+                      rm -v -- "$stale"
+                    done
+                  echo "Retained $(ls -1 quickticket_*.dump | wc -l) dumps"
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups

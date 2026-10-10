@@ -1,0 +1,19 @@
+{"at":"2026-10-10T14:01:28.279730+00:00","event":"before","elapsed":0.46,"orders":2716,"events":6,"victim":"postgres-745cf6f696-vjfvd","scenario":"ephemeral"}
+{"at":"2026-10-10T14:01:28.280122+00:00","event":"disaster","elapsed":0.46,"command":"kubectl delete pod --grace-period=1 --wait=true","scenario":"ephemeral"}
+{"at":"2026-10-10T14:01:36.575128+00:00","event":"pod_ready","elapsed":8.755,"pod":"postgres-745cf6f696-bl5m6","rto_so_far":8.194,"relations":"","scenario":"ephemeral"}
+{"at":"2026-10-10T14:01:37.574795+00:00","event":"restored","elapsed":9.754,"orders":2559,"events":6,"scenario":"ephemeral"}
+{"at":"2026-10-10T14:02:09.271819+00:00","event":"events_ready","elapsed":41.452,"scenario":"ephemeral"}
+{"at":"2026-10-10T14:02:18.685979+00:00","event":"app_ready","elapsed":50.866,"rto_seconds":50.406,"read_status":200,"health":{"status":"healthy","checks":{"events":"ok","payments":"ok","circuit_payments":"CLOSED"}},"reserve_status":200,"pay_status":200,"order":{"order_id":"f9ea17ed-840e-4a51-91aa-87544a85c2eb","event_id":6,"quantity":1,"total_cents":100,"status":"confirmed"},"scenario":"ephemeral"}
+{"at":"2026-10-10T14:06:32.027879+00:00","event":"before","elapsed":1.296,"orders":3228,"events":6,"victim":"postgres-c8778f757-gk4pl","scenario":"pvc-auto-reconnect"}
+{"at":"2026-10-10T14:06:32.028164+00:00","event":"disaster","elapsed":1.296,"command":"kubectl delete pod --grace-period=1 --wait=true","scenario":"pvc-auto-reconnect"}
+{"at":"2026-10-10T14:06:34.717314+00:00","event":"pod_ready","elapsed":3.985,"pod":"postgres-c8778f757-jbkz7","rto_so_far":1.886,"relations":"alembic_version\nevents\norders","scenario":"pvc-auto-reconnect"}
+{"at":"2026-10-10T14:06:35.881433+00:00","event":"data_survived","elapsed":5.149,"orders":3228,"events":6,"checked_order_ids":3228,"missing_order_ids":0,"scenario":"pvc-auto-reconnect"}
+{"at":"2026-10-10T14:06:35.881558+00:00","event":"checking_automatic_reconnect","elapsed":5.149,"scenario":"pvc-auto-reconnect"}
+{"at":"2026-10-10T14:07:56.302745+00:00","event":"app_ready","elapsed":85.527,"rto_seconds":84.231,"read_status":200,"health":{"status":"healthy","checks":{"events":"ok","payments":"ok","circuit_payments":"CLOSED"}},"reserve_status":200,"pay_status":200,"order":{"order_id":"05ef25f0-6abe-4719-8b47-75b9c5ebfe00","event_id":6,"quantity":1,"total_cents":100,"status":"confirmed"},"scenario":"pvc-auto-reconnect"}
+{"at":"2026-10-10T14:12:29.526391+00:00","event":"before","elapsed":0.382,"orders":4034,"events":6,"victim":"postgres-c8778f757-jbkz7","scenario":"pvc-runbook-repeat"}
+{"at":"2026-10-10T14:12:29.526684+00:00","event":"disaster","elapsed":0.383,"command":"kubectl delete pod --grace-period=1 --wait=true","scenario":"pvc-runbook-repeat"}
+{"at":"2026-10-10T14:12:31.912123+00:00","event":"pod_ready","elapsed":2.768,"pod":"postgres-c8778f757-tkdxl","rto_so_far":2.385,"scenario":"pvc-runbook-repeat"}
+{"at":"2026-10-10T14:12:32.049004+00:00","event":"relations","elapsed":2.905,"tables":"alembic_version\nevents\norders","scenario":"pvc-runbook-repeat"}
+{"at":"2026-10-10T14:12:32.817237+00:00","event":"data_survived","elapsed":3.673,"orders":4035,"events":6,"checked_order_ids":4035,"missing_order_ids":0,"scenario":"pvc-runbook-repeat"}
+{"at":"2026-10-10T14:13:03.894732+00:00","event":"events_ready","elapsed":34.751,"scenario":"pvc-runbook-repeat"}
+{"at":"2026-10-10T14:13:06.361728+00:00","event":"app_ready","elapsed":37.218,"rto_seconds":36.835,"read_status":200,"health":{"status":"healthy","checks":{"events":"ok","payments":"ok","circuit_payments":"CLOSED"}},"reserve_status":200,"pay_status":200,"order":{"order_id":"a2f8e9d6-0edb-48e6-9c39-7edd672c7fdf","event_id":6,"quantity":1,"total_cents":100,"status":"confirmed"},"scenario":"pvc-runbook-repeat"}
