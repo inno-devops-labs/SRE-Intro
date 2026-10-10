@@ -1,0 +1,69 @@
+# This template renders the Gateway Deployment and Service.
+# The Gateway routes external requests to the Events and Payments Services.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: {{ .Values.gateway.replicas }}
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      # imagePullSecrets tells Kubernetes which registry credentials to use
+      # when it pulls private images from GitHub Container Registry.
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      containers:
+        - name: gateway
+          # The registry image is configured in values.yaml so the chart can
+          # change image tags without editing the template.
+          image: {{ .Values.gateway.image | quote }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.gateway.port }}
+          # Liveness checks a lightweight process endpoint.
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.gateway.probes.livenessPath | quote }}
+              port: {{ .Values.gateway.port }}
+            initialDelaySeconds: {{ .Values.global.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.global.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.global.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.global.probes.liveness.failureThreshold }}
+          # Readiness checks /health because Gateway reports Events and Payments health there.
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.gateway.probes.readinessPath | quote }}
+              port: {{ .Values.gateway.port }}
+            initialDelaySeconds: {{ .Values.global.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.global.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.global.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.global.probes.readiness.failureThreshold }}
+          resources:
+{{ toYaml .Values.global.resources | indent 12 }}
+          env:
+            - name: EVENTS_URL
+              value: {{ .Values.gateway.eventsUrl | quote }}
+            - name: PAYMENTS_URL
+              value: {{ .Values.gateway.paymentsUrl | quote }}
+            - name: GATEWAY_TIMEOUT_MS
+              value: {{ .Values.gateway.timeoutMs | quote }}
+---
+# The Service keeps the stable in-cluster DNS name gateway.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: {{ .Values.global.serviceType }}
+  selector:
+    app: gateway
+  ports:
+    - port: {{ .Values.gateway.port }}
+      targetPort: {{ .Values.gateway.port }}

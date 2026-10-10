@@ -1,0 +1,44 @@
+# This template renders the PostgreSQL Deployment and Service.
+# Values come from .Values.postgres so the image, port, database name, user,
+# and password can be changed from values.yaml instead of editing this template.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: {{ .Values.postgres.replicas }}
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image | quote }}
+          ports:
+            - containerPort: {{ .Values.postgres.port }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgres.password | quote }}
+          resources:
+{{ toYaml .Values.global.resources | indent 12 }}
+---
+# The Service keeps the stable in-cluster DNS name postgres.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  type: {{ .Values.global.serviceType }}
+  selector:
+    app: postgres
+  ports:
+    - port: {{ .Values.postgres.port }}
+      targetPort: {{ .Values.postgres.port }}

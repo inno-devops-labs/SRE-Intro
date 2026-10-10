@@ -1,0 +1,117 @@
+# This file defines the PostgreSQL database workload for QuickTicket.
+# It contains two Kubernetes resources:
+# 1. A Deployment, which keeps the PostgreSQL Pod running.
+# 2. A Service, which gives PostgreSQL a stable internal DNS name and port.
+
+# apiVersion identifies which Kubernetes API group and version this resource uses.
+# Deployments belong to the "apps" API group, version "v1".
+apiVersion: apps/v1
+
+# kind tells Kubernetes what type of object this YAML document defines.
+# A Deployment manages one or more replicated Pods and recreates them if they disappear.
+kind: Deployment
+
+# metadata contains identifying information about this Kubernetes object.
+metadata:
+  # name is the Kubernetes object name. We will refer to this Deployment as "postgres"
+  # in commands such as: kubectl get deployment postgres
+  name: postgres
+
+# spec describes the desired state for this Deployment.
+spec:
+  # replicas defines how many PostgreSQL Pods Kubernetes should keep running.
+  # For this lab, one database instance is enough.
+  replicas: 1
+
+  # selector tells the Deployment which Pods it owns and manages.
+  # The labels here must match the labels in spec.template.metadata.labels.
+  selector:
+    matchLabels:
+      # This Deployment will manage Pods labeled with app=postgres.
+      app: postgres
+
+  # template defines the Pod that the Deployment will create.
+  # If the Pod is deleted, Kubernetes creates a new Pod using this template.
+  template:
+    metadata:
+      labels:
+        # This label identifies the Pod as part of the PostgreSQL workload.
+        # It must match the Deployment selector above and the Service selector below.
+        app: postgres
+
+    # spec inside the template describes the actual Pod contents.
+    spec:
+      containers:
+        # This Pod has one container: PostgreSQL.
+        - name: postgres
+
+          # image defines the container image Kubernetes should run.
+          # postgres:17-alpine is the official PostgreSQL image, using the lightweight Alpine base.
+          image: postgres:17-alpine
+
+          # ports documents which port the container listens on.
+          # This does not expose the database outside the cluster by itself.
+          # The Service below is what creates stable network access to this port.
+          ports:
+            # PostgreSQL listens on TCP port 5432 by default.
+            - containerPort: 5432
+
+          # env defines environment variables passed into the PostgreSQL container.
+          # The official postgres image reads these variables during initialization.
+          env:
+            # POSTGRES_DB tells the image to create a database named "quickticket".
+            - name: POSTGRES_DB
+              value: "quickticket"
+
+            # POSTGRES_USER tells the image to create a database user named "quickticket".
+            - name: POSTGRES_USER
+              value: "quickticket"
+
+            # POSTGRES_PASSWORD defines the password for the configured database user.
+            # This is acceptable for a lab, but production systems should use Kubernetes Secrets.
+            - name: POSTGRES_PASSWORD
+              value: "quickticket"
+
+          # resources declares the requested and maximum CPU/memory for PostgreSQL.
+          # This keeps the database workload visible in Kubernetes scheduling and
+          # node allocation output for the lab.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+---
+
+# This second YAML document defines the Service for PostgreSQL.
+# A Service provides a stable virtual IP and DNS name for a set of Pods.
+# This matters because Pods are disposable and their IP addresses can change.
+apiVersion: v1
+
+# Service is the Kubernetes resource used for stable in-cluster networking.
+kind: Service
+
+metadata:
+  # Other Pods in the cluster can reach PostgreSQL using this DNS name: postgres
+  # For example, the events service can connect to postgres:5432.
+  name: postgres
+
+spec:
+  # ClusterIP exposes the Service only inside the Kubernetes cluster.
+  # This is correct for a database, because it should not be directly exposed to the host.
+  type: ClusterIP
+
+  # selector tells the Service which Pods should receive traffic.
+  # Any Pod with app=postgres becomes an endpoint behind this Service.
+  selector:
+    app: postgres
+
+  ports:
+    # port is the port exposed by the Service inside the cluster.
+    - port: 5432
+
+      # targetPort is the port on the selected Pod/container where traffic is forwarded.
+      # Here, Service port 5432 forwards to container port 5432.
+      targetPort: 5432
