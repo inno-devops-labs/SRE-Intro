@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+  labels:
+    app: payments
+spec:
+  replicas: {{ .Values.payments.replicas }}
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      containers:
+        - name: payments
+          image: {{ .Values.payments.image | quote }}
+          imagePullPolicy: {{ .Values.payments.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.payments.port }}
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: {{ .Values.payments.failureRate | quote }}
+            - name: PAYMENT_LATENCY_MS
+              value: {{ .Values.payments.latencyMs | quote }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.payments.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.payments.port }}
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+{{- toYaml .Values.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+  labels:
+    app: payments
+spec:
+  type: ClusterIP
+  selector:
+    app: payments
+  ports:
+    - name: http
+      port: {{ .Values.payments.port }}
+      targetPort: {{ .Values.payments.port }}

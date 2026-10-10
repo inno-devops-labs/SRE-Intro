@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    version: "v2"
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 60s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 40
+        - pause: {duration: 60s}
+        - setWeight: 60
+        - pause: {duration: 60s}
+        - setWeight: 80
+        - pause: {duration: 30s}
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        version: "v2"
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: gateway
+          image: ghcr.io/ars5njo/quickticket-gateway:5fc554f7c251e24c9b368746084338b305b1bd22
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: EVENTS_URL
+              value: http://events:8081
+            - name: PAYMENTS_URL
+              value: http://payments:8082
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+            - name: APP_VERSION
+              value: "v2"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
