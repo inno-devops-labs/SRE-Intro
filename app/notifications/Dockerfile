@@ -8,5 +8,5 @@ COPY main.py .
 RUN addgroup --system app && adduser --system --ingroup app app
 USER app
 
-EXPOSE 8081
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081"]
+EXPOSE 8083
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8083"]
