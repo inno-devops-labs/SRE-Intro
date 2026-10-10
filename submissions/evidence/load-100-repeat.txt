@@ -1,0 +1,37 @@
+[2026-07-10 19:30:48,408] load-100-9pf64/INFO/locust.main: Starting Locust 2.43.4
+[2026-07-10 19:30:48,408] load-100-9pf64/INFO/locust.main: Run time limit set to 60 seconds
+[2026-07-10 19:30:48,408] load-100-9pf64/INFO/locust.runners: Ramping to 100 users at a rate of 10.00 per second
+[2026-07-10 19:30:57,424] load-100-9pf64/INFO/locust.runners: All users spawned: {"QuickTicketUser": 100} (100 total users)
+[2026-07-10 19:31:48,317] load-100-9pf64/INFO/locust.main: --run-time limit reached, shutting down
+[2026-07-10 19:31:48,327] load-100-9pf64/INFO/locust.main: Shutting down (exit code 1)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /events                                                                         3117    20(0.64%) |     15       2     549      4 |   52.02        0.33
+POST     /events/3/reserve                                                                668  168(25.15%) |     23       3     539      5 |   11.15        2.80
+POST     /events/5/reserve                                                                214  134(62.62%) |     20       3     494      5 |    3.57        2.24
+GET      /health                                                                          406    10(2.46%) |     15       3     270      5 |    6.78        0.17
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                      4405   332(7.54%) |     17       2     549      4 |   73.52        5.54
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /events                                                                                 4      4      5      7     33     91    160    220    480    550    550   3117
+POST     /events/3/reserve                                                                       5      6      9     11     67    120    210    310    540    540    540    668
+POST     /events/5/reserve                                                                       5      5      9     10     34    100    190    290    490    490    490    214
+GET      /health                                                                                 5      5      6      7     39     96    130    170    270    270    270    406
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                              4      5      6      8     37     98    170    230    490    550    550   4405
+
+Error report
+# occurrences      Error                                                                                               
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+20                 GET /events: HTTPError('502 Server Error: Bad Gateway for url: /events')                            
+11                 POST /events/3/reserve: HTTPError('500 Server Error: Internal Server Error for url: /events/3/reserve')
+10                 GET /health: HTTPError('503 Server Error: Service Unavailable for url: /health')                    
+7                  POST /events/5/reserve: HTTPError('500 Server Error: Internal Server Error for url: /events/5/reserve')
+126                POST /events/5/reserve: HTTPError('409 Client Error: Conflict for url: /events/5/reserve')          
+1                  POST /events/5/reserve: HTTPError('502 Server Error: Bad Gateway for url: /events/5/reserve')       
+157                POST /events/3/reserve: HTTPError('409 Client Error: Conflict for url: /events/3/reserve')          
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+
