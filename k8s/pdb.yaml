@@ -1,0 +1,44 @@
+# PodDisruptionBudgets — keep enough replicas alive through voluntary disruptions
+# (node drains, rolling maintenance). One per service.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+spec:
+  # 5 replicas, critical path. minAvailable 2 tolerates 3 simultaneous evictions —
+  # enough headroom to drain a node without ever dropping below ~half capacity,
+  # while still allowing the drain to make progress (minAvailable 4 would block it).
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+spec:
+  minAvailable: 1          # 2 replicas — always keep 1 live
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+spec:
+  minAvailable: 1          # 2 replicas — always keep 1 live
+  selector:
+    matchLabels:
+      app: payments
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+spec:
+  maxUnavailable: 1        # best-effort (fire-and-forget) — a softer bar
+  selector:
+    matchLabels:
+      app: notifications
