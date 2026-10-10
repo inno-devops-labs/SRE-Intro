@@ -1,0 +1,788 @@
+# Lab 2 — Containerization: Inspect, Understand, Optimize
+
+## Task 1 — Docker Inspection & Operations
+
+All commands in this section were run from the `app/` directory, where
+`docker-compose.yaml` resides. `docker compose logs` without an
+explicit `-f` flag only works from that directory, since Compose looks
+for the config file in the current working directory by default. From
+the repository root the same command fails with
+`no configuration file provided: not found` unless the file is passed
+explicitly via `-f app/docker-compose.yaml`.
+
+### 2.1: Image inspection
+
+Command:
+
+```bash
+docker images | grep app
+```
+
+Output:
+
+```text
+app-events:latest           1afc1007c309        245MB         60.2MB   U
+app-gateway:latest          fb2a3997f5c4        226MB         55.2MB   U
+app-payments:latest         67358d5409b6        223MB         54.7MB   U
+```
+
+All three QuickTicket images are based on `python:3.13-slim`. The
+`events` image is the largest at 245 MB (60.2 MB content size),
+because its `requirements.txt` pulls in `psycopg2-binary` and `redis`
+on top of the common FastAPI / uvicorn / prometheus-client stack.
+`gateway` and `payments` are close to each other (226 MB and 223 MB)
+since they share almost identical dependency sets.
+
+Command:
+
+```bash
+docker history app-gateway --no-trunc --format "table {{.CreatedBy}}\t{{.Size}}"
+```
+
+Output (relevant rows, top of the image downward):
+
+```text
+CMD ["uvicorn" "main:app" "--host" "0.0.0.0" "--port" "8080"]                 0B
+EXPOSE [8080/tcp]                                                             0B
+COPY main.py . # buildkit                                                     24.6kB
+RUN /bin/sh -c pip install --no-cache-dir -r requirements.txt # buildkit      29.6MB
+COPY requirements.txt . # buildkit                                            12.3kB
+WORKDIR /app                                                                  8.19kB
+...
+# debian.sh --arch 'amd64' out/ 'trixie' ...                                 87.5MB
+```
+
+Command:
+
+```bash
+docker image inspect app-gateway --format '{{len .RootFS.Layers}}'
+```
+
+Output:
+
+```text
+8
+```
+
+**How many layers does the gateway image have?**
+
+The image exposes 8 filesystem layers. Only 3 of them come from our
+Dockerfile (`COPY requirements.txt`, `RUN pip install`, `COPY main.py`);
+the remaining 5 are inherited from the `python:3.13-slim` base
+(Debian rootfs, apt install of `ca-certificates` / `netbase` / `tzdata`,
+the CPython build, symlink fixups, etc.).
+
+**Which layer is the largest and why?**
+
+Inside the Dockerfile-authored layers, the largest is
+`RUN pip install --no-cache-dir -r requirements.txt` — 29.6 MB for
+the gateway. Every wheel for `fastapi`, `uvicorn`, `httpx`, and
+`prometheus-client` lands in that single layer. The biggest layer in
+the whole image, however, is inherited from the base (87.5 MB Debian
+rootfs and 40.4 MB CPython build), which is not under our control
+unless the base image itself is changed.
+
+For comparison, `docker history app-events` shows its `pip install`
+layer at 43.9 MB — noticeably larger than the gateway's 29.6 MB,
+which confirms the reasoning above: `psycopg2-binary` and `redis`
+are heavier than `httpx`.
+
+### 2.2: Container inspection
+
+Commands:
+
+```bash
+docker inspect app-events-1 --format '{{.Name}} {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+docker inspect app-gateway-1 --format '{{.Name}} {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+docker inspect app-payments-1 --format '{{.Name}} {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+```
+
+Output:
+
+```text
+/app-events-1 172.20.0.5
+/app-gateway-1 172.20.0.6
+/app-payments-1 172.20.0.2
+```
+
+All three services sit on the same Compose bridge network
+`app_default` (172.20.0.0/16).
+
+Command:
+
+```bash
+docker inspect app-payments-1 --format '{{range .Config.Env}}{{println .}}{{end}}'
+```
+
+Output:
+
+```text
+PAYMENT_FAILURE_RATE=0.0
+PAYMENT_LATENCY_MS=0
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+GPG_KEY=7169605F62C751356D054A26A821E680E5FA6305
+PYTHON_VERSION=3.13.15
+PYTHON_SHA256=1e66a7945a48390ee4c2a4268a0e4185884059a13c4aab6d148aa208deea4a76
+```
+
+The two application-level variables come from `docker-compose.yaml`
+(`PAYMENT_FAILURE_RATE`, `PAYMENT_LATENCY_MS`) and are currently set
+to the defaults 0.0 and 0. The remaining variables (`PATH`, `GPG_KEY`,
+`PYTHON_*`) are baked into the `python:3.13-slim` base image and are
+unrelated to the application.
+
+### 2.3: Live debugging with exec
+
+Command:
+
+```bash
+docker exec app-gateway-1 whoami
+docker exec app-gateway-1 id
+```
+
+Output:
+
+```text
+root
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+The gateway container runs as root. This is the default for
+`python:3.13-slim` and is addressed in Task 2.8.
+
+Command:
+
+```bash
+docker exec app-gateway-1 cat /etc/resolv.conf
+```
+
+Output:
+
+```text
+# Generated by Docker Engine.
+# ...
+nameserver 127.0.0.11
+options ndots:0
+
+# Based on host file: '/etc/resolv.conf' (internal resolver)
+# ExtServers: [host(192.168.65.7)]
+```
+
+The `nameserver 127.0.0.11` line is the important part: it is the
+Docker embedded DNS resolver, not the host's resolver and not a
+static `/etc/hosts` entry. Any name lookup inside the container goes
+through it first, and it knows about the Compose network's service
+aliases.
+
+Command:
+
+```bash
+docker exec app-gateway-1 python3 -c "import urllib.request; print(urllib.request.urlopen('http://events:8081/health').read().decode())"
+docker exec app-gateway-1 python3 -c "import urllib.request; print(urllib.request.urlopen('http://payments:8082/health').read().decode())"
+```
+
+Output:
+
+```text
+{"status":"healthy","checks":{"postgres":"ok","redis":"ok"}}
+{"status":"healthy","failure_rate":0.0,"latency_ms":0}
+```
+
+Both calls succeed using the service names `events` and `payments`
+as hostnames, which proves that DNS-based service discovery works
+from inside the gateway container. No IP was hardcoded anywhere.
+
+### 2.4: Logs analysis
+
+Commands (run from `app/`):
+
+```bash
+docker compose logs gateway --tail=20
+docker compose logs events --tail=20
+docker compose logs payments --tail=20
+```
+
+Then a fresh list + reserve pair was executed and the tail was
+re-read:
+
+```bash
+curl -s http://localhost:3080/events > /dev/null
+curl -s -X POST http://localhost:3080/events/1/reserve -H "Content-Type: application/json" -d '{"quantity":1}'
+docker compose logs gateway --tail=5
+docker compose logs events --tail=5
+```
+
+Command output (reserve response):
+
+```text
+{"detail":{"detail":"Not enough tickets (available: 0)"}}
+```
+
+Gateway tail (relevant lines, newest at the bottom):
+
+```text
+gateway-1  | {"time":"2026-09-14 05:29:36,574","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     151.101.64.223:48860 - "GET /events HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-14 05:29:36,594","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/1/reserve "HTTP/1.1 409 Conflict""}
+gateway-1  | INFO:     151.101.64.223:34725 - "POST /events/1/reserve HTTP/1.1" 409 Conflict
+```
+
+Events tail (relevant lines):
+
+```text
+events-1  | INFO:     172.20.0.6:41436 - "GET /events HTTP/1.1" 200 OK
+events-1  | INFO:     172.20.0.6:41436 - "POST /events/1/reserve HTTP/1.1" 409 Conflict
+```
+
+**Can you follow a single request across services by matching timestamps?**
+
+Yes. The clearest pair is the reserve call at 05:29:36:
+
+- `gateway-1` at 05:29:36.574 logs the outgoing request
+  `GET http://events:8081/events → 200 OK`, followed by the
+  uvicorn access-log line
+  `INFO: 151.101.64.223:48860 - "GET /events HTTP/1.1" 200 OK`.
+- `events-1` logs the matching inbound line
+  `INFO: 172.20.0.6:41436 - "GET /events HTTP/1.1" 200 OK`.
+- The reserve call follows the same pattern: gateway logs the
+  outgoing `POST http://events:8081/events/1/reserve → 409 Conflict`
+  at 05:29:36.594 plus the access-log line
+  `INFO: 151.101.64.223:34725 - "POST /events/1/reserve HTTP/1.1" 409 Conflict`,
+  and events logs the corresponding inbound
+  `INFO: 172.20.0.6:41436 - "POST /events/1/reserve HTTP/1.1" 409 Conflict`.
+
+**Which identifier links the two services?**
+
+There are two distinct client ports in play and it is important not
+to conflate them:
+
+- `151.101.64.223:48860` and `151.101.64.223:34725` in the gateway
+  access-log are the **host-side client** (curl running on the host
+  and reaching the gateway via the published port 3080).
+- `172.20.0.6:41436` in the events access-log is the **gateway
+  container's own IP and ephemeral port** on the `app_default`
+  bridge. That is the address from which the gateway opens a
+  connection to events.
+
+So the reliable pairing between gateway and events is by the tuple
+`(gateway container IP, ephemeral port)` = `172.20.0.6:41436`, not
+by the host-side curl port. Timestamps confirm the same hop to within
+a sub-millisecond window.
+
+The 409 in this run is a reservation conflict: event 1 had already
+been fully reserved during earlier experiments, and the response was
+`{"detail":{"detail":"Not enough tickets (available: 0)"}}`. This
+does not affect the tracing exercise — it is the same request path,
+only the business outcome differs.
+
+**Limitation:** the application does not emit a `trace_id` or
+`request_id`, so the pairing relies on timestamp plus client tuple.
+This works for a low-traffic test but does not scale to production
+traffic where many concurrent requests share the same second. In a
+real system this would be solved with a propagated correlation
+header.
+
+### 2.5: Network inspection
+
+Commands:
+
+```bash
+docker network ls | grep app
+docker network inspect app_default --format '{{range .Containers}}{{.Name}}: {{.IPv4Address}}{{"\n"}}{{end}}'
+```
+
+Output:
+
+```text
+545e94c9c282   app_default         bridge    local
+app-gateway-1: 172.20.0.6/16
+app-events-1: 172.20.0.5/16
+app-postgres-1: 172.20.0.4/16
+app-payments-1: 172.20.0.2/16
+app-redis-1: 172.20.0.3/16
+```
+
+All five containers are attached to the same user-defined bridge
+`app_default`. Docker provisions a DNS entry per container and per
+Compose service alias on this network, which is what makes the
+`events` and `payments` names resolvable from the gateway.
+
+### 2.6: Proof of work — combined summary
+
+1. **Image sizes** — `app-events` 245 MB, `app-gateway` 226 MB,
+   `app-payments` 223 MB (content sizes 60.2 / 55.2 / 54.7 MB).
+2. **Layer history** — gateway has 8 layers total; the largest
+   Dockerfile-authored layer is `RUN pip install` at 29.6 MB
+   (events: 43.9 MB, due to `psycopg2-binary` and `redis`).
+3. **Service IPs on `app_default`** — events 172.20.0.5,
+   gateway 172.20.0.6, payments 172.20.0.2.
+4. **Payments env** — only `PAYMENT_FAILURE_RATE=0.0` and
+   `PAYMENT_LATENCY_MS=0` are application-specific; the rest come
+   from the base image.
+5. **Inside gateway** — `whoami` returns `root`; both
+   `http://events:8081/health` and `http://payments:8082/health`
+   succeed via `urllib`.
+6. **Request flow in logs** — the reserve call at 05:29:36 appears
+   in `gateway-1` as an outgoing request plus a host-side access-log
+   line, and in `events-1` as an inbound request from the gateway
+   container (`172.20.0.6:41436`).
+7. **Network inspect** — all five containers on `app_default` with
+   sequential IPs in 172.20.0.0/16.
+
+**8. How does the gateway find the events service? What IP does `events` resolve to?**
+
+The gateway resolves `events` through the Docker embedded DNS server
+at 127.0.0.11, which is written into `/etc/resolv.conf` inside every
+container on a user-defined Compose network. This resolver knows the
+service aliases declared by Compose on `app_default` and returns the
+container's current IP. In the recorded run, `events` resolved to
+172.20.0.5 — confirmed both by `docker network inspect` and by an
+explicit lookup from inside the gateway:
+
+```bash
+docker exec app-gateway-1 python3 -c "import socket; print(socket.gethostbyname('events'))"
+# 172.20.0.5
+```
+
+No static IP or `/etc/hosts` entry is involved. If a container is
+recreated and gets a new IP, the DNS record is updated automatically
+and the gateway keeps using the same service name.
+
+## Task 2 — Dockerfile Optimization
+
+> This task is optional per the lab spec. It was completed.
+
+### 2.7: Add .dockerignore
+
+Three `.dockerignore` files were created, one per service build
+context (`app/gateway/`, `app/events/`, `app/payments/`). All three
+have identical content:
+
+```text
+__pycache__
+*.pyc
+.git
+.env
+*.md
+.vscode
+```
+
+Image sizes before rebuilding (from Task 1):
+
+```text
+app-events:latest           1afc1007c309        245MB         60.2MB   U
+app-gateway:latest          fb2a3997f5c4        226MB         55.2MB   U
+app-payments:latest         67358d5409b6        223MB         54.7MB   U
+```
+
+Rebuild command (run from `app/`, where `docker-compose.yaml` is
+present):
+
+```bash
+docker compose build --no-cache
+```
+
+Image sizes after rebuilding:
+
+```text
+app-events:latest           a0f5da280498        245MB         60.2MB   U
+app-gateway:latest          de50d8206362        226MB         55.2MB   U
+app-payments:latest         898ad54a1d32        223MB         54.7MB   U
+```
+
+**Any difference?**
+
+No measurable difference. The image IDs changed (the layers were
+rebuilt from scratch), but the sizes and content sizes are identical
+to the byte: 245 / 226 / 223 MB (content 60.2 / 55.2 / 54.7 MB).
+
+This is the expected result for this project. Each service's build
+context contains only `Dockerfile`, `main.py`, and
+`requirements.txt` — none of the entries listed in `.dockerignore`
+(`__pycache__`, `*.pyc`, `.git`, `.env`, `*.md`, `.vscode`) currently
+exist inside those directories. The file is added as a good practice
+and to protect against future drift (for instance, if a `__pycache__`
+appears after running the service locally), but it cannot shrink the
+image until there is something to exclude. In a real project this
+file would matter much more, since the build context frequently
+includes test fixtures, `.git/`, IDE metadata, and local caches.
+
+### 2.8: Add non-root user
+
+Each of the three Dockerfiles was updated with the same two lines,
+inserted between `COPY main.py .` and `EXPOSE`:
+
+```dockerfile
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
+```
+
+Rebuild and recreate the stack (from `app/`):
+
+```bash
+docker compose up -d --build
+```
+
+Verification that the running containers now use the new images:
+
+```bash
+docker inspect app-gateway-1  --format 'image={{.Image}} user={{.Config.User}}'
+docker inspect app-events-1   --format 'image={{.Image}} user={{.Config.User}}'
+docker inspect app-payments-1 --format 'image={{.Image}} user={{.Config.User}}'
+```
+
+Output:
+
+```text
+image=sha256:de50d8206362b911fd221c16400fb7f0b92efcebacbcf46a9405727847ed2f3d user=app
+image=sha256:a0f5da2804988c49b647552f4b1036e000b384ff908ddda351e54734a4233d4d user=app
+image=sha256:898ad54a1d3214102297a9bf296a0032c5242ada40a4de33d367df0d4365a60b user=app
+```
+
+Each container's image digest matches the corresponding entry in
+`docker images` (`de50d8206362`, `a0f5da280498`, `898ad54a1d32`), so
+the containers are running the freshly built images, not the previous
+ones. The `Config.User` field is `app` for all three.
+
+Verification from inside the containers:
+
+```bash
+docker exec app-gateway-1  whoami
+docker exec app-events-1   whoami
+docker exec app-payments-1 whoami
+```
+
+Output:
+
+```text
+app
+app
+app
+```
+
+All three services now run as the non-privileged `app` user instead
+of `root`.
+
+Application still works after the change:
+
+```bash
+curl -s http://localhost:3080/health | python3 -m json.tool
+curl -s http://localhost:3080/events | python3 -m json.tool | head -20
+```
+
+Output:
+
+```json
+{
+    "status": "healthy",
+    "checks": {
+        "events": "ok",
+        "payments": "ok",
+        "circuit_payments": "CLOSED"
+    }
+}
+[
+    {
+        "id": 1,
+        "name": "Go Conference 2026",
+        "venue": "Main Hall A",
+        "date": "2026-09-15T09:00:00+00:00",
+        "total_tickets": 100,
+        "price_cents": 5000,
+        "available": 80
+    },
+    {
+        "id": 4,
+        "name": "Python Workshop",
+        "venue": "Lab 301",
+        "date": "2026-09-22T14:00:00+00:00",
+        "total_tickets": 25,
+        "price_cents": 2000,
+        "available": 19
+    },
+    ...
+]
+```
+
+No permission errors appeared after switching to `USER app`. This is
+expected for QuickTicket: the services are stateless from the
+filesystem's point of view — they read configuration from environment
+variables and keep all mutable state in PostgreSQL and Redis. There
+is no code path that writes into `/app` or any other directory owned
+by root, so no `chown` step was needed before the `USER` instruction.
+
+### Diff of Dockerfile changes
+
+Command:
+
+```bash
+git diff -- app/gateway/Dockerfile app/events/Dockerfile app/payments/Dockerfile
+```
+
+Output:
+
+```diff
+diff --git a/app/events/Dockerfile b/app/events/Dockerfile
+index c45a68c..5da5370 100644
+--- a/app/events/Dockerfile
++++ b/app/events/Dockerfile
+@@ -5,5 +5,8 @@ COPY requirements.txt .
+ RUN pip install --no-cache-dir -r requirements.txt
+ COPY main.py .
+ 
++RUN addgroup --system app && adduser --system --ingroup app app
++USER app
++
+ EXPOSE 8081
+ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081"]
+diff --git a/app/gateway/Dockerfile b/app/gateway/Dockerfile
+index 68ef075..bff1a79 100644
+--- a/app/gateway/Dockerfile
++++ b/app/gateway/Dockerfile
+@@ -5,5 +5,8 @@ COPY requirements.txt .
+ RUN pip install --no-cache-dir -r requirements.txt
+ COPY main.py .
+ 
++RUN addgroup --system app && adduser --system --ingroup app app
++USER app
++
+ EXPOSE 8080
+ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+diff --git a/app/payments/Dockerfile b/app/payments/Dockerfile
+index 7f9e7c1..3bdf1dc 100644
+--- a/app/payments/Dockerfile
++++ b/app/payments/Dockerfile
+@@ -5,5 +5,8 @@ COPY requirements.txt .
+ RUN pip install --no-cache-dir -r requirements.txt
+ COPY main.py .
+ 
++RUN addgroup --system app && adduser --system --ingroup app app
++USER app
++
+ EXPOSE 8082
+ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8082"]
+```
+
+All three changes are identical except for the `EXPOSE` and `CMD`
+ports, which follow each service's existing convention.
+
+### Notes on Docker Compose invocation
+
+`docker compose` looks for `docker-compose.yaml` in the current
+working directory. Since the file lives in `app/`, all compose
+commands in this lab were run from that directory. Running them from
+the repository root fails with
+`no configuration file provided: not found`. The alternative is to
+pass the file explicitly:
+`docker compose -f app/docker-compose.yaml <subcommand>` — a form
+already used earlier in this submission.
+
+## Bonus Task — Trace a Request Across Services
+
+### B.1: Clean start
+
+To make the trace unambiguous, the stack was recreated from
+scratch — including the PostgreSQL volume, so that `seed.sql` runs
+again and event 1 is fully available. This also ensures that the
+captured log window contains exactly one purchase flow and no
+leftover traffic from previous experiments.
+
+Commands (from `app/`):
+
+```bash
+docker compose down -v
+docker compose up -d --build
+sleep 10
+docker compose ps
+```
+
+Startup log confirms the database was initialized from the seed
+script (`INSERT 0 5` — five events loaded) and all three Python
+services reached `Application startup complete`:
+
+```text
+postgres-1  | 2026-09-14T05:46:57.825517933Z /usr/local/bin/docker-entrypoint.sh: running /docker-entrypoint-initdb.d/01-seed.sql
+postgres-1  | 2026-09-14T05:46:57.864215216Z INSERT 0 5
+payments-1  | 2026-09-14T05:46:56.713309256Z INFO:     Application startup complete.
+events-1    | 2026-09-14T05:47:02.424157284Z INFO:     Application startup complete.
+gateway-1   | 2026-09-14T05:47:02.540661444Z INFO:     Application startup complete.
+```
+
+### B.2: Full purchase flow
+
+Commands (from `app/`):
+
+```bash
+RES=$(curl -sS -X POST http://localhost:3080/events/1/reserve \
+  -H "Content-Type: application/json" -d '{"quantity":1}')
+RES_ID=$(printf '%s\n' "$RES" | python3 -c 'import sys,json; print(json.load(sys.stdin)["reservation_id"])')
+echo "RES_ID=$RES_ID"
+
+curl -sS -X POST "http://localhost:3080/reserve/$RES_ID/pay" | python3 -m json.tool
+
+docker compose logs --timestamps > /tmp/lab2_trace.log
+```
+
+Recorded reservation ID:
+
+```text
+RES_ID=1fc04a91-e419-4a7e-90c0-13e81f23139f
+```
+
+Both the reserve and the pay calls returned 200 OK. The reserve
+response contained the expected `reservation_id`, `event_id=1`,
+`quantity=1`, `total_cents=5000`, and `expires_in_seconds=300`.
+The pay response returned `status: "confirmed"` with the matching
+`order_id`.
+
+### B.3: Full timestamped trace
+
+Command:
+
+```bash
+grep -nE 'reserve|charge|confirm|/pay' /tmp/lab2_trace.log | tail -80
+```
+
+Relevant lines, sorted chronologically (Docker timestamps, UTC).
+The order below reflects the actual event sequence; `docker compose
+logs` itself interleaves streams, so the raw output is not sorted:
+
+```text
+events-1    | 2026-09-14T05:49:41.162262636Z {"msg":"Reserved 1 tickets for event 1: 1fc04a91-e419-4a7e-90c0-13e81f23139f"}
+events-1    | 2026-09-14T05:49:41.163256235Z INFO:     172.20.0.6:48886 - "POST /events/1/reserve HTTP/1.1" 200 OK
+gateway-1   | 2026-09-14T05:49:41.164388210Z {"msg":"HTTP Request: POST http://events:8081/events/1/reserve "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-14T05:49:41.165655097Z INFO:     151.101.64.223:32565 - "POST /events/1/reserve HTTP/1.1" 200 OK
+payments-1  | 2026-09-14T05:49:41.302718804Z {"msg":"Payment success: PAY-CE965046 for 1fc04a91-e419-4a7e-90c0-13e81f23139f"}
+payments-1  | 2026-09-14T05:49:41.303265702Z INFO:     172.20.0.6:45800 - "POST /charge HTTP/1.1" 200 OK
+gateway-1   | 2026-09-14T05:49:41.304499323Z {"msg":"HTTP Request: POST http://payments:8082/charge "HTTP/1.1 200 OK""}
+events-1    | 2026-09-14T05:49:41.312896806Z {"msg":"Order confirmed: 1fc04a91-e419-4a7e-90c0-13e81f23139f"}
+events-1    | 2026-09-14T05:49:41.313525507Z INFO:     172.20.0.6:48886 - "POST /reservations/1fc04a91-e419-4a7e-90c0-13e81f23139f/confirm HTTP/1.1" 200 OK
+gateway-1   | 2026-09-14T05:49:41.314327171Z {"msg":"HTTP Request: POST http://events:8081/reservations/1fc04a91-e419-4a7e-90c0-13e81f23139f/confirm "HTTP/1.1 200 OK""}
+gateway-1   | 2026-09-14T05:49:41.315619417Z INFO:     151.101.64.223:26109 - "POST /reserve/1fc04a91-e419-4a7e-90c0-13e81f23139f/pay HTTP/1.1" 200 OK
+```
+
+### B.4: Annotated hops
+
+The purchase is two client-visible requests (reserve, then pay)
+that the gateway stitches into a single user transaction. The
+annotation below splits them, then measures each leg.
+
+**Hop 1 — client → gateway, reserve:**
+
+| Line | Time (UTC) | Service | Event | Δ |
+|------|------------|---------|-------|---|
+| 1 | 05:49:41.162 | events | `Reserved 1 tickets for event 1` | — |
+| 2 | 05:49:41.163 | events | `POST /events/1/reserve → 200` | +1 ms |
+| 3 | 05:49:41.164 | gateway | outbound `POST http://events:8081/events/1/reserve → 200` | +1 ms |
+| 4 | 05:49:41.166 | gateway | `POST /events/1/reserve → 200` (to client) | +2 ms |
+
+**Hop 2 — gateway → payments → events, pay:**
+
+| Line | Time (UTC) | Service | Event | Δ |
+|------|------------|---------|-------|---|
+| 5 | 05:49:41.302 | payments | `Payment success: PAY-CE965046` | +136 ms |
+| 6 | 05:49:41.303 | payments | `POST /charge → 200` | +1 ms |
+| 7 | 05:49:41.304 | gateway | outbound `POST http://payments:8082/charge → 200` | +1 ms |
+| 8 | 05:49:41.312 | events | `Order confirmed` | +8 ms |
+| 9 | 05:49:41.313 | events | `POST /reservations/<id>/confirm → 200` | +1 ms |
+| 10 | 05:49:41.314 | gateway | outbound `POST http://events:8081/reservations/<id>/confirm → 200` | +1 ms |
+| 11 | 05:49:41.315 | gateway | `POST /reserve/<id>/pay → 200` (to client) | +1 ms |
+
+Notes on the ordering inside each service: in both `events` and
+`payments`, the **business log line is written before** the uvicorn
+access log for the same request. So the sequence
+`Payment success → POST /charge 200 OK` is not a reordering
+bug — it is how uvicorn emits access logs after the handler
+returns. The business log is the more accurate end-of-work marker.
+
+### B.5: End-to-end time
+
+There are two meaningful measurements, because the user-visible
+transaction is composed of two separate HTTP requests:
+
+- **`/pay` only, gateway internal time** — from the gateway's
+  outbound call to `payments:8082/charge` (05:49:41.304) to the
+  gateway's response to the client on
+  `/reserve/<id>/pay` (05:49:41.315) = **≈ 12 ms**.
+- **`/pay` full span, from the client's perspective** — not directly
+  measurable from these logs, because the gateway does not log the
+  moment it receives the incoming `/pay` request. Only the outgoing
+  call, the confirm, and the final response are logged.
+- **Reserve + pay, end-to-end** — from the client's first request
+  (`POST /events/1/reserve`, gateway inbound at 05:49:41.163) to
+  the client's last response (`POST /reserve/<id>/pay`, gateway
+  outbound at 05:49:41.315) = **≈ 152 ms**.
+
+The dominant delay is the 136 ms gap between the reserve
+completion and the first `Payment success` line in `payments`.
+That interval covers: the client's second request traveling to
+the gateway, the gateway opening the outbound connection to
+`payments`, `payments` processing `/charge` (including any
+simulated latency — configured as `PAYMENT_LATENCY_MS=0`), and
+the response travelling back. This is consistent with the
+default payment latency setting of 0 and a normal round trip
+inside the Docker bridge network. The remaining hops are all
+in the 1–8 ms range.
+
+### B.6: How the request is correlated
+
+The application does not emit a `trace_id` or `request_id`, so the
+correlation is reconstructed from three independent signals that
+agree with each other:
+
+1. **`reservation_id`** — this is the single strongest correlator.
+   It is present in the URL of both client-visible calls
+   (`/events/1/reserve` returns it, `/reserve/<id>/pay` uses it),
+   it is logged by `events` on both reserve and confirm, and it is
+   logged by `payments` inside `Payment success: ...`. A `grep
+   "$RES_ID"` over the trace returns exactly the four lines that
+   belong to this transaction (plus the two gateway lines that
+   carry it in the URL).
+
+2. **Container IP and ephemeral port** — in the `events` access log,
+   the client is `172.20.0.6:48886` for both the reserve and the
+   confirm. `172.20.0.6` is the gateway container's IP (confirmed
+   in Task 1.2 and Task 1.5). The same source port 48886 across
+   two requests is a coincidence of connection reuse inside httpx,
+   but the tuple unambiguously identifies the caller.
+
+3. **Docker UTC timestamps** — first column of every line, monotonic
+   within and across containers. Sorting by this field recovers the
+   exact event order even though `docker compose logs` interleaves
+   streams.
+
+The reliable pairing between gateway and events is therefore the
+tuple `(172.20.0.6, ephemeral port)` plus `reservation_id`, and
+not the host-side curl port (`151.101.64.223:<port>`), which
+appears only in the gateway access log and is a different client
+entirely.
+
+### B.7: Limitations
+
+- **No distributed tracing header.** The correlation above works
+  for a single low-traffic request. Under concurrent load, many
+  events would share the same second and the same container IP,
+  so `reservation_id` becomes the only truly reliable correlator,
+  and it is absent from the gateway's structured outgoing-call
+  log. A production system would propagate a `trace_id` (or at
+  least a `request_id`) across every service boundary — with the
+  current code this is not possible.
+- **Inbound `/pay` timing is not directly logged.** The gateway
+  logs only its outgoing calls, not the moment it accepts the
+  incoming `/reserve/<id>/pay` request. The end-to-end time for
+  `/pay` alone is therefore computed from the first outgoing call,
+  not from the client's arrival time. This underestimates the real
+  client-observed latency by roughly one network round trip
+  (sub-millisecond on the Docker bridge, but not zero).
+- **Business log before access log.** Because `events` and
+  `payments` write the business log line inside the handler but
+  the uvicorn access log after it returns, the two are not
+  strictly ordered by "work started / work finished" — they
+  bracket the handler execution. For measuring handler duration,
+  the delta between them is the right quantity; for measuring
+  arrival time, the business log is the more accurate marker.
+- **Log ordering in `docker compose logs` is not chronological.**
+  The output of the previous step (`tail -200`) shows lines
+  out of order, because Compose merges stdout streams from
+  multiple containers without sorting. Any correlation must be
+  done on the timestamp field, not on line position.
