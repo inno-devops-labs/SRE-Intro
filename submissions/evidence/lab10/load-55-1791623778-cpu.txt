@@ -1,0 +1,26 @@
+UTC sample: 2026-10-10T09:16:52+00:00
+$ kubectl top pods -l app=gateway
+NAME                       CPU(cores)   MEMORY(bytes)
+gateway-585c8c7867-8d27n   19m          42Mi
+gateway-585c8c7867-8jgxm   30m          41Mi
+gateway-585c8c7867-dsxhd   23m          42Mi
+gateway-585c8c7867-fkv57   26m          42Mi
+gateway-585c8c7867-hwr62   32m          42Mi
+$ kubectl top pods -l app=events
+NAME                      CPU(cores)   MEMORY(bytes)
+events-6f49cbc98f-j2b5p   85m          75Mi
+$ kubectl top pods -l app=payments
+NAME                        CPU(cores)   MEMORY(bytes)
+payments-586dbcff8f-wgdjc   9m           45Mi
+$ kubectl top pods -l app=redis
+NAME                     CPU(cores)   MEMORY(bytes)
+redis-5cbdd4d5ff-cvg66   7m           18Mi
+$ kubectl top pods -l app=postgres
+NAME                        CPU(cores)   MEMORY(bytes)
+postgres-6fb69f6c48-vs9h5   53m          28Mi
+$ kubectl top pods -l job-name=load-55-1791623778
+NAME                       CPU(cores)   MEMORY(bytes)
+load-55-1791623778-vn68q   50m          39Mi
+$ kubectl top nodes
+NAME                       CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
+k3d-quickticket-server-0   568m         7%       3121Mi          39%

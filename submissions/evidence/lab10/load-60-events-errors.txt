@@ -1,0 +1,20 @@
+2026-10-10T09:15:09.899184462Z            ~~~~~~~~~~~~~^^^^^
+2026-10-10T09:15:09.899186421Z   File "/usr/local/lib/python3.13/site-packages/psycopg2/pool.py", line 92, in _getconn
+2026-10-10T09:15:09.899189796Z     raise PoolError("connection pool exhausted")
+2026-10-10T09:15:09.899190671Z psycopg2.pool.PoolError: connection pool exhausted
+2026-10-10T09:15:09.899740129Z INFO:     10.42.0.87:55908 - "GET /health HTTP/1.1" 200 OK
+2026-10-10T09:15:09.901704671Z INFO:     10.42.0.83:38808 - "GET /events HTTP/1.1" 200 OK
+--
+2026-10-10T09:15:14.925086715Z            ~~~~~~~~~~~~~^^^^^
+2026-10-10T09:15:14.925087381Z   File "/usr/local/lib/python3.13/site-packages/psycopg2/pool.py", line 92, in _getconn
+2026-10-10T09:15:14.925088006Z     raise PoolError("connection pool exhausted")
+2026-10-10T09:15:14.925088631Z psycopg2.pool.PoolError: connection pool exhausted
+2026-10-10T09:15:14.925233715Z INFO:     10.42.0.84:54630 - "GET /events HTTP/1.1" 500 Internal Server Error
+2026-10-10T09:15:14.927588298Z ERROR:    Exception in ASGI application
+--
+2026-10-10T09:15:14.927691381Z            ~~~~~~~~~~~~~^^^^^
+2026-10-10T09:15:14.927692006Z   File "/usr/local/lib/python3.13/site-packages/psycopg2/pool.py", line 92, in _getconn
+2026-10-10T09:15:14.927692756Z     raise PoolError("connection pool exhausted")
+2026-10-10T09:15:14.927693548Z psycopg2.pool.PoolError: connection pool exhausted
+2026-10-10T09:15:14.989790757Z INFO:     10.42.0.83:38808 - "GET /events HTTP/1.1" 500 Internal Server Error
+2026-10-10T09:15:14.992214757Z ERROR:    Exception in ASGI application
