@@ -332,6 +332,28 @@ async def pay_reservation(reservation_id: str):
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
         raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
+    except (httpx.ConnectError, httpx.ConnectTimeout) as e:
+        # Lab 1 task 2: the request never reached payments, so no charge can
+        # have happened and the reservation is still held in Redis. Degrade
+        # gracefully instead of returning a generic 502 or a bare 504.
+        #
+        # Only CONNECT-stage failures land here. A read timeout stays a 504
+        # below on purpose: there the request was delivered, the charge may
+        # already have gone through, and telling the user to retry could
+        # charge them twice.
+        log.warning(f"payments unreachable at connect stage, degrading: {e!r}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": (
+                    "Payment service is temporarily down. Your reservation is held, "
+                    "try again in a few minutes."
+                ),
+                "reservation_id": reservation_id,
+            },
+            headers={"Retry-After": "30"},
+        )
     except httpx.TimeoutException:
         raise HTTPException(504, "Payment service timeout")
     except httpx.HTTPStatusError as e:
