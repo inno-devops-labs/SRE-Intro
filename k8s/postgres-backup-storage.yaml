@@ -1,0 +1,10 @@
+# Same backup PVC as the lab plumbing, kept here for the k8s/ GitOps source.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-backups
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
