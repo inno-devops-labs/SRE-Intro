@@ -47,7 +47,7 @@ services:
       - POSTGRES_USER=quickticket
       - POSTGRES_PASSWORD=quickticket
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-15432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./seed.sql:/docker-entrypoint-initdb.d/01-seed.sql
