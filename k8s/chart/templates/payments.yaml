@@ -1,0 +1,67 @@
+# This template renders the Payments Deployment and Service.
+# The Payments service includes configurable fault-injection values used in labs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+spec:
+  replicas: {{ .Values.payments.replicas }}
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      # imagePullSecrets tells Kubernetes which registry credentials to use
+      # when it pulls private images from GitHub Container Registry.
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      containers:
+        - name: payments
+          # The registry image is configured in values.yaml so the chart can
+          # change image tags without editing the template.
+          image: {{ .Values.payments.image | quote }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.payments.port }}
+          # Liveness checks a lightweight process endpoint.
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.payments.probes.livenessPath | quote }}
+              port: {{ .Values.payments.port }}
+            initialDelaySeconds: {{ .Values.global.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.global.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.global.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.global.probes.liveness.failureThreshold }}
+          # Readiness checks whether the Payments HTTP API is ready to serve traffic.
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.payments.probes.readinessPath | quote }}
+              port: {{ .Values.payments.port }}
+            initialDelaySeconds: {{ .Values.global.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.global.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.global.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.global.probes.readiness.failureThreshold }}
+          resources:
+{{ toYaml .Values.global.resources | indent 12 }}
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: {{ .Values.payments.failureRate | quote }}
+            - name: PAYMENT_LATENCY_MS
+              value: {{ .Values.payments.latencyMs | quote }}
+---
+# The Service keeps the stable in-cluster DNS name payments.
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+spec:
+  type: {{ .Values.global.serviceType }}
+  selector:
+    app: payments
+  ports:
+    - port: {{ .Values.payments.port }}
+      targetPort: {{ .Values.payments.port }}

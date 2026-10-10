@@ -1,0 +1,154 @@
+# Workflow file location inside the repository.
+# GitHub Actions automatically discovers YAML files under .github/workflows/.
+name: CI
+
+# Events that start this workflow.
+on:
+  # Run the workflow whenever commits are pushed.
+  push:
+    # Limit the trigger to pushes on main, as required by Lab 5.
+    branches: [main]
+
+
+
+# Workflow jobs. Each job runs on a fresh GitHub-hosted runner.
+jobs:
+  # Job name shown in the GitHub Actions UI.
+  build:
+    # Prevent infinite CI loops created by the Bonus task.
+    #
+    # The workflow commits updated Kubernetes image tags back to the repository
+    # with a message that starts with "ci:". Without this guard, that generated
+    # commit would trigger the workflow again, creating another generated commit
+    # and repeating the cycle.
+    if: "!startsWith(github.event.head_commit.message, 'ci:')"
+
+    # Use GitHub's latest Ubuntu runner image for Docker builds.
+    runs-on: ubuntu-latest
+    # Permissions granted to the automatically provided GITHUB_TOKEN.
+    permissions:
+      # Allow checkout and the bonus step that commits updated manifests back to the repo.
+      contents: write
+      # Allow the workflow to publish container images to GitHub Container Registry.
+      packages: write      # Needed to push to ghcr.io
+
+    # Ordered commands/actions executed by the build job.
+    steps:
+      # This step uses a reusable GitHub Action.
+      #
+      # "actions/checkout" is the official GitHub Action that checks out the
+      # repository code into the runner's filesystem.
+      #
+      # Why it is needed:
+      # - A GitHub Actions runner starts as a fresh VM.
+      # - It does not automatically contain our repository files.
+      # - Without checkout, later commands like "docker build ./app/gateway"
+      #   would fail because ./app/gateway would not exist on the runner.
+      #
+      # How we know what it does:
+      # - The "uses:" value points to the action repository and version:
+      #   actions/checkout@v4 means repository "actions/checkout", tag "v4".
+      # - That action is maintained by GitHub and documented as the standard
+      #   way to copy the workflow's repository into $GITHUB_WORKSPACE.
+      - uses: actions/checkout@v4
+
+      # This step logs Docker in to GitHub Container Registry.
+      #
+      # The "name" field is only the human-readable label shown in the Actions UI.
+      # It does not perform the login by itself.
+      - name: Log in to GitHub Container Registry
+        # The actual behavior comes from this action:
+        #
+        # docker/login-action is the official Docker-maintained action for
+        # running "docker login" in a workflow.
+        #
+        # "@v3" pins the action to major version 3.
+        uses: docker/login-action@v3
+        # Inputs passed to docker/login-action.
+        # These correspond to the registry, username, and password that a normal
+        # "docker login" command would need.
+        with:
+          # GitHub Container Registry hostname.
+          # This tells Docker which registry we want to authenticate to.
+          registry: ghcr.io
+          # GitHub account or actor that triggered the workflow.
+          # In this repository, it will usually be "rmcavalcante7".
+          username: ${{ github.actor }}
+          # Short-lived token automatically created for this workflow run.
+          #
+          # This token is not written by us and should not be hardcoded.
+          # GitHub injects it at runtime through the secrets context.
+          # The "packages: write" permission above allows this token to push
+          # images to ghcr.io for this repository/user.
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build the gateway Docker image from app/gateway.
+      #
+      # This runs on the GitHub-hosted Ubuntu runner after checkout.
+      # The image name uses GitHub Container Registry:
+      # ghcr.io/rmcavalcante7/quickticket-gateway
+      #
+      # The tag is ${{ github.sha }}, the exact commit SHA that triggered
+      # this workflow. That makes the image immutable and traceable to code.
+      - name: Build gateway image
+        run: docker build -t ghcr.io/rmcavalcante7/quickticket-gateway:${{ github.sha }} ./app/gateway
+
+      # Push the gateway image to GitHub Container Registry.
+      #
+      # This works only because the previous docker/login-action step already
+      # authenticated Docker to ghcr.io using GITHUB_TOKEN.
+      - name: Push gateway image
+        run: docker push ghcr.io/rmcavalcante7/quickticket-gateway:${{ github.sha }}
+
+      # Build the events Docker image from app/events.
+      #
+      # The "name" field is the human-readable label shown in the Actions UI.
+      # The "run" command builds the image and tags it with the commit SHA that
+      # triggered the workflow, matching the immutable-tag pattern used by
+      # Gateway.
+      - name: Build events image
+        run: docker build -t ghcr.io/rmcavalcante7/quickticket-events:${{ github.sha }} ./app/events
+
+      # Push the events image to GitHub Container Registry.
+      #
+      # This publishes the image tag that the Kubernetes manifest can later use.
+      - name: Push events image
+        run: docker push ghcr.io/rmcavalcante7/quickticket-events:${{ github.sha }}
+
+      # Build the payments Docker image from app/payments.
+      #
+      # The tag again uses ${{ github.sha }} so the deployed container can be
+      # traced back to the exact source commit.
+      - name: Build payments image
+        run: docker build -t ghcr.io/rmcavalcante7/quickticket-payments:${{ github.sha }} ./app/payments
+
+      # Push the payments image to GitHub Container Registry.
+      #
+      # This completes the registry publication for all QuickTicket services.
+      - name: Push payments image
+        run: docker push ghcr.io/rmcavalcante7/quickticket-payments:${{ github.sha }}
+
+      # Update Kubernetes manifests with the image tags built by this workflow.
+      #
+      # This is the Bonus task automation: after images are pushed, the manifests
+      # under k8s/ are updated from the previous tag to the current commit SHA.
+      # ArgoCD then sees the Git change and deploys the new image tag.
+      - name: Update image tags in manifests
+        run: |
+          SHA=${{ github.sha }}
+          sed -i "s|image: ghcr.io/.*/quickticket-gateway:.*|image: ghcr.io/${{ github.actor }}/quickticket-gateway:${SHA}|" k8s/gateway.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-events:.*|image: ghcr.io/${{ github.actor }}/quickticket-events:${SHA}|" k8s/events.yaml
+          sed -i "s|image: ghcr.io/.*/quickticket-payments:.*|image: ghcr.io/${{ github.actor }}/quickticket-payments:${SHA}|" k8s/payments.yaml
+
+      # Commit and push the manifest update created by the previous step.
+      #
+      # The git identity marks the commit as generated by GitHub Actions.
+      # "git diff --cached --quiet" avoids creating an empty commit if the
+      # manifests already contain the desired image tags.
+      - name: Commit and push manifest update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add k8s/
+          git diff --cached --quiet || git commit -m "ci: update image tags to ${{ github.sha }}"
+          git push

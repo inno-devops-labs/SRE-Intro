@@ -1,0 +1,159 @@
+# values.yaml contains the default configuration for the QuickTicket Helm chart.
+# Helm reads this file before rendering the templates in k8s/chart/templates/.
+# Each template accesses these values through the .Values object.
+#
+# Example:
+#   values.yaml:  gateway.image: ghcr.io/rmcavalcante7/quickticket-gateway:<commit-sha>
+#   template:     image: {{ .Values.gateway.image | quote }}
+#   rendered:     image: "ghcr.io/rmcavalcante7/quickticket-gateway:<commit-sha>"
+#
+# The goal of this file is to keep configuration in one place, so we can change
+# replicas, images, ports, probes, resources, and environment values without
+# editing every Kubernetes manifest manually.
+
+global:
+  # imagePullPolicy is shared by the QuickTicket application containers.
+  # Lab 5 uses images built by GitHub Actions and pushed to ghcr.io.
+  # Always tells Kubernetes to pull the registry image whenever it creates
+  # a new Pod, instead of relying on a locally imported k3d image.
+  imagePullPolicy: Always
+
+  # serviceType is used by all Services rendered by the chart.
+  # ClusterIP exposes each Service only inside the Kubernetes cluster.
+  # Gateway is accessed from the host with kubectl port-forward during the lab.
+  serviceType: ClusterIP
+
+  # resources defines the default CPU and memory requests/limits for the app Pods.
+  # requests are used by the scheduler to decide whether a node has enough capacity.
+  # limits define the maximum CPU and memory the container is allowed to consume.
+  resources:
+    requests:
+      # 50m means 50 millicores, or 5% of one CPU core.
+      cpu: 50m
+      # 64Mi means 64 mebibytes of memory requested for scheduling.
+      memory: 64Mi
+    limits:
+      # 200m means the container may use up to 20% of one CPU core.
+      cpu: 200m
+      # 256Mi is the maximum memory allowed for the container.
+      memory: 256Mi
+
+  # probes defines shared timing values for liveness and readiness probes.
+  # Individual services still define their own probe paths below.
+  probes:
+    liveness:
+      # initialDelaySeconds waits before the first liveness check.
+      # This gives the process time to start before Kubernetes considers restarts.
+      initialDelaySeconds: 15
+      # periodSeconds controls how often Kubernetes runs the liveness check.
+      periodSeconds: 10
+      # timeoutSeconds is how long Kubernetes waits for one probe response.
+      timeoutSeconds: 3
+      # failureThreshold is how many failed checks are required before restart.
+      failureThreshold: 3
+    readiness:
+      # initialDelaySeconds waits before the first readiness check.
+      initialDelaySeconds: 5
+      # periodSeconds controls how often Kubernetes checks if the Pod is ready.
+      periodSeconds: 5
+      # timeoutSeconds is how long Kubernetes waits for one readiness response.
+      timeoutSeconds: 3
+      # failureThreshold is how many failed checks make the Pod NotReady.
+      failureThreshold: 2
+
+postgres:
+  # PostgreSQL stores QuickTicket event and order data.
+  # It uses a public image, so it does not use the global imagePullPolicy: Never.
+  replicas: 1
+  image: postgres:17-alpine
+  port: 5432
+
+  # These values become POSTGRES_* environment variables in the PostgreSQL Pod.
+  # They also match the connection settings used by the Events service.
+  database: quickticket
+  user: quickticket
+  password: quickticket
+
+redis:
+  # Redis stores temporary reservations for the Events service.
+  # It is exposed only inside the cluster through the redis Service.
+  replicas: 1
+  image: redis:7-alpine
+  port: 6379
+
+events:
+  # Events is the backend service responsible for event listing, reservations,
+  # and order persistence.
+  replicas: 1
+  # This image tag must match a successful GitHub Actions build pushed to GHCR.
+  image: ghcr.io/rmcavalcante7/quickticket-events:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
+  port: 8081
+
+  db:
+    # host must match the PostgreSQL Service name rendered by this chart.
+    host: postgres
+    # Environment variable values are strings, so numeric-looking values are quoted.
+    port: "5432"
+    name: quickticket
+    user: quickticket
+    password: quickticket
+    # maxConns configures the Events application database connection pool.
+    maxConns: "10"
+
+  redis:
+    # host must match the Redis Service name rendered by this chart.
+    host: redis
+    port: "6379"
+    # timeoutMs controls Redis client timeout behavior in the Events application.
+    timeoutMs: "1000"
+
+  # reservationTtl controls how long reservations remain active in Redis.
+  reservationTtl: "300"
+
+  probes:
+    # livenessPath checks whether the Events HTTP process is alive.
+    # It intentionally avoids dependency checks to prevent unnecessary restarts.
+    livenessPath: /metrics
+    # readinessPath checks whether Events can receive traffic.
+    # In the app code, /health verifies PostgreSQL and Redis availability.
+    readinessPath: /health
+
+gateway:
+  # Gateway is the public entry point for QuickTicket requests.
+  replicas: 1
+  # This image tag must match a successful GitHub Actions build pushed to GHCR.
+  image: ghcr.io/rmcavalcante7/quickticket-gateway:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
+  port: 8080
+
+  # These URLs point to internal Kubernetes Services.
+  # Kubernetes DNS resolves events and payments to the correct ClusterIP Services.
+  eventsUrl: http://events:8081
+  paymentsUrl: http://payments:8082
+
+  # timeoutMs configures the Gateway HTTP client timeout.
+  timeoutMs: "5000"
+
+  probes:
+    # livenessPath checks whether the Gateway HTTP process is alive.
+    livenessPath: /metrics
+    # readinessPath checks whether Gateway can route to critical backend services.
+    # In the app code, /health checks Events and Payments.
+    readinessPath: /health
+
+payments:
+  # Payments is the mock payment processor used by the Gateway payment flow.
+  replicas: 1
+  # This image tag must match a successful GitHub Actions build pushed to GHCR.
+  image: ghcr.io/rmcavalcante7/quickticket-payments:b9d0d9d1f3c3e5a1c9977444389f4eb9eade7e64
+  port: 8082
+
+  # failureRate and latencyMs keep the fault-injection behavior configurable.
+  # They are strings because Kubernetes environment variable values are strings.
+  failureRate: "0.0"
+  latencyMs: "0"
+
+  probes:
+    # livenessPath checks whether the Payments HTTP process is alive.
+    livenessPath: /metrics
+    # readinessPath checks whether Payments can receive traffic.
+    readinessPath: /health

@@ -1,0 +1,36 @@
+# This template renders the Redis Deployment and Service.
+# Values come from .Values.redis so the image and port can be changed centrally.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: {{ .Values.redis.replicas }}
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image | quote }}
+          ports:
+            - containerPort: {{ .Values.redis.port }}
+          resources:
+{{ toYaml .Values.global.resources | indent 12 }}
+---
+# The Service keeps the stable in-cluster DNS name redis.
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  type: {{ .Values.global.serviceType }}
+  selector:
+    app: redis
+  ports:
+    - port: {{ .Values.redis.port }}
+      targetPort: {{ .Values.redis.port }}

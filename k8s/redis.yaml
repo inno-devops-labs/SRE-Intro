@@ -1,0 +1,97 @@
+# This file defines the Redis cache workload for QuickTicket.
+# It contains two Kubernetes resources:
+# 1. A Deployment, which keeps the Redis Pod running.
+# 2. A Service, which gives Redis a stable internal DNS name and port.
+
+# apiVersion identifies which Kubernetes API group and version this resource uses.
+# Deployments belong to the "apps" API group, version "v1".
+apiVersion: apps/v1
+
+# kind tells Kubernetes that this document defines a Deployment.
+# A Deployment keeps the desired number of Pods running and recreates them if they disappear.
+kind: Deployment
+
+# metadata contains identifying information about this Kubernetes object.
+metadata:
+  # name is the Deployment name used by kubectl and by humans reading the cluster state.
+  # Example: kubectl get deployment redis
+  name: redis
+
+# spec describes the desired state for the Redis Deployment.
+spec:
+  # Redis only needs one replica for this lab.
+  # In production, Redis high availability requires a different architecture.
+  replicas: 1
+
+  # selector tells the Deployment which Pods it owns.
+  # This must match the labels in spec.template.metadata.labels.
+  selector:
+    matchLabels:
+      # This Deployment manages Pods with app=redis.
+      app: redis
+
+  # template describes the Pod that Kubernetes creates for this Deployment.
+  template:
+    metadata:
+      labels:
+        # This label connects the Pod to both the Deployment selector and the Service selector.
+        app: redis
+
+    # spec inside template describes the Pod contents.
+    spec:
+      containers:
+        # The Redis Pod has one container.
+        - name: redis
+
+          # redis:7-alpine is the Redis image used by the docker-compose setup.
+          # Alpine images are smaller than full Linux distribution images.
+          image: redis:7-alpine
+
+          # ports documents the container port used by Redis.
+          # This does not expose Redis outside the cluster by itself.
+          ports:
+            # Redis listens on TCP port 6379 by default.
+            - containerPort: 6379
+
+          # resources declares the requested and maximum CPU/memory for Redis.
+          # This keeps the cache workload visible in Kubernetes scheduling and
+          # node allocation output for the lab.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+---
+
+# This second YAML document defines the Redis Service.
+# The Service provides a stable internal address for Redis.
+# Other Pods can use the DNS name "redis" instead of depending on a Pod IP.
+apiVersion: v1
+
+# Service is the Kubernetes resource for stable networking to Pods.
+kind: Service
+
+metadata:
+  # This Service name becomes the in-cluster DNS hostname: redis
+  # The events service will connect to redis:6379.
+  name: redis
+
+spec:
+  # ClusterIP means the Service is reachable only inside the Kubernetes cluster.
+  # This is correct for Redis because it is an internal dependency.
+  type: ClusterIP
+
+  # selector chooses which Pods receive traffic through this Service.
+  # Any Pod labeled app=redis becomes a backend endpoint.
+  selector:
+    app: redis
+
+  ports:
+    # port is the stable Service port exposed inside the cluster.
+    - port: 6379
+
+      # targetPort is the actual Redis container port.
+      targetPort: 6379
