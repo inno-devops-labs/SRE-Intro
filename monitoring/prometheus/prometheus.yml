@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: gateway
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["gateway:8080"]
+
+  - job_name: events
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["events:8081"]
+
+  - job_name: payments
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["payments:8082"]
