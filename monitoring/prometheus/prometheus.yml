@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules.yml"
+
+scrape_configs:
+  - job_name: "app-gateway-1"
+    metrics_path: "/metrics"
+    scheme: "http"
+    static_configs:
+      - targets: ["gateway:8080"]
+
+  - job_name: "app-events-1"
+    metrics_path: "/metrics"
+    scheme: "http"
+    static_configs:
+      - targets: ["events:8081"]
+
+  - job_name: "app-payments-1"
+    metrics_path: "/metrics"
+    scheme: "http"
+    static_configs:
+      - targets: ["payments:8082"]
