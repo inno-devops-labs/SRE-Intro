@@ -1,0 +1,25 @@
+groups:
+  - name: slo_rules
+    interval: 30s
+    rules:
+      # SLI 1 — Availability: share of gateway requests NOT returning 5xx.
+      # SLO target: 99.5% over 7 days.
+      - record: gateway:sli_availability:ratio_rate5m
+        expr: |
+          sum(rate(gateway_requests_total{status!~"5.."}[5m]))
+          /
+          sum(rate(gateway_requests_total[5m]))
+
+      # SLI 2 — Latency: share of gateway requests completing under 500ms.
+      # SLO target: 95%.
+      - record: gateway:sli_latency_500ms:ratio_rate5m
+        expr: |
+          sum(rate(gateway_request_duration_seconds_bucket{le="0.5"}[5m]))
+          /
+          sum(rate(gateway_request_duration_seconds_count[5m]))
+
+      # Error budget burn rate against the 99.5% availability SLO.
+      # 1.0 = burning the budget exactly as fast as the window allows; >1 = too fast.
+      - record: gateway:error_budget_burn_rate:ratio_rate5m
+        expr: |
+          (1 - gateway:sli_availability:ratio_rate5m) / (1 - 0.995)
