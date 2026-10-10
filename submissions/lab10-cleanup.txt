@@ -1,0 +1,35 @@
+health {'status': 'healthy', 'checks': {'events': 'ok', 'payments': 'ok', 'circuit_payments': 'CLOSED'}}
+events 6
+reserve {'reservation_id': '36d447c9-dd96-4ef6-b856-a16c4438ec28', 'event_id': 6, 'quantity': 1, 'total_cents': 100, 'expires_in_seconds': 300}
+pay {'order_id': '36d447c9-dd96-4ef6-b856-a16c4438ec28', 'event_id': 6, 'quantity': 1, 'total_cents': 100, 'status': 'confirmed'}
+OK
+ count
+-------
+     6
+(1 row)
+
+ count
+-------
+  4480
+(1 row)
+
+    version_num
+-------------------
+ 0002_events_email
+(1 row)
+
+NAME                            READY   STATUS    RESTARTS        AGE
+pod/events-69d8cb9657-qn7fc     1/1     Running   0               5m38s
+pod/gateway-79795445b6-jrdf5    1/1     Running   70 (165m ago)   6d17h
+pod/gateway-79795445b6-n5rsx    1/1     Running   74 (103m ago)   6d17h
+pod/gateway-79795445b6-tcv6b    1/1     Running   73 (104m ago)   6d17h
+pod/gateway-79795445b6-wt9hr    1/1     Running   62 (165m ago)   6d17h
+pod/gateway-79795445b6-zt6pk    1/1     Running   64 (103m ago)   6d17h
+pod/payments-5744c894c8-m9s29   1/1     Running   70 (104m ago)   6d17h
+pod/postgres-c8778f757-tkdxl    1/1     Running   0               81m
+pod/redis-d8d9865df-2bjvg       1/1     Running   0               6d17h
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           6d18h
+NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+postgres-data   Bound    pvc-bcd533dc-88ec-45de-bda1-99e633590165   1Gi        RWO            local-path     <unset>                 89m
