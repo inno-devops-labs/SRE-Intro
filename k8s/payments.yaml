@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      containers:
+        - name: payments
+          image: quickticket-payments:v1
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8082
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: "0.0"
+            - name: PAYMENT_LATENCY_MS
+              value: "0"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+spec:
+  selector:
+    app: payments
+  ports:
+    - port: 8082
+      targetPort: 8082
