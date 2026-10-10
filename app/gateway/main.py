@@ -101,8 +101,35 @@ async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
     See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
     will pick up your implementation automatically.
     """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    base_delay = RETRY_BASE_DELAY_MS / 1000
+
+    for attempt in range(max_retries):
+        try:
+            result = await func()
+            if attempt > 0:
+                RETRY_TOTAL.labels(target, "succeeded_after_retry").inc()
+            return result
+        except Exception as exc:
+            retryable = False
+            if isinstance(exc, (httpx.TimeoutException, httpx.ConnectError)):
+                retryable = True
+            elif isinstance(exc, httpx.HTTPStatusError):
+                status = exc.response.status_code
+                retryable = status >= 500 or status in (408, 429)
+                if not retryable:
+                    RETRY_TOTAL.labels(target, "non_retryable").inc()
+                    raise
+
+            if not retryable:
+                raise
+
+            if attempt == max_retries - 1:
+                RETRY_TOTAL.labels(target, "exhausted").inc()
+                raise
+
+            delay = base_delay * (2 ** attempt) + random.uniform(0, base_delay)
+            RETRY_TOTAL.labels(target, "retried").inc()
+            await asyncio.sleep(delay)
 
 
 class CircuitOpenError(Exception):
@@ -144,8 +171,23 @@ class CircuitBreaker:
         No-op default: just calls func. Lab 11 task 11.7 replaces this with
         the state machine. Raise `CircuitOpenError` when the circuit is open.
         """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == self.OPEN:
+            if time.time() - self.opened_at >= self.cooldown:
+                self._transition(self.HALF_OPEN)
+            else:
+                raise CircuitOpenError(f"circuit[{self.name}] OPEN")
+
+        try:
+            result = await func()
+            self.failures = 0
+            self._transition(self.CLOSED)
+            return result
+        except Exception:
+            self.failures += 1
+            self.opened_at = time.time()
+            if self.state == self.HALF_OPEN or self.failures >= self.threshold:
+                self._transition(self.OPEN)
+            raise
 
 
 class RateLimiter:
@@ -166,7 +208,17 @@ class RateLimiter:
 
         No-op default: always True. Lab 11 task 11.8 replaces this body.
         """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        q = self.hits[key]
+        cutoff = now - self.window_s
+
+        while q and q[0] < cutoff:
+            q.popleft()
+
+        if len(q) >= self.rps:
+            return False
+
+        q.append(now)
         return True
 
 
@@ -331,11 +383,28 @@ async def pay_reservation(reservation_id: str):
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
-        raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held - try again in a few minutes.",
+                "reservation_id": reservation_id,
+            },
+        )
     except httpx.TimeoutException:
         raise HTTPException(504, "Payment service timeout")
     except httpx.HTTPStatusError as e:
         raise HTTPException(e.response.status_code, "Payment failed")
+    except httpx.ConnectError:
+        log.error("payments connect error")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held - try again in a few minutes.",
+                "reservation_id": reservation_id,
+            },
+        )
     except Exception as e:
         log.error(f"payment error: {e}")
         raise HTTPException(502, "Payment service unavailable")
