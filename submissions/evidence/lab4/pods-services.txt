@@ -1,0 +1,14 @@
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/events-56ff56dd58-jgtbt     1/1     Running   0          89s
+pod/gateway-6764b89544-m9hzj    1/1     Running   0          89s
+pod/payments-58f46b478f-srrl7   1/1     Running   0          89s
+pod/postgres-56db6d697c-k4pgz   1/1     Running   0          89s
+pod/redis-6d695466ff-776qn      1/1     Running   0          89s
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+service/events       ClusterIP   10.43.28.138   <none>        8081/TCP   89s
+service/gateway      ClusterIP   10.43.7.59     <none>        8080/TCP   89s
+service/kubernetes   ClusterIP   10.43.0.1      <none>        443/TCP    4m8s
+service/payments     ClusterIP   10.43.21.13    <none>        8082/TCP   89s
+service/postgres     ClusterIP   10.43.79.75    <none>        5432/TCP   89s
+service/redis        ClusterIP   10.43.132.8    <none>        6379/TCP   89s

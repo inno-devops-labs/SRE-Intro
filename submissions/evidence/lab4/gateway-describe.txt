@@ -1,0 +1,66 @@
+Name:             gateway-6764b89544-m9hzj
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             k3d-quickticket-server-0/172.19.0.3
+Start Time:       Mon, 21 Sep 2026 11:21:35 +0300
+Labels:           app=gateway
+                  pod-template-hash=6764b89544
+Annotations:      <none>
+Status:           Running
+IP:               10.42.0.10
+IPs:
+  IP:           10.42.0.10
+Controlled By:  ReplicaSet/gateway-6764b89544
+Containers:
+  gateway:
+    Container ID:   containerd://9066e32e1af60636f09e0c6d5f6a0d1985aa59944d1a1fc53f7b0062202aa376
+    Image:          quickticket-gateway:v1
+    Image ID:       sha256:54f79db481e94412d59709077083c417f260f7946b6fac5924755c6ea536c64f
+    Port:           8080/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Mon, 21 Sep 2026 11:21:35 +0300
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  256Mi
+    Requests:
+      cpu:      50m
+      memory:   64Mi
+    Liveness:   tcp-socket :8080 delay=10s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:8080/health delay=0s timeout=5s period=5s #success=1 #failure=2
+    Startup:    tcp-socket :8080 delay=0s timeout=1s period=2s #success=1 #failure=30
+    Environment:
+      EVENTS_URL:          http://events:8081
+      PAYMENTS_URL:        http://payments:8082
+      GATEWAY_TIMEOUT_MS:  5000
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-mw6pk (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-mw6pk:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  89s                default-scheduler  Successfully assigned default/gateway-6764b89544-m9hzj to k3d-quickticket-server-0
+  Normal   Pulled     89s                kubelet            Container image "quickticket-gateway:v1" already present on machine
+  Normal   Created    89s                kubelet            Created container: gateway
+  Normal   Started    89s                kubelet            Started container gateway
+  Warning  Unhealthy  31s (x5 over 87s)  kubelet            Readiness probe failed: HTTP probe failed with statuscode: 503

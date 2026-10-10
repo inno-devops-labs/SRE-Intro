@@ -1,0 +1,2 @@
+NAME       	NAMESPACE	REVISION	UPDATED                             	STATUS  	CHART            	APP VERSION
+quickticket	default  	1       	2026-09-21 11:25:59.605769 +0300 MSK	deployed	quickticket-0.1.0	1.0.0

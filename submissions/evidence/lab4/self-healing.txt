@@ -1,0 +1,15 @@
+Deletion started: 2026-09-21T08:23:33.324759+00:00
+NAME                       READY   STATUS    RESTARTS   AGE
+gateway-6764b89544-m9hzj   1/1     Running   0          118s
+pod "gateway-6764b89544-m9hzj" deleted
+gateway-6764b89544-m9hzj   1/1     Terminating   0          118s
+gateway-6764b89544-lv8nz   0/1     Pending       0          0s
+gateway-6764b89544-lv8nz   0/1     Pending       0          0s
+gateway-6764b89544-lv8nz   0/1     ContainerCreating   0          0s
+gateway-6764b89544-m9hzj   0/1     Completed           0          118s
+gateway-6764b89544-lv8nz   0/1     Running             0          1s
+gateway-6764b89544-m9hzj   0/1     Completed           0          119s
+gateway-6764b89544-m9hzj   0/1     Completed           0          119s
+gateway-6764b89544-lv8nz   0/1     Running             0          4s
+gateway-6764b89544-lv8nz   1/1     Running             0          4s
+New pod Ready after 4.59s: gateway-6764b89544-lv8nz

@@ -1,0 +1,80 @@
+{{- range $name := list "postgres" "redis" "events" "payments" "gateway" }}
+{{- $component := index $.Values $name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+spec:
+  replicas: {{ $component.replicas }}
+  {{- if eq $name "postgres" }}
+  strategy:
+    type: Recreate
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+      app.kubernetes.io/instance: {{ $.Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        app.kubernetes.io/instance: {{ $.Release.Name }}
+    spec:
+      {{- if eq $name "events" }}
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ $.Values.postgres.image | quote }}
+          imagePullPolicy: {{ $.Values.postgres.imagePullPolicy }}
+          command: ["sh", "-c", "until pg_isready -h \"$DB_HOST\" -p \"$DB_PORT\" -U \"$DB_USER\" -d \"$DB_NAME\"; do sleep 2; done"]
+          env:
+            {{- range $key := list "DB_HOST" "DB_PORT" "DB_USER" "DB_NAME" }}
+            - name: {{ $key }}
+              value: {{ index $.Values.events.env $key | quote }}
+            {{- end }}
+          resources: {{- toYaml $.Values.resources | nindent 12 }}
+        - name: wait-for-redis
+          image: {{ $.Values.redis.image | quote }}
+          imagePullPolicy: {{ $.Values.redis.imagePullPolicy }}
+          command: ["sh", "-c", "until redis-cli -h \"$REDIS_HOST\" -p \"$REDIS_PORT\" ping | grep -q PONG; do sleep 2; done"]
+          env:
+            - name: REDIS_HOST
+              value: {{ $.Values.events.env.REDIS_HOST | quote }}
+            - name: REDIS_PORT
+              value: {{ $.Values.events.env.REDIS_PORT | quote }}
+          resources: {{- toYaml $.Values.resources | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: {{ $name }}
+          image: {{ $component.image | quote }}
+          imagePullPolicy: {{ $component.imagePullPolicy }}
+          ports:
+            - name: tcp
+              containerPort: {{ $component.port }}
+          {{- with $component.env }}
+          env:
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
+          resources: {{- toYaml (default $.Values.resources $component.resources) | nindent 12 }}
+          {{- range $probe := list "startupProbe" "readinessProbe" "livenessProbe" }}
+          {{- with index $component $probe }}
+          {{ $probe }}: {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if eq $name "postgres" }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          {{- end }}
+      {{- if eq $name "postgres" }}
+      volumes:
+        - name: data
+          emptyDir: {}
+      {{- end }}
+{{- end }}
