@@ -1,0 +1,166 @@
+# This file defines the QuickTicket Events service in Kubernetes.
+# It contains two resources:
+# 1. A Deployment, which keeps the Events application Pod running.
+# 2. A Service, which gives the Events API a stable internal DNS name and port.
+
+# Deployments use the apps/v1 API.
+apiVersion: apps/v1
+
+# A Deployment manages replicated Pods and recreates them when needed.
+kind: Deployment
+
+metadata:
+  # The Deployment is named "events".
+  # Example commands:
+  # kubectl get deployment events
+  # kubectl rollout restart deployment/events
+  name: events
+
+spec:
+  # One replica is enough for this lab.
+  # Later, Kubernetes can scale this by increasing the replica count.
+  replicas: 1
+
+  # selector defines which Pods this Deployment owns.
+  # It must match the Pod labels in the template below.
+  selector:
+    matchLabels:
+      app: events
+
+  # template defines the Pod that will run the Events application.
+  template:
+    metadata:
+      labels:
+        # The app=events label connects this Pod to the Deployment and Service.
+        app: events
+
+    spec:
+      containers:
+        # The Events Pod contains one application container.
+        - name: events
+
+          # This is the local image built from app/events and imported into k3d.
+          image: quickticket-events:v1
+
+          # imagePullPolicy: Never tells Kubernetes not to pull this image from a registry.
+          # This is required in the lab because the image was built locally and imported into k3d.
+          imagePullPolicy: Never
+
+          # The Events FastAPI application listens on port 8081.
+          ports:
+            - containerPort: 8081
+
+          # livenessProbe tells Kubernetes whether the container process is alive.
+          # If this check fails repeatedly, Kubernetes restarts the container.
+          # It uses /metrics instead of /health because Events /health checks
+          # PostgreSQL and Redis. Dependency failures should affect readiness,
+          # not force the Events process to restart.
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # readinessProbe tells Kubernetes whether this Pod can receive traffic.
+          # If this check fails, Kubernetes keeps the Pod running but removes it
+          # from the Service endpoints until the check passes again.
+          # For Events, /health checks PostgreSQL with SELECT 1 and checks Redis,
+          # so readiness reflects whether the service can handle dependent work.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+
+          # resources declares the amount of CPU and memory requested by the Pod
+          # and the maximum amount the container is allowed to use.
+          # requests are used by the scheduler to place the Pod on a node.
+          # limits protect the node from a container consuming too many resources.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+          # env passes runtime configuration into the application container.
+          # These values mirror app/docker-compose.yaml.
+          env:
+            # DB_HOST points to the PostgreSQL Service name.
+            # Kubernetes DNS resolves "postgres" to the Service created in postgres.yaml.
+            - name: DB_HOST
+              value: "postgres"
+
+            # DB_PORT is the PostgreSQL Service port.
+            - name: DB_PORT
+              value: "5432"
+
+            # DB_NAME is the database name created by the postgres image.
+            - name: DB_NAME
+              value: "quickticket"
+
+            # DB_USER is the PostgreSQL user configured in postgres.yaml.
+            - name: DB_USER
+              value: "quickticket"
+
+            # DB_PASS is the PostgreSQL password configured in postgres.yaml.
+            # For production, this should be stored in a Kubernetes Secret.
+            - name: DB_PASS
+              value: "quickticket"
+
+            # DB_MAX_CONNS controls the application-side database connection pool size.
+            - name: DB_MAX_CONNS
+              value: "10"
+
+            # REDIS_HOST points to the Redis Service name.
+            # Kubernetes DNS resolves "redis" to the Service created in redis.yaml.
+            - name: REDIS_HOST
+              value: "redis"
+
+            # REDIS_PORT is the Redis Service port.
+            - name: REDIS_PORT
+              value: "6379"
+
+            # REDIS_TIMEOUT_MS controls Redis client timeout behavior in the app.
+            - name: REDIS_TIMEOUT_MS
+              value: "1000"
+
+            # RESERVATION_TTL controls how long reservations stay active in Redis.
+            # The docker-compose setup uses 300 seconds.
+            - name: RESERVATION_TTL
+              value: "300"
+
+---
+
+# This Service gives the Events Pods a stable in-cluster address.
+# The gateway will call the Events API using http://events:8081.
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  # This name becomes the Kubernetes DNS hostname "events".
+  name: events
+
+spec:
+  # ClusterIP exposes the Service only inside the cluster.
+  # The Events API is an internal backend dependency for the gateway.
+  type: ClusterIP
+
+  # The Service routes traffic to Pods labeled app=events.
+  selector:
+    app: events
+
+  ports:
+    # port is the Service port used by other Pods.
+    - port: 8081
+
+      # targetPort is the port on the Events container.
+      targetPort: 8081
