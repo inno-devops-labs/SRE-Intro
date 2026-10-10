@@ -1,0 +1,40 @@
+gateway:
+  replicas: 1
+  image: quickticket-gateway:v1
+  timeoutMs: "5000"
+events:
+  replicas: 1
+  image: quickticket-events:v1
+  maxConns: "10"
+  reservationTtl: "300"
+  db:
+    host: postgres
+    port: 5432
+    name: quickticket
+    user: quickticket
+    password: quickticket
+  redis:
+    host: redis
+    port: 6379
+    timeoutMs: "1000"
+payments:
+  replicas: 1
+  image: quickticket-payments:v1
+  failureRate: "0.0"
+  latencyMs: "0"
+postgres:
+  image: postgres:17-alpine
+  # Load app/seed.sql through docker-entrypoint-initdb.d, as docker-compose does,
+  # so a fresh install does not need a manual kubectl exec
+  seed: true
+redis:
+  image: redis:7-alpine
+# Locally built images are imported into k3d, never pulled
+localImagePullPolicy: Never
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

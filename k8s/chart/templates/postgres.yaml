@@ -1,0 +1,66 @@
+{{- if .Values.postgres.seed }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-seed
+  labels:
+    {{- include "quickticket.labels" . | nindent 4 }}
+data:
+  01-seed.sql: |
+    {{- .Files.Get "files/seed.sql" | nindent 4 }}
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+    {{- include "quickticket.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.events.db.port }}
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.events.db.name | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.events.db.user | quote }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.events.db.password | quote }}
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", {{ .Values.events.db.user | quote }}]
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.events.db.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- include "quickticket.resources" . | nindent 10 }}
+          {{- if .Values.postgres.seed }}
+          volumeMounts:
+            - name: seed
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      volumes:
+        - name: seed
+          configMap:
+            name: postgres-seed
+          {{- end }}
+---
+{{ include "quickticket.service" (dict "name" "postgres" "port" .Values.events.db.port "root" .) }}

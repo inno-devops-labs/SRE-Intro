@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  labels:
+    app: redis
+    {{- include "quickticket.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.events.redis.port }}
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.events.redis.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          {{- include "quickticket.resources" . | nindent 10 }}
+---
+{{ include "quickticket.service" (dict "name" "redis" "port" .Values.events.redis.port "root" .) }}

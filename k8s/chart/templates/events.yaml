@@ -1,0 +1,59 @@
+{{- $db := .Values.events.db -}}
+{{- $rd := .Values.events.redis -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+  labels:
+    app: events
+    {{- include "quickticket.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.events.replicas }}
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until pg_isready -h {{ $db.host }} -p {{ $db.port }} -U {{ $db.user }}; do echo waiting for postgres; sleep 2; done"]
+        - name: wait-for-redis
+          image: {{ .Values.redis.image }}
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "until redis-cli -h {{ $rd.host }} -p {{ $rd.port }} ping | grep -q PONG; do echo waiting for redis; sleep 2; done"]
+      containers:
+        - name: events
+          image: {{ .Values.events.image }}
+          imagePullPolicy: {{ .Values.localImagePullPolicy }}
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: {{ $db.host | quote }}
+            - name: DB_PORT
+              value: {{ $db.port | quote }}
+            - name: DB_NAME
+              value: {{ $db.name | quote }}
+            - name: DB_USER
+              value: {{ $db.user | quote }}
+            - name: DB_PASS
+              value: {{ $db.password | quote }}
+            - name: DB_MAX_CONNS
+              value: {{ .Values.events.maxConns | quote }}
+            - name: REDIS_HOST
+              value: {{ $rd.host | quote }}
+            - name: REDIS_PORT
+              value: {{ $rd.port | quote }}
+            - name: REDIS_TIMEOUT_MS
+              value: {{ $rd.timeoutMs | quote }}
+            - name: RESERVATION_TTL
+              value: {{ .Values.events.reservationTtl | quote }}
+          {{- include "quickticket.httpProbes" (dict "port" 8081 "liveness" "/metrics") | nindent 10 }}
+          {{- include "quickticket.resources" . | nindent 10 }}
+---
+{{ include "quickticket.service" (dict "name" "events" "port" 8081 "root" .) }}

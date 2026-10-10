@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+    {{- include "quickticket.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.gateway.replicas }}
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: {{ .Values.gateway.image }}
+          imagePullPolicy: {{ .Values.localImagePullPolicy }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EVENTS_URL
+              value: {{ printf "http://events:8081" | quote }}
+            - name: PAYMENTS_URL
+              value: {{ printf "http://payments:8082" | quote }}
+            - name: GATEWAY_TIMEOUT_MS
+              value: {{ .Values.gateway.timeoutMs | quote }}
+          {{- include "quickticket.httpProbes" (dict "port" 8080 "liveness" "/metrics") | nindent 10 }}
+          {{- include "quickticket.resources" . | nindent 10 }}
+---
+{{ include "quickticket.service" (dict "name" "gateway" "port" 8080 "root" .) }}
