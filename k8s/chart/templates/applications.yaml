@@ -1,0 +1,38 @@
+{{ include "quickticket.application" (dict
+  "name" "gateway"
+  "component" .Values.gateway
+  "env" (dict
+    "EVENTS_URL" .Values.gateway.eventsUrl
+    "PAYMENTS_URL" .Values.gateway.paymentsUrl
+    "GATEWAY_TIMEOUT_MS" .Values.gateway.timeoutMs
+  )
+  "root" .
+) }}
+---
+{{ include "quickticket.application" (dict
+  "name" "events"
+  "component" .Values.events
+  "env" (dict
+    "DB_HOST" .Values.events.db.host
+    "DB_PORT" .Values.events.db.port
+    "DB_NAME" .Values.events.db.name
+    "DB_USER" .Values.events.db.user
+    "DB_PASS" .Values.events.db.password
+    "DB_MAX_CONNS" .Values.events.db.maxConnections
+    "REDIS_HOST" .Values.events.redis.host
+    "REDIS_PORT" .Values.events.redis.port
+    "REDIS_TIMEOUT_MS" .Values.events.redis.timeoutMs
+    "RESERVATION_TTL" .Values.events.reservationTtl
+  )
+  "root" .
+) }}
+---
+{{ include "quickticket.application" (dict
+  "name" "payments"
+  "component" .Values.payments
+  "env" (dict
+    "PAYMENT_FAILURE_RATE" .Values.payments.failureRate
+    "PAYMENT_LATENCY_MS" .Values.payments.latencyMs
+  )
+  "root" .
+) }}
