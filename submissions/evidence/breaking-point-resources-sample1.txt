@@ -1,0 +1,20 @@
+Fri Jul 10 22:31:52 EEST 2026
+=== Gateway ===
+NAME                       CPU(cores)   MEMORY(bytes)   
+gateway-7dddfff9ff-5vf56   37m          41Mi            
+gateway-7dddfff9ff-8w5d4   47m          42Mi            
+gateway-7dddfff9ff-pwjdm   36m          41Mi            
+gateway-7dddfff9ff-sdn8v   32m          40Mi            
+gateway-7dddfff9ff-zpljd   35m          41Mi            
+=== Events ===
+NAME                     CPU(cores)   MEMORY(bytes)   
+events-675d86c77-mbzds   136m         52Mi            
+=== Payments ===
+NAME                       CPU(cores)   MEMORY(bytes)   
+payments-d7dc94485-99xg6   8m           36Mi            
+=== PostgreSQL ===
+NAME                        CPU(cores)   MEMORY(bytes)   
+postgres-68466c5ccd-w9snl   72m          27Mi            
+=== Redis ===
+NAME                     CPU(cores)   MEMORY(bytes)   
+redis-6fcfb5475d-jdqvv   5m           9Mi             
