@@ -67,18 +67,140 @@
       ]
     },
     {
-      "title": "YOUR TURN: Add Latency panel here (p50 / p95 / p99)",
-      "description": "Use histogram_quantile() with gateway_request_duration_seconds_bucket",
-      "type": "text",
+      "title": "Latency (p50 / p95 / p99)",
+      "description": "Golden Signal #1: gateway request duration, read off the histogram buckets. Quantiles are interpolated inside whichever bucket they land in, so read them as bucket-resolution estimates rather than measurements.",
+      "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
-      "options": { "mode": "markdown", "content": "## Add a Latency panel here\n\nReplace this text panel with a timeseries panel showing:\n- p50: `histogram_quantile(0.50, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))`\n- p95: `histogram_quantile(0.95, ...)`\n- p99: `histogram_quantile(0.99, ...)`\n\nSet unit to **seconds**." }
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(gateway_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
     },
     {
-      "title": "YOUR TURN: Add Saturation panel here",
-      "description": "Use events_db_pool_size gauge",
-      "type": "text",
+      "title": "Saturation: events DB connection pool",
+      "description": "Golden Signal #4: connections checked out of the events pool, out of DB_MAX_CONNS=10. The gauge is set inside the /metrics handler, so it reports the pool depth at the instant of the scrape, not a maximum between scrapes.",
+      "type": "gauge",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
-      "options": { "mode": "markdown", "content": "## Add a Saturation panel here\n\nReplace this text panel with a gauge showing:\n- Query: `events_db_pool_size`\n- Min: 0, Max: 10\n- Thresholds: green < 7, yellow < 9, red ≥ 9\n\nThis shows how many DB connections are active out of the pool maximum." }
+      "targets": [
+        {
+          "expr": "events_db_pool_size",
+          "legendFormat": "connections in use",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "max": 10,
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 7 },
+              { "color": "red", "value": 9 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "title": "SLO: availability (5m) against a 99.5% target",
+      "description": "Recording rule gateway:sli_availability:ratio_rate5m. Green above the 99.5% objective, red below it.",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "targets": [
+        {
+          "expr": "gateway:sli_availability:ratio_rate5m * 100",
+          "legendFormat": "availability %",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 99,
+          "max": 100,
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 99.5 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "title": "Error budget burn rate",
+      "description": "Recording rule gateway:error_budget_burn_rate:ratio_rate5m. 1 means the 99.5% budget is being spent exactly at the sustainable pace; 10 means ten times too fast.",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "targets": [
+        {
+          "expr": "gateway:error_budget_burn_rate:ratio_rate5m",
+          "legendFormat": "burn rate",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 2,
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "lineWidth": 2 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      }
     }
   ],
   "refresh": "5s",
