@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+  labels:
+    app: events
+spec:
+  replicas: {{ .Values.events.replicas }}
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      containers:
+        - name: events
+          image: {{ .Values.events.image }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: "{{ .Values.events.db.host }}"
+            - name: DB_PORT
+              value: "{{ .Values.events.db.port }}"
+            - name: DB_NAME
+              value: "{{ .Values.events.db.name }}"
+            - name: DB_USER
+              value: "{{ .Values.events.db.user }}"
+            - name: DB_PASS
+              value: "{{ .Values.events.db.password }}"
+            - name: DB_MAX_CONNS
+              value: "{{ .Values.events.db.maxConns }}"
+            - name: REDIS_HOST
+              value: "{{ .Values.events.redis.host }}"
+            - name: REDIS_PORT
+              value: "{{ .Values.events.redis.port }}"
+            - name: REDIS_TIMEOUT_MS
+              value: "{{ .Values.events.redis.timeoutMs }}"
+            - name: RESERVATION_TTL
+              value: "{{ .Values.events.reservationTtl }}"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  type: ClusterIP
+  selector:
+    app: events
+  ports:
+    - port: 8081
+      targetPort: 8081
