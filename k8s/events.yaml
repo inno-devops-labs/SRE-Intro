@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+  labels:
+    app: events
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+      containers:
+        - name: events
+          image: ghcr.io/jakefish18/quickticket-events:44a1520645acc7a36347ccd333e64543801011ad
+          imagePullPolicy: Always
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "quickticket"
+            - name: DB_USER
+              value: "quickticket"
+            - name: DB_PASS
+              value: "quickticket"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - containerPort: 8081
+          # Liveness = TCP (process alive). events' /health checks Postgres + Redis, so an
+          # httpGet /health liveness would RESTART events whenever a datastore blips — the
+          # DB-connectivity anti-pattern. Readiness = /health so events is removed from the
+          # Service endpoints (0/1 Ready) while a dependency is down, then re-added on recovery.
+          livenessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+spec:
+  selector:
+    app: events
+  ports:
+    - port: 8081
+      targetPort: 8081

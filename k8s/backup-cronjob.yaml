@@ -1,0 +1,47 @@
+# Automated pg_dump backup for the QuickTicket DB (Lab 9 Bonus B.2).
+# Runs every 5 minutes, writes a custom-format dump to the postgres-backups PVC,
+# and keeps only the 5 newest dumps.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/5 * * * *"          # every 5 minutes
+  concurrencyPolicy: Forbid        # don't stack jobs if one runs long
+  successfulJobsHistoryLimit: 3    # keep etcd tidy
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure  # required for Job pods
+          containers:
+            - name: backup
+              image: postgres:17-alpine   # ships pg_dump
+              env:
+                - { name: PGHOST,     value: postgres }     # Service DNS
+                - { name: PGUSER,     value: quickticket }
+                - { name: PGDATABASE, value: quickticket }
+                - { name: PGPASSWORD, value: quickticket }
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  cd /backups
+                  TS=$(date -u +%Y%m%dT%H%M%SZ)
+                  OUT="quickticket_${TS}.dump"
+                  echo "creating $OUT"
+                  pg_dump -Fc -f "$OUT"
+                  echo "backup complete: $(ls -lh "$OUT" | awk '{print $5, $9}')"
+                  # Retention: keep the 5 newest dumps, delete the rest.
+                  # tail -n +6 emits everything from the 6th-newest onward.
+                  ls -1t quickticket_*.dump | tail -n +6 | xargs -r rm -v
+                  echo "retained: $(ls -1 quickticket_*.dump | wc -l) dumps"
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
