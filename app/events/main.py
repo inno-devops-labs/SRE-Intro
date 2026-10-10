@@ -141,10 +141,12 @@ def list_events():
     try:
         cur = conn.cursor()
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue,
+                   e.scheduled_at AS event_date,
+                   e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
-            GROUP BY e.id ORDER BY e.event_date
+            GROUP BY e.id ORDER BY e.scheduled_at
         """)
         rows = cur.fetchall()
         cur.close()
@@ -166,7 +168,9 @@ def get_event(event_id: int):
     try:
         cur = conn.cursor()
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue,
+                   e.scheduled_at AS event_date,
+                   e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
             WHERE e.id = %s GROUP BY e.id
@@ -192,6 +196,10 @@ def reserve_tickets(event_id: int, request_body: dict = None):
     if quantity < 1 or quantity > 10:
         raise HTTPException(400, "Quantity must be 1-10")
 
+    # Reject before touching PostgreSQL when the reservation store is down.
+    if not redis_client or not _check_redis():
+        raise HTTPException(503, "Reservation store unavailable")
+
     conn = db_pool.getconn()
     try:
         cur = conn.cursor()
@@ -214,7 +222,9 @@ def reserve_tickets(event_id: int, request_body: dict = None):
             "created_at": time.time(),
         }
 
-        if redis_client:
+        # A reservation without Redis cannot be confirmed later. Fail closed
+        # instead of returning a success response for data that was not stored.
+        try:
             redis_client.setex(
                 f"reservation:{reservation_id}",
                 RESERVATION_TTL,
@@ -223,8 +233,9 @@ def reserve_tickets(event_id: int, request_body: dict = None):
             # Decrement available counter
             redis_client.decrby(f"event:{event_id}:held", -quantity)
             RESERVATIONS_ACTIVE.inc()
-        else:
-            log.warning("Redis unavailable — reservation not held")
+        except redis.RedisError as e:
+            log.error(f"Reservation store write failed: {e}")
+            raise HTTPException(503, "Reservation store unavailable")
 
         log.info(f"Reserved {quantity} tickets for event {event_id}: {reservation_id}")
         return {
