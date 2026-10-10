@@ -1,0 +1,16 @@
+{"time": "2026-09-27T11:50:26.965666+00:00", "event": "contact_test", "result": {"http_status": 410, "body": "{\"message\":\"This endpoint has been removed. Please use `/apis/notifications.alerting.grafana.app/v1beta1/namespaces/{namespace}/receivers/{uid}/test` instead.\"}"}}
+{"time": "2026-09-27T11:50:26.976105+00:00", "event": "injection_started", "rate": 0.5}
+{"time": "2026-09-27T11:50:29.090353+00:00", "event": "failure_injected", "rate": 0.5}
+{"time": "2026-09-27T11:50:29.102953+00:00", "event": "alert_state", "uid": "high-errors", "state": "inactive"}
+{"time": "2026-09-27T11:50:29.103956+00:00", "event": "alert_state", "uid": "slo-burn", "state": "inactive"}
+{"time": "2026-09-27T11:51:20.289869+00:00", "event": "alert_state", "uid": "slo-burn", "state": "pending"}
+{"time": "2026-09-27T11:52:11.479535+00:00", "event": "alert_state", "uid": "high-errors", "state": "pending"}
+{"time": "2026-09-27T11:54:10.967539+00:00", "event": "alert_state", "uid": "high-errors", "state": "firing"}
+{"time": "2026-09-27T11:55:52.351431+00:00", "event": "contact_test_v13", "result": {"status": "success", "duration": "2ms"}}
+{"time": "2026-09-27T11:56:10.476275+00:00", "event": "alert_state", "uid": "slo-burn", "state": "firing"}
+{"time": "2026-09-27T11:56:12.536555+00:00", "event": "diagnosis_started"}
+{"time": "2026-09-27T11:56:14.553621+00:00", "event": "cause_identified", "payment_environment": "0.5\n0"}
+{"time": "2026-09-27T11:56:16.984999+00:00", "event": "fix_applied", "rate": 0.0}
+{"time": "2026-09-27T12:00:15.861176+00:00", "event": "alert_resolved", "uid": "high-errors"}
+{"time": "2026-09-27T12:21:18.356307+00:00", "event": "alert_resolved", "uid": "slo-burn"}
+{"time": "2026-09-27T12:21:37.492109+00:00", "event": "complete"}

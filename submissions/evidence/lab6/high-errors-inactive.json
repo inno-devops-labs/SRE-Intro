@@ -1,0 +1,119 @@
+{
+  "status": "success",
+  "data": {
+    "groups": [
+      {
+        "name": "quickticket",
+        "file": "QuickTicket",
+        "folderUid": "ffyu4stgnt728f",
+        "rules": [
+          {
+            "state": "inactive",
+            "name": "QuickTicket High Error Rate",
+            "query": "sum(rate(gateway_requests_total{status=~\"5..\"}[5m])) / sum(rate(gateway_requests_total[5m])) * 100",
+            "queriedDatasourceUIDs": [
+              "PBFA97CFB590B2093"
+            ],
+            "duration": 120,
+            "annotations": {
+              "description": "Error rate exceeded 5% for 2 minutes. Check payments service health.",
+              "summary": "Gateway error rate is {{ $values.A.Value }}%"
+            },
+            "alerts": [
+              {
+                "labels": {
+                  "alertname": "QuickTicket High Error Rate",
+                  "datasource_uid": "PBFA97CFB590B2093",
+                  "grafana_folder": "QuickTicket",
+                  "ref_id": "A",
+                  "severity": "critical"
+                },
+                "annotations": {
+                  "datasource_uid": "PBFA97CFB590B2093",
+                  "description": "Error rate exceeded 5% for 2 minutes. Check payments service health.",
+                  "ref_id": "A",
+                  "summary": "Gateway error rate is [no value]%"
+                },
+                "state": "Normal (NoData)",
+                "activeAt": "2026-09-27T11:47:00Z",
+                "value": ""
+              }
+            ],
+            "totals": {
+              "normal": 1
+            },
+            "totalsFiltered": {
+              "normal": 1
+            },
+            "uid": "high-errors",
+            "folderUid": "ffyu4stgnt728f",
+            "labels": {
+              "severity": "critical"
+            },
+            "health": "ok",
+            "type": "alerting",
+            "lastEvaluation": "2026-09-27T11:50:00Z",
+            "evaluationTime": 0.002359505,
+            "isPaused": false,
+            "provenance": "file"
+          },
+          {
+            "state": "inactive",
+            "name": "QuickTicket SLO Burn Rate",
+            "query": "(1 - (sum(rate(gateway_requests_total{status!~\"5..\"}[30m])) / sum(rate(gateway_requests_total[30m])))) / (1 - 0.995)",
+            "queriedDatasourceUIDs": [
+              "PBFA97CFB590B2093"
+            ],
+            "duration": 300,
+            "annotations": {
+              "description": "Burn rate exceeded 6 for 5 minutes.",
+              "summary": "QuickTicket error budget is burning too fast"
+            },
+            "alerts": [
+              {
+                "labels": {
+                  "alertname": "QuickTicket SLO Burn Rate",
+                  "grafana_folder": "QuickTicket",
+                  "severity": "warning"
+                },
+                "annotations": {
+                  "description": "Burn rate exceeded 6 for 5 minutes.",
+                  "summary": "QuickTicket error budget is burning too fast"
+                },
+                "state": "Normal",
+                "activeAt": "2026-09-27T11:49:00Z",
+                "value": ""
+              }
+            ],
+            "totals": {
+              "normal": 1
+            },
+            "totalsFiltered": {
+              "normal": 1
+            },
+            "uid": "slo-burn",
+            "folderUid": "ffyu4stgnt728f",
+            "labels": {
+              "severity": "warning"
+            },
+            "health": "ok",
+            "type": "alerting",
+            "lastEvaluation": "2026-09-27T11:50:00Z",
+            "evaluationTime": 0.002584877,
+            "isPaused": false,
+            "provenance": "file"
+          }
+        ],
+        "totals": {
+          "inactive": 2
+        },
+        "interval": 60,
+        "lastEvaluation": "2026-09-27T11:50:00Z",
+        "evaluationTime": 0.002584877
+      }
+    ],
+    "totals": {
+      "inactive": 2
+    }
+  }
+}

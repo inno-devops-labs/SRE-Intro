@@ -1,0 +1,20 @@
+payments-1  | {"time":"2026-09-27 11:56:05,346","level":"INFO","service":"payments","msg":"Payment success: PAY-3C05F29D for af277e30-1508-49c8-8307-bf6eda499bac"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:56:06,365","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 47c9afe2-6105-4d45-817f-d26af03297cd"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 500 Internal Server Error
+payments-1  | {"time":"2026-09-27 11:56:07,360","level":"WARNING","service":"payments","msg":"Payment failed (injected) for c5087326-3d73-4084-955a-fff5d398939c"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 500 Internal Server Error
+payments-1  | {"time":"2026-09-27 11:56:08,341","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 67bedb2b-28e8-4094-8006-96ffa9d7620e"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 500 Internal Server Error
+payments-1  | {"time":"2026-09-27 11:56:09,335","level":"INFO","service":"payments","msg":"Payment success: PAY-DC1365CE for 1a85fa07-0eb0-4f23-8c66-83c30c50d527"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:56:10,342","level":"INFO","service":"payments","msg":"Payment success: PAY-52E0CC98 for d2155374-645a-4953-9951-9b99b2d8d9d5"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:56:11,347","level":"INFO","service":"payments","msg":"Payment success: PAY-3879ADAC for 22636a68-9cbb-44e8-91c1-82c314962c68"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:56:12,359","level":"WARNING","service":"payments","msg":"Payment failed (injected) for 71b9f643-d673-4f7e-878f-040d56628944"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 500 Internal Server Error
+payments-1  | INFO:     172.22.0.8:50406 - "GET /health HTTP/1.1" 200 OK
+payments-1  | INFO:     172.22.0.1:34752 - "GET /health HTTP/1.1" 200 OK
+payments-1  | {"time":"2026-09-27 11:56:13,375","level":"WARNING","service":"payments","msg":"Payment failed (injected) for f4290ea8-b70a-4713-9744-703bb2f2ece5"}
+payments-1  | INFO:     172.22.0.8:50406 - "POST /charge HTTP/1.1" 500 Internal Server Error

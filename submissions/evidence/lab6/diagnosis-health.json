@@ -1,0 +1,22 @@
+{
+  "gateway": {
+    "status": "healthy",
+    "checks": {
+      "events": "ok",
+      "payments": "ok",
+      "circuit_payments": "CLOSED"
+    }
+  },
+  "payments": {
+    "status": "healthy",
+    "failure_rate": 0.5,
+    "latency_ms": 0
+  },
+  "events": {
+    "status": "healthy",
+    "checks": {
+      "postgres": "ok",
+      "redis": "ok"
+    }
+  }
+}

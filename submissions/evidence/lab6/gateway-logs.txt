@@ -1,0 +1,20 @@
+gateway-1  | INFO:     172.22.0.1:55812 - "POST /events/6/reserve HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:56:10,343","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://payments:8082/charge "HTTP/1.1 200 OK""}
+gateway-1  | {"time":"2026-09-27 11:56:10,350","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/reservations/d2155374-645a-4953-9951-9b99b2d8d9d5/confirm "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.22.0.1:55826 - "POST /reserve/d2155374-645a-4953-9951-9b99b2d8d9d5/pay HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:56:11,329","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.22.0.1:55838 - "GET /events HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:56:11,340","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/6/reserve "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.22.0.1:55844 - "POST /events/6/reserve HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:56:11,348","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://payments:8082/charge "HTTP/1.1 200 OK""}
+gateway-1  | {"time":"2026-09-27 11:56:11,355","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/reservations/22636a68-9cbb-44e8-91c1-82c314962c68/confirm "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.22.0.1:55852 - "POST /reserve/22636a68-9cbb-44e8-91c1-82c314962c68/pay HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:56:12,337","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/events "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.22.0.1:55862 - "GET /events HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:56:12,350","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/events/6/reserve "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.22.0.1:55878 - "POST /events/6/reserve HTTP/1.1" 200 OK
+gateway-1  | {"time":"2026-09-27 11:56:12,360","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://payments:8082/charge "HTTP/1.1 500 Internal Server Error""}
+gateway-1  | INFO:     172.22.0.1:55888 - "POST /reserve/71b9f643-d673-4f7e-878f-040d56628944/pay HTTP/1.1" 500 Internal Server Error
+gateway-1  | {"time":"2026-09-27 11:56:12,543","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+gateway-1  | {"time":"2026-09-27 11:56:12,546","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+gateway-1  | INFO:     172.22.0.1:55892 - "GET /health HTTP/1.1" 200 OK
