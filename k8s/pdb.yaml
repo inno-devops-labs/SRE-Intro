@@ -1,0 +1,29 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payments
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: notifications

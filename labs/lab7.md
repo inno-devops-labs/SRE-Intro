@@ -206,8 +206,11 @@ kubectl argo rollouts get rollout gateway
 
 **Paste into `submissions/lab7.md`:**
 1. Output of `kubectl argo rollouts version`
+
 2. Output of `kubectl argo rollouts get rollout gateway` showing Paused at 20% (during canary)
+
 3. Output after `promote` — showing progression to 100%
+
 4. Output after `abort` — showing instant rollback
 5. Answer: "How long from `abort` to all traffic serving the stable version? Compare with `git revert` rollback from Lab 5."
 
@@ -271,9 +274,13 @@ Observe across steps:
 Clean up: `kubectl delete -f labs/lab7/loadgen.yaml`.
 
 **Paste into `submissions/lab7.md`:**
+
 - Your multi-step canary strategy YAML
+
 - Output of `kubectl argo rollouts get rollout gateway --watch` showing at least 3 steps
+
 - Dashboard observation during the rollout
+
 - Answer: "At what canary percentage would you want an automated abort? Why?"
 
 ---
