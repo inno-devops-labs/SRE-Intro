@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: r3v1k
+
+jobs:
+  build:
+    # Skip the commit this workflow pushes itself, or it would trigger itself forever.
+    # Keyed on the author, not the message: a human commit whose subject happens to
+    # start with "ci: update image tags" would otherwise silently skip its own build.
+    if: github.event.head_commit.author.name != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service: [gateway, events, payments]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app/${{ matrix.service }}
+          # Runners are amd64, the k3d cluster runs on Apple Silicon (arm64):
+          # an amd64-only image would fail at exec in the cluster.
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/quickticket-${{ matrix.service }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  update-manifests:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Point manifests at the images this run just built
+        run: |
+          for svc in gateway events payments; do
+            sed -i "s|image: ghcr.io/.*/quickticket-$svc:.*|image: ghcr.io/$OWNER/quickticket-$svc:$GITHUB_SHA|" "k8s/$svc.yaml"
+          done
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add k8s/
+          git diff --cached --quiet && echo "manifests already at $GITHUB_SHA" && exit 0
+          git commit -m "ci: update image tags to $GITHUB_SHA [skip ci]"
+          git push
