@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+spec:
+  replicas: {{ .Values.payments.replicas }}
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      containers:
+        - name: payments
+          image: {{ .Values.payments.image }}
+          ports:
+            - containerPort: 8082
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: "{{ .Values.payments.failureRate }}"
+            - name: PAYMENT_LATENCY_MS
+              value: "{{ .Values.payments.latencyMs }}"
