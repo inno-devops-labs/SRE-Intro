@@ -19,9 +19,38 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     volumes:
-      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
+
+  webhook-receiver:
+    image: python:3.12-alpine
+    command:
+      - python
+      - -u
+      - -c
+      - |
+        import datetime
+        import json
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                length = int(self.headers.get("Content-Length", "0"))
+                body = self.rfile.read(length).decode("utf-8")
+                stamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                print(json.dumps({
+                    "timestamp": stamp,
+                    "path": self.path,
+                    "headers": dict(self.headers),
+                    "body": body,
+                }), flush=True)
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"ok")
+
+            def log_message(self, format, *args):
+                return
+
+        HTTPServer(("0.0.0.0", 19090), Handler).serve_forever()
 
 volumes:
   grafana_data:
