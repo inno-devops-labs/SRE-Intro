@@ -1,0 +1,122 @@
+{
+    "apiVersion": "batch/v1",
+    "kind": "Job",
+    "metadata": {
+        "annotations": {
+            "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"batch/v1\",\"kind\":\"Job\",\"metadata\":{\"annotations\":{},\"name\":\"load-55-1791623778\",\"namespace\":\"default\"},\"spec\":{\"backoffLimit\":0,\"template\":{\"spec\":{\"containers\":[{\"args\":[\"-f\",\"/mnt/locust/locustfile.py\",\"--host=http://gateway:8080\",\"--headless\",\"-u\",\"55\",\"-r\",\"6\",\"-t\",\"60s\",\"--only-summary\",\"--exit-code-on-error\",\"0\"],\"command\":[\"locust\"],\"image\":\"locustio/locust:2.43.4\",\"name\":\"locust\",\"volumeMounts\":[{\"mountPath\":\"/mnt/locust\",\"name\":\"locustfile\"}]}],\"restartPolicy\":\"Never\",\"volumes\":[{\"configMap\":{\"name\":\"locustfile\"},\"name\":\"locustfile\"}]}},\"ttlSecondsAfterFinished\":600}}\n"
+        },
+        "creationTimestamp": "2026-10-10T09:16:19Z",
+        "generation": 1,
+        "labels": {
+            "batch.kubernetes.io/controller-uid": "739f3d4b-0bbe-4cc2-8098-3475387be515",
+            "batch.kubernetes.io/job-name": "load-55-1791623778",
+            "controller-uid": "739f3d4b-0bbe-4cc2-8098-3475387be515",
+            "job-name": "load-55-1791623778"
+        },
+        "name": "load-55-1791623778",
+        "namespace": "default",
+        "resourceVersion": "54156",
+        "uid": "739f3d4b-0bbe-4cc2-8098-3475387be515"
+    },
+    "spec": {
+        "backoffLimit": 0,
+        "completionMode": "NonIndexed",
+        "completions": 1,
+        "manualSelector": false,
+        "parallelism": 1,
+        "podReplacementPolicy": "TerminatingOrFailed",
+        "selector": {
+            "matchLabels": {
+                "batch.kubernetes.io/controller-uid": "739f3d4b-0bbe-4cc2-8098-3475387be515"
+            }
+        },
+        "suspend": false,
+        "template": {
+            "metadata": {
+                "labels": {
+                    "batch.kubernetes.io/controller-uid": "739f3d4b-0bbe-4cc2-8098-3475387be515",
+                    "batch.kubernetes.io/job-name": "load-55-1791623778",
+                    "controller-uid": "739f3d4b-0bbe-4cc2-8098-3475387be515",
+                    "job-name": "load-55-1791623778"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "args": [
+                            "-f",
+                            "/mnt/locust/locustfile.py",
+                            "--host=http://gateway:8080",
+                            "--headless",
+                            "-u",
+                            "55",
+                            "-r",
+                            "6",
+                            "-t",
+                            "60s",
+                            "--only-summary",
+                            "--exit-code-on-error",
+                            "0"
+                        ],
+                        "command": [
+                            "locust"
+                        ],
+                        "image": "locustio/locust:2.43.4",
+                        "imagePullPolicy": "IfNotPresent",
+                        "name": "locust",
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/mnt/locust",
+                                "name": "locustfile"
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "restartPolicy": "Never",
+                "schedulerName": "default-scheduler",
+                "securityContext": {},
+                "terminationGracePeriodSeconds": 30,
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "locustfile"
+                        },
+                        "name": "locustfile"
+                    }
+                ]
+            }
+        },
+        "ttlSecondsAfterFinished": 600
+    },
+    "status": {
+        "completionTime": "2026-10-10T09:17:23Z",
+        "conditions": [
+            {
+                "lastProbeTime": "2026-10-10T09:17:23Z",
+                "lastTransitionTime": "2026-10-10T09:17:23Z",
+                "message": "Reached expected number of succeeded pods",
+                "reason": "CompletionsReached",
+                "status": "True",
+                "type": "SuccessCriteriaMet"
+            },
+            {
+                "lastProbeTime": "2026-10-10T09:17:23Z",
+                "lastTransitionTime": "2026-10-10T09:17:23Z",
+                "message": "Reached expected number of succeeded pods",
+                "reason": "CompletionsReached",
+                "status": "True",
+                "type": "Complete"
+            }
+        ],
+        "ready": 0,
+        "startTime": "2026-10-10T09:16:19Z",
+        "succeeded": 1,
+        "terminating": 0,
+        "uncountedTerminatedPods": {}
+    }
+}

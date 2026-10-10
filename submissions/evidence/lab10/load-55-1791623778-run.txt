@@ -1,0 +1,7 @@
+context=k3d-quickticket namespace=default
+start=2026-10-10T09:16:19+00:00
+end=2026-10-10T09:17:23+00:00
+inventory_before='3|500|0\n5|80|0'
+redis_flush=OK
+wait_exit=0
+job.batch/load-55-1791623778 condition met

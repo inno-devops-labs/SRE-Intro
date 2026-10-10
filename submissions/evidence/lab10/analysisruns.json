@@ -1,0 +1,205 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "argoproj.io/v1alpha1",
+            "kind": "AnalysisRun",
+            "metadata": {
+                "annotations": {
+                    "rollout.argoproj.io/revision": "5"
+                },
+                "creationTimestamp": "2026-10-04T21:54:04Z",
+                "generation": 5,
+                "labels": {
+                    "app": "gateway",
+                    "rollout-type": "Step",
+                    "rollouts-pod-template-hash": "585c8c7867",
+                    "step-index": "2"
+                },
+                "name": "gateway-585c8c7867-5-2",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "argoproj.io/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Rollout",
+                        "name": "gateway",
+                        "uid": "f3d7d10f-ae2a-441c-b2a7-7bb42ec1d99a"
+                    }
+                ],
+                "resourceVersion": "35032",
+                "uid": "ff7276b7-30dd-40d7-940e-e1804293cf75"
+            },
+            "spec": {
+                "args": [
+                    {
+                        "name": "canary-hash",
+                        "value": "585c8c7867"
+                    }
+                ],
+                "metrics": [
+                    {
+                        "count": 3,
+                        "failureLimit": 1,
+                        "initialDelay": "60s",
+                        "interval": "20s",
+                        "name": "error-rate",
+                        "provider": {
+                            "prometheus": {
+                                "address": "http://prometheus.monitoring.svc.cluster.local:9090",
+                                "authentication": {
+                                    "oauth2": {},
+                                    "sigv4": {}
+                                },
+                                "query": "(\n  sum(rate(gateway_requests_total{rs_hash=\"{{args.canary-hash}}\",status=~\"5..\"}[60s]))\n  or on() vector(0)\n)\n/\nsum(rate(gateway_requests_total{rs_hash=\"{{args.canary-hash}}\"}[60s]))\n"
+                            }
+                        },
+                        "successCondition": "result[0] \u003c 0.05"
+                    }
+                ]
+            },
+            "status": {
+                "completedAt": "2026-10-04T21:55:44Z",
+                "dryRunSummary": {},
+                "metricResults": [
+                    {
+                        "consecutiveSuccess": 3,
+                        "count": 3,
+                        "measurements": [
+                            {
+                                "finishedAt": "2026-10-04T21:55:04Z",
+                                "phase": "Successful",
+                                "startedAt": "2026-10-04T21:55:04Z",
+                                "value": "[0]"
+                            },
+                            {
+                                "finishedAt": "2026-10-04T21:55:24Z",
+                                "phase": "Successful",
+                                "startedAt": "2026-10-04T21:55:24Z",
+                                "value": "[0]"
+                            },
+                            {
+                                "finishedAt": "2026-10-04T21:55:44Z",
+                                "phase": "Successful",
+                                "startedAt": "2026-10-04T21:55:44Z",
+                                "value": "[0]"
+                            }
+                        ],
+                        "metadata": {
+                            "ResolvedPrometheusQuery": "(\n  sum(rate(gateway_requests_total{rs_hash=\"585c8c7867\",status=~\"5..\"}[60s]))\n  or on() vector(0)\n)\n/\nsum(rate(gateway_requests_total{rs_hash=\"585c8c7867\"}[60s]))\n"
+                        },
+                        "name": "error-rate",
+                        "phase": "Successful",
+                        "successful": 3
+                    }
+                ],
+                "phase": "Successful",
+                "runSummary": {
+                    "count": 1,
+                    "successful": 1
+                },
+                "startedAt": "2026-10-04T21:54:04Z"
+            }
+        },
+        {
+            "apiVersion": "argoproj.io/v1alpha1",
+            "kind": "AnalysisRun",
+            "metadata": {
+                "annotations": {
+                    "rollout.argoproj.io/revision": "6"
+                },
+                "creationTimestamp": "2026-10-04T21:57:15Z",
+                "generation": 4,
+                "labels": {
+                    "app": "gateway",
+                    "rollout-type": "Step",
+                    "rollouts-pod-template-hash": "6ff5565cf9",
+                    "step-index": "2"
+                },
+                "name": "gateway-6ff5565cf9-6-2",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "argoproj.io/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Rollout",
+                        "name": "gateway",
+                        "uid": "f3d7d10f-ae2a-441c-b2a7-7bb42ec1d99a"
+                    }
+                ],
+                "resourceVersion": "35372",
+                "uid": "64a78a6f-4605-4ef4-ba04-e5d92ec7dec7"
+            },
+            "spec": {
+                "args": [
+                    {
+                        "name": "canary-hash",
+                        "value": "6ff5565cf9"
+                    }
+                ],
+                "metrics": [
+                    {
+                        "count": 3,
+                        "failureLimit": 1,
+                        "initialDelay": "60s",
+                        "interval": "20s",
+                        "name": "error-rate",
+                        "provider": {
+                            "prometheus": {
+                                "address": "http://prometheus.monitoring.svc.cluster.local:9090",
+                                "authentication": {
+                                    "oauth2": {},
+                                    "sigv4": {}
+                                },
+                                "query": "(\n  sum(rate(gateway_requests_total{rs_hash=\"{{args.canary-hash}}\",status=~\"5..\"}[60s]))\n  or on() vector(0)\n)\n/\nsum(rate(gateway_requests_total{rs_hash=\"{{args.canary-hash}}\"}[60s]))\n"
+                            }
+                        },
+                        "successCondition": "result[0] \u003c 0.05"
+                    }
+                ]
+            },
+            "status": {
+                "completedAt": "2026-10-04T21:58:35Z",
+                "dryRunSummary": {},
+                "message": "Metric \"error-rate\" assessed Failed due to failed (2) \u003e failureLimit (1)",
+                "metricResults": [
+                    {
+                        "count": 2,
+                        "failed": 2,
+                        "measurements": [
+                            {
+                                "finishedAt": "2026-10-04T21:58:15Z",
+                                "phase": "Failed",
+                                "startedAt": "2026-10-04T21:58:15Z",
+                                "value": "[0.4385964912280701]"
+                            },
+                            {
+                                "finishedAt": "2026-10-04T21:58:35Z",
+                                "phase": "Failed",
+                                "startedAt": "2026-10-04T21:58:35Z",
+                                "value": "[0.42727272727272725]"
+                            }
+                        ],
+                        "metadata": {
+                            "ResolvedPrometheusQuery": "(\n  sum(rate(gateway_requests_total{rs_hash=\"6ff5565cf9\",status=~\"5..\"}[60s]))\n  or on() vector(0)\n)\n/\nsum(rate(gateway_requests_total{rs_hash=\"6ff5565cf9\"}[60s]))\n"
+                        },
+                        "name": "error-rate",
+                        "phase": "Failed"
+                    }
+                ],
+                "phase": "Failed",
+                "runSummary": {
+                    "count": 1,
+                    "failed": 1
+                },
+                "startedAt": "2026-10-04T21:57:15Z"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

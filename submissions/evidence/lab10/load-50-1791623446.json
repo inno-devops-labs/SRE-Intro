@@ -1,0 +1,54 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": "load-50-1791623446"
+  },
+  "spec": {
+    "backoffLimit": 0,
+    "ttlSecondsAfterFinished": 600,
+    "template": {
+      "spec": {
+        "restartPolicy": "Never",
+        "containers": [
+          {
+            "name": "locust",
+            "image": "locustio/locust:2.43.4",
+            "command": [
+              "locust"
+            ],
+            "args": [
+              "-f",
+              "/mnt/locust/locustfile.py",
+              "--host=http://gateway:8080",
+              "--headless",
+              "-u",
+              "50",
+              "-r",
+              "5",
+              "-t",
+              "60s",
+              "--only-summary",
+              "--exit-code-on-error",
+              "0"
+            ],
+            "volumeMounts": [
+              {
+                "name": "locustfile",
+                "mountPath": "/mnt/locust"
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "locustfile",
+            "configMap": {
+              "name": "locustfile"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
