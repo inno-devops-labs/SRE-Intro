@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+# Least privilege, set explicitly: the default token permissions are wider
+# than this workflow needs. contents:write is what lets the last step write
+# the new image tag back into k8s/ for ArgoCD to pick up.
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Loop brake. The last step of this job pushes a commit to main, which is
+    # the same event that starts this job. Commits it authors are prefixed
+    # "ci:" and skipped here.
+    if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push all three service images
+        run: |
+          set -euo pipefail
+          owner=$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          for svc in gateway events payments; do
+            img="ghcr.io/${owner}/quickticket-${svc}:${{ github.sha }}"
+            echo "::group::build ${svc}"
+            docker build -t "${img}" "./app/${svc}"
+            docker push "${img}"
+            echo "::endgroup::"
+            echo "pushed ${img}"
+          done
+
+      - name: Show what was published
+        run: |
+          set -euo pipefail
+          owner=$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          for svc in gateway events payments; do
+            img="ghcr.io/${owner}/quickticket-${svc}:${{ github.sha }}"
+            docker image inspect "${img}" \
+              --format '{{.RepoTags}} {{.Id}} {{.Size}} bytes'
+          done
+
+      - name: Update image tags in manifests
+        run: |
+          set -euo pipefail
+          owner=$(printf '%s' "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          for svc in gateway events payments; do
+            # Anchored on the service name so the three manifests cannot be
+            # cross-written, and on "image:" so imagePullPolicy is untouched.
+            sed -i -E \
+              "s#^([[:space:]]*image:[[:space:]]*)ghcr\.io/[^[:space:]]*/quickticket-${svc}:.*\$#\1ghcr.io/${owner}/quickticket-${svc}:${{ github.sha }}#" \
+              "k8s/${svc}.yaml"
+          done
+          git --no-pager diff --stat -- k8s/
+          grep -n 'image: ghcr.io' k8s/gateway.yaml k8s/events.yaml k8s/payments.yaml
+
+      - name: Commit and push manifest update
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add k8s/
+          if git diff --cached --quiet; then
+            echo "k8s/ already points at ${{ github.sha }}, nothing to commit"
+            exit 0
+          fi
+          git commit -m "ci: update image tags to ${{ github.sha }}"
+          # HEAD is detached at the pushed commit; name the target branch.
+          # If main moved while the images were building, rebase once rather
+          # than force anything.
+          if ! git push origin HEAD:main; then
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi

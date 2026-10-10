@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+  labels:
+    app: payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      # ghcr.io packages are private by default, so the kubelet needs a
+      # docker-registry secret to pull them. Lab 4 needed none: the images
+      # were imported into the node and marked imagePullPolicy: Never.
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: payments
+          image: ghcr.io/kortezz12/quickticket-payments:a2dfee5f0663bd645857f685c294c0646bdb5f4b
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: "0.0"
+            - name: PAYMENT_LATENCY_MS
+              value: "0"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+spec:
+  type: ClusterIP
+  selector:
+    app: payments
+  ports:
+    - port: 8082
+      targetPort: 8082

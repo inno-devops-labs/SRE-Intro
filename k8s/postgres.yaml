@@ -1,0 +1,110 @@
+# The seed is part of the desired state, so it lives in Git like everything
+# else ArgoCD applies. In Lab 4 the database was filled by a kubectl exec that
+# no manifest records, and every sync that replaced the postgres pod threw it
+# away. This ConfigMap is mounted into /docker-entrypoint-initdb.d, which the
+# postgres entrypoint runs once on an empty data directory.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-seed
+  labels:
+    app: postgres
+data:
+  01-seed.sql: |
+    -- QuickTicket seed data
+
+    CREATE TABLE IF NOT EXISTS events (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        venue TEXT NOT NULL,
+        event_date TIMESTAMPTZ NOT NULL,
+        total_tickets INT NOT NULL,
+        price_cents INT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        event_id INT REFERENCES events(id),
+        quantity INT NOT NULL,
+        total_cents INT NOT NULL,
+        payment_ref TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'confirmed',
+        created_at TIMESTAMPTZ DEFAULT now()
+    );
+
+    -- Seed events
+    INSERT INTO events (name, venue, event_date, total_tickets, price_cents) VALUES
+        ('Go Conference 2026', 'Main Hall A', '2026-09-15 09:00:00+00', 100, 5000),
+        ('SRE Meetup', 'Room 204', '2026-10-01 18:00:00+00', 30, 0),
+        ('Cloud Native Summit', 'Expo Center', '2026-11-20 10:00:00+00', 500, 15000),
+        ('Python Workshop', 'Lab 301', '2026-09-22 14:00:00+00', 25, 2000),
+        ('Kubernetes Deep Dive', 'Auditorium B', '2026-10-10 10:00:00+00', 80, 8000)
+    ON CONFLICT DO NOTHING;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "quickticket"
+            - name: POSTGRES_USER
+              value: "quickticket"
+            - name: POSTGRES_PASSWORD
+              value: "quickticket"
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "quickticket"]
+            periodSeconds: 5
+            failureThreshold: 2
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          volumeMounts:
+            - name: seed
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      volumes:
+        - name: seed
+          configMap:
+            name: postgres-seed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
