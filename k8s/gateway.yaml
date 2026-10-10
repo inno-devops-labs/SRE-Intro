@@ -1,0 +1,108 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  labels:
+    app: gateway
+    version: v2
+  name: gateway
+  namespace: default
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: gateway
+  strategy:
+    canary:
+      maxSurge: 1
+      maxUnavailable: 0
+      steps:
+      - setWeight: 20
+      - pause:
+          duration: 20s
+      - analysis:
+          args:
+          - name: canary-hash
+            valueFrom:
+              podTemplateHashValue: Latest
+          templates:
+          - templateName: gateway-error-rate
+      - setWeight: 50
+      - pause:
+          duration: 20s
+      - setWeight: 100
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - env:
+        - name: APP_VERSION
+          value: lab11-v1
+        - name: EVENTS_URL
+          value: http://events:8081
+        - name: PAYMENTS_URL
+          value: http://payments:8082
+        - name: GATEWAY_TIMEOUT_MS
+          value: "5000"
+        - name: NOTIFICATIONS_URL
+          value: http://notifications:8083
+        - name: RETRY_MAX
+          value: "3"
+        - name: RETRY_BASE_DELAY_MS
+          value: "100"
+        - name: CB_FAILURE_THRESHOLD
+          value: "5"
+        - name: CB_COOLDOWN_S
+          value: "30"
+        - name: RATE_LIMIT_RPS
+          value: "10"
+        - name: BULKHEAD_PAYMENTS_MAX
+          value: "10"
+        - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+          value: "0.5"
+        - name: BULKHEAD_PAYMENTS_ENABLED
+          value: "true"
+        image: quickticket-gateway:lab11-v1
+        imagePullPolicy: Never
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /metrics
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        name: gateway
+        ports:
+        - containerPort: 8080
+          name: http
+        readinessProbe:
+          failureThreshold: 2
+          httpGet:
+            path: /metrics
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: gateway
+  name: gateway
+  namespace: default
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: gateway
+  type: ClusterIP
