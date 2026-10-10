@@ -313,11 +313,6 @@ async def _notify_order_confirmed(reservation_id: str):
 @app.post("/reserve/{reservation_id}/pay")
 async def pay_reservation(reservation_id: str):
     # 1. Call payments — wrapped in circuit breaker + retry.
-    #
-    # Composition order matters: cb.call(retry(_charge)) means each CB-tracked
-    # invocation includes its retries internally; the CB only sees the FINAL
-    # outcome. The reverse — retry(cb.call(_charge)) — would retry past the
-    # CircuitOpenError, defeating the fast-fail. See lab 11 §11.4.
     async def _charge():
         resp = await client.post(
             f"{PAYMENTS_URL}/charge",
@@ -332,8 +327,36 @@ async def pay_reservation(reservation_id: str):
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
         raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
-    except httpx.TimeoutException:
-        raise HTTPException(504, "Payment service timeout")
+    except httpx.RequestError:  # <--- СТАВИМ УНИВЕРСАЛЬНЫЙ ПЕРЕХВАТЧИК
+        log.error("payments network error, graceful degradation triggered")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held — try again in a few minutes.",
+                "reservation_id": reservation_id
+            }
+        )
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(e.response.status_code, "Payment failed")
+    try:
+        pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        payment_ref = pay_resp.json().get("payment_ref", "unknown")
+    except CircuitOpenError:
+        log.error("circuit open, skipping payments call")
+        raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
+    except (httpx.ConnectError, httpx.TimeoutException):
+        log.error("payments down or timed out, graceful degradation triggered")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "payments_unavailable",
+                "message": "Payment service is temporarily down. Your reservation is held — try again in a few minutes.",
+                "reservation_id": reservation_id
+            }
+        )
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(e.response.status_code, "Payment failed")
     except httpx.HTTPStatusError as e:
         raise HTTPException(e.response.status_code, "Payment failed")
     except Exception as e:
