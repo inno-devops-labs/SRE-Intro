@@ -1,6 +1,17 @@
 # Instructor-only reference submissions (dry-run results, not student deliverables)
 refs/
 
+# Database migrations (students run `alembic init` in lab 9)
+migrations/
+alembic.ini
+
+# CI workflow (students add this in lab 5 to their fork)
+.github/
+
+# Load generator locustfile is copied from labs/lab10/locustfile.py
+# into repo root in lab 10. Student commits it to THEIR fork.
+/locustfile.py
+
 # Local tooling
 .venv/
 __pycache__/
