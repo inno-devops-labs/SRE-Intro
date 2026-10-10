@@ -1,0 +1,111 @@
+# QuickTicket — events service (catalogue + reservations, talks to Postgres + Redis)
+#
+# Translated from the `events` service in app/docker-compose.yaml.
+# Service DNS names replace compose's network aliases: `postgres` / `redis`.
+#
+# NOTE: DB_PASS is a plain env value here to match the course manifests.
+# In a real cluster it belongs in a Secret referenced via secretKeyRef.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events
+  labels:
+    app: events
+    app.kubernetes.io/part-of: quickticket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+        app.kubernetes.io/part-of: quickticket
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/metrics"
+    spec:
+      # ghcr.io packages are private by default; this secret holds a classic PAT
+      # with read:packages. Inert while imagePullPolicy is Never (no pull is
+      # attempted) — required as soon as the policy flips to Always.
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: events
+          image: ghcr.io/vanady39/quickticket-events:ae1a4579f016fd3e7b68ad97a4b998660af38d3c
+          # Lab 5 §5.3: the manifests now carry the ghcr.io reference that CI
+          # writes on every push. The registry copy does not exist yet (the fork
+          # has not been pushed), so the image in the cluster is the locally
+          # built one re-tagged with this name and loaded via `k3d image import`,
+          # and the policy stays Never. Flip to Always once CI has published.
+          imagePullPolicy: Never
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "quickticket"
+            - name: DB_USER
+              value: "quickticket"
+            - name: DB_PASS
+              value: "quickticket"
+            - name: DB_MAX_CONNS
+              value: "10"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_TIMEOUT_MS
+              value: "1000"
+            - name: RESERVATION_TTL
+              value: "300"
+          ports:
+            - name: http
+              containerPort: 8081
+          # Readiness = "should this pod receive traffic?".
+          # /health returns 503 when Postgres or Redis is unreachable, so a
+          # dependency outage takes this pod out of the Service endpoints.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            periodSeconds: 5
+            failureThreshold: 2
+          # Liveness = "is this process wedged?". It deliberately does NOT use
+          # /health: that endpoint checks Postgres and Redis, and restarting the
+          # events pod cannot fix a down database — it would only add a restart
+          # loop on top of an outage. A TCP accept on 8081 proves the uvicorn
+          # event loop is still alive, which is what liveness is actually for.
+          livenessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events
+  labels:
+    app: events
+    app.kubernetes.io/part-of: quickticket
+spec:
+  type: ClusterIP
+  selector:
+    app: events
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
