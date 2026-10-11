@@ -1,0 +1,72 @@
+# Lab 9 bonus: periodic pg_dump of the quickticket database with retention.
+#
+# Every 5 minutes a Job dumps the database in custom format onto the
+# postgres-backups PVC (labs/lab9/backup-storage.yaml) and keeps the 5 newest
+# dumps. With this schedule the RPO of a logical backup is at most 5 minutes
+# plus the dump time.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  # A run that could not start within 2 minutes is skipped, not piled up.
+  startingDeadlineSeconds: 120
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 300
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-dump
+              image: postgres:17-alpine
+              imagePullPolicy: IfNotPresent
+              env:
+                - { name: PGHOST, value: postgres }
+                - { name: PGUSER, value: quickticket }
+                - { name: PGDATABASE, value: quickticket }
+                - { name: PGPASSWORD, value: quickticket }
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  cd /backups
+                  name="quickticket_$(date -u +%Y%m%dT%H%M%SZ).dump"
+                  # Dump to a temporary name and rename only after pg_dump
+                  # succeeded and the archive lists its tables: a failed or
+                  # truncated dump never counts as one of the 5 kept files.
+                  pg_dump -Fc -f "$name.partial"
+                  tables=$(pg_restore --list "$name.partial" | grep -c 'TABLE DATA')
+                  [ "$tables" -gt 0 ] || { echo "dump has no table data"; exit 1; }
+                  mv "$name.partial" "$name"
+                  echo "wrote $name ($(du -h "$name" | cut -f1), $tables tables with data)"
+                  # Retention: keep the 5 newest. File names carry a UTC
+                  # timestamp, so newest-first is a reverse name sort and does
+                  # not depend on mtimes, which a copy or restore can change.
+                  ls -1 quickticket_*.dump | sort -r | tail -n +6 | xargs -r rm -v
+                  rm -f ./*.partial
+                  echo "kept: $(ls -1 quickticket_*.dump | wc -l) dumps"
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
