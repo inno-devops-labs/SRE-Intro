@@ -1,0 +1,24 @@
+Captured: 2026-10-11T04:41:22,207050474+03:00
+=== Postgres storage ===
+volumes=
+mounts=
+
+=== Tables ===
+           List of relations
+ Schema |  Name  | Type  |    Owner
+--------+--------+-------+-------------
+ public | events | table | quickticket
+ public | orders | table | quickticket
+(2 rows)
+
+
+=== Seed rows ===
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+      0
+(1 row)

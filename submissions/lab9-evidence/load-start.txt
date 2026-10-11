@@ -1,0 +1,20 @@
+Load started: 2026-10-11T04:44:04,763934424+03:00
+NAME                        READY   STATUS    RESTARTS         AGE    IP            NODE                       NOMINATED NODE   READINESS GATES
+events-8b5446474-bqllp      1/1     Running   0                35s    10.42.0.230   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-gbnnl    1/1     Running   25 (3h22m ago)   6d1h   10.42.0.223   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-mgwq6    1/1     Running   24 (3h22m ago)   6d     10.42.0.208   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-sh67r    1/1     Running   25 (3h22m ago)   6d     10.42.0.216   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-t9jnv    1/1     Running   26 (3h22m ago)   6d1h   10.42.0.222   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-thcs6    1/1     Running   25 (3h22m ago)   6d1h   10.42.0.225   k3d-quickticket-server-0   <none>           <none>
+mixedload-96c9f49fd-7lbl6   1/1     Running   0                25s    10.42.0.232   k3d-quickticket-server-0   <none>           <none>
+mixedload-96c9f49fd-89qpb   1/1     Running   0                25s    10.42.0.231   k3d-quickticket-server-0   <none>           <none>
+payments-594db4df9d-csrgg   1/1     Running   24 (3h22m ago)   6d     10.42.0.217   k3d-quickticket-server-0   <none>           <none>
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+    114
+(1 row)

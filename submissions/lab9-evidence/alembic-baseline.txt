@@ -1,0 +1,10 @@
+Captured: 2026-10-11T04:52:40,877795478+03:00
+=== Alembic history ===
+<base> -> 4ba79a665e06 (head), baseline - pre-existing schema
+
+=== Current revision ===
+4ba79a665e06 (head)
+
+=== Load generator ===
+NAME        READY   UP-TO-DATE   AVAILABLE   AGE
+mixedload   2/2     2            2           9m2s

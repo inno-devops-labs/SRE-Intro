@@ -1,0 +1,16 @@
+Disaster recovery baseline: 2026-10-11T04:58:53,264340138+03:00
+Postgres pod: postgres-78489d7f5f-22s6k
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+   4616
+(1 row)
+
+Fresh backup started: 2026-10-11T04:58:53,500576362+03:00
+Fresh backup completed: 2026-10-11T04:58:54,901186248+03:00
+-rw-r--r--. 1 dbayazitov dbayazitov 171K Oct 11 04:58 /tmp/quickticket-task2.dump
+/tmp/quickticket-task2.dump: PostgreSQL custom database dump - v1.16-0

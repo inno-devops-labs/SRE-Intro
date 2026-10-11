@@ -1,0 +1,11 @@
+PVC pod restart test — 2026-10-11
+
+PVC: postgres-data, Bound to local-path volume pvc-7a6fab7d-12a6-4daa-86fc-fcdeaf94d15e
+Postgres pod before deletion: postgres-68466c5ccd-mdt5p
+Orders before deletion: 6435
+Pod deletion: 2026-10-11T05:13:56.283306627+03:00
+Replacement pod: postgres-68466c5ccd-r8q5c
+After restart: events=5, orders=6436
+Gateway GET /events: HTTP 200
+Measured RTO through final API check: 15.59 seconds
+No pg_restore was used; the PVC retained the database.

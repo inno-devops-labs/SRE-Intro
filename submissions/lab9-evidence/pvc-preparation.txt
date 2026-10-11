@@ -1,0 +1,40 @@
+PVC migration preparation: 2026-10-11T05:08:06,799261071+03:00
+Postgres pod: postgres-78489d7f5f-c5s9c
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+   6094
+(1 row)
+
+-rw-r--r--. 1 dbayazitov dbayazitov 224K Oct 11 05:08 /tmp/quickticket-pvc.dump
+;
+; Archive created at 2026-10-11 02:08:07 UTC
+;     dbname: quickticket
+;     TOC Entries: 18
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.11
+;     Dumped by pg_dump version: 17.11
+;
+;
+; Selected TOC Entries:
+;
+217; 1259 16387 TABLE public alembic_version quickticket
+218; 1259 16390 TABLE public events quickticket
+219; 1259 16395 SEQUENCE public events_id_seq quickticket
+3481; 0 0 SEQUENCE OWNED BY public events_id_seq quickticket
+220; 1259 16396 TABLE public orders quickticket
+
+=== StorageClasses ===
+NAME                   PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-path (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  20d
+
+=== Current Postgres manifest ===
+sed: can't read k8s/postgres.yaml: No such file or directory

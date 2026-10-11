@@ -1,0 +1,10 @@
+total 1452
+drwxrwxrwx    2 root     root          4096 Oct 11 02:18 .
+drwxr-xr-x    1 root     root          4096 Oct 11 02:17 ..
+-rw-r--r--    1 root     root        292289 Oct 11 02:18 quickticket_20261011T021829Z.dump
+-rw-r--r--    1 root     root        293097 Oct 11 02:18 quickticket_20261011T021833Z.dump
+-rw-r--r--    1 root     root        294015 Oct 11 02:18 quickticket_20261011T021838Z.dump
+-rw-r--r--    1 root     root        294639 Oct 11 02:18 quickticket_20261011T021841Z.dump
+-rw-r--r--    1 root     root        295367 Oct 11 02:18 quickticket_20261011T021845Z.dump
+Dump count:
+5

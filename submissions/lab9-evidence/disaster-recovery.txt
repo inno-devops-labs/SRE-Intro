@@ -1,0 +1,60 @@
+Old Postgres pod: postgres-78489d7f5f-22s6k
+Orders immediately before disaster:
+4834
+Disaster started: 2026-10-11T04:59:35,818085919+03:00
+Warning: Immediate deletion does not wait for confirmation that the running resource has been terminated. The resource may continue to run on the cluster indefinitely.
+pod "postgres-78489d7f5f-22s6k" force deleted from default namespace
+pod/postgres-78489d7f5f-c5s9c condition met
+New Postgres pod Ready: 2026-10-11T04:59:37,522399897+03:00
+New Postgres pod: postgres-78489d7f5f-c5s9c
+=== Tables before restore (expect none) ===
+psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+	Is the server running locally and accepting connections on that socket?
+command terminated with exit code 2
+=== Restore backup ===
+pg_restore: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+	Is the server running locally and accepting connections on that socket?
+command terminated with exit code 1
+Restore completed: 2026-10-11T04:59:39,003952675+03:00
+psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+	Is the server running locally and accepting connections on that socket?
+command terminated with exit code 2
+=== Restart Events to reconnect to Postgres ===
+deployment.apps/events restarted
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+=== Wait for Gateway health to return HTTP 200 ===
+curl: (7) Failed to connect to gateway:8080 after 0 ms: Could not connect to server
+command terminated with exit code 7
+Attempt 1: HTTP 000
+Attempt 2: HTTP 200
+Application ready: 2026-10-11T04:59:52,148426389+03:00
+RTO: 16.34 seconds
+=== Final service state ===
+NAME                        READY   STATUS        RESTARTS         AGE    IP            NODE                       NOMINATED NODE   READINESS GATES
+events-7d79968fb6-fckwf     1/1     Running       0                13s    10.42.0.236   k3d-quickticket-server-0   <none>           <none>
+events-8b5446474-bqllp      0/1     Terminating   0                16m    10.42.0.230   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-gbnnl    1/1     Running       25 (3h38m ago)   6d1h   10.42.0.223   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-mgwq6    0/1     Running       24 (3h38m ago)   6d1h   10.42.0.208   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-sh67r    1/1     Running       25 (3h38m ago)   6d     10.42.0.216   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-t9jnv    1/1     Running       26 (3h38m ago)   6d1h   10.42.0.222   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-thcs6    1/1     Running       25 (3h38m ago)   6d1h   10.42.0.225   k3d-quickticket-server-0   <none>           <none>
+mixedload-96c9f49fd-7lbl6   1/1     Running       0                16m    10.42.0.232   k3d-quickticket-server-0   <none>           <none>
+mixedload-96c9f49fd-89qpb   1/1     Running       0                16m    10.42.0.231   k3d-quickticket-server-0   <none>           <none>
+postgres-78489d7f5f-c5s9c   1/1     Running       0                17s    10.42.0.235   k3d-quickticket-server-0   <none>           <none>
+=== Corrected disaster recovery result ===
+Disaster started: 2026-10-11T04:59:35.818085919+03:00
+Final verification: 2026-10-11T05:06:09,541302483+03:00
+
+=== API ===
+/events HTTP 200
+
+=== Restored snapshot counts ===
+Before disaster: 4834 orders
+Immediately after restore: 4641 orders
+Observed gap: 193 orders
+
+RTO until final verification: 394.0 seconds

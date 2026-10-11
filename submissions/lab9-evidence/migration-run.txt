@@ -1,0 +1,40 @@
+Migration started: 2026-10-11T04:53:43,766190153+03:00
+
+=== 5xx in the minute before migration ===
+5xx last 1min: 0
+
+=== Alembic upgrade ===
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 4ba79a665e06 -> 29f225b42ece, add email column to events
+
+real	0m0.525s
+user	0m0.372s
+sys	0m0.070s
+
+=== events schema after migration ===
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null |
+ venue         | text                     |           | not null |
+ event_date    | timestamp with time zone |           | not null |
+ total_tickets | integer                  |           | not null |
+ price_cents   | integer                  |           | not null |
+ email         | character varying(255)   |           |          |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+
+=== 5xx after migration ===
+5xx last 1min: 0
+
+4ba79a665e06 -> 29f225b42ece (head), add email column to events
+<base> -> 4ba79a665e06, baseline - pre-existing schema
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+29f225b42ece (head)
+Migration observed: 2026-10-11T04:53:46,657085573+03:00

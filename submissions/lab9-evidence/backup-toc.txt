@@ -1,0 +1,29 @@
+;
+; Archive created at 2026-10-11 01:54:57 UTC
+;     dbname: quickticket
+;     TOC Entries: 18
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.11
+;     Dumped by pg_dump version: 17.11
+;
+;
+; Selected TOC Entries:
+;
+220; 1259 16419 TABLE public alembic_version quickticket
+218; 1259 16388 TABLE public events quickticket
+217; 1259 16387 SEQUENCE public events_id_seq quickticket
+3481; 0 0 SEQUENCE OWNED BY public events_id_seq quickticket
+219; 1259 16396 TABLE public orders quickticket
+3316; 2604 16391 DEFAULT public events id quickticket
+3474; 0 16419 TABLE DATA public alembic_version quickticket
+3472; 0 16388 TABLE DATA public events quickticket
+3473; 0 16396 TABLE DATA public orders quickticket
+3482; 0 0 SEQUENCE SET public events_id_seq quickticket
+3324; 2606 16423 CONSTRAINT public alembic_version alembic_version_pkc quickticket
+3320; 2606 16395 CONSTRAINT public events events_pkey quickticket
+3322; 2606 16404 CONSTRAINT public orders orders_pkey quickticket
+3325; 2606 16405 FK CONSTRAINT public orders orders_event_id_fkey quickticket

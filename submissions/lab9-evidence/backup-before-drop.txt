@@ -1,0 +1,43 @@
+Backup captured: 2026-10-11T04:54:57,074720423+03:00
+=== Row counts before DROP ===
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+   3603
+(1 row)
+
+
+=== Create custom-format backup ===
+-rw-r--r--. 1 dbayazitov dbayazitov 135K Oct 11 04:54 /tmp/quickticket.dump
+/tmp/quickticket.dump: PostgreSQL custom database dump - v1.16-0
+
+=== Verify backup archive ===
+;
+; Archive created at 2026-10-11 01:54:57 UTC
+;     dbname: quickticket
+;     TOC Entries: 18
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.11
+;     Dumped by pg_dump version: 17.11
+;
+;
+; Selected TOC Entries:
+;
+220; 1259 16419 TABLE public alembic_version quickticket
+218; 1259 16388 TABLE public events quickticket
+217; 1259 16387 SEQUENCE public events_id_seq quickticket
+3481; 0 0 SEQUENCE OWNED BY public events_id_seq quickticket
+219; 1259 16396 TABLE public orders quickticket
+3316; 2604 16391 DEFAULT public events id quickticket
+3474; 0 16419 TABLE DATA public alembic_version quickticket
+3472; 0 16388 TABLE DATA public events quickticket
+3473; 0 16396 TABLE DATA public orders quickticket
+3482; 0 0 SEQUENCE SET public events_id_seq quickticket

@@ -1,0 +1,59 @@
+=== Before DROP ===
+Time: 2026-10-11T04:55:33,439328145+03:00
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+   3793
+(1 row)
+
+
+=== Drop orders ===
+DROP started: 2026-10-11T04:55:33,697891230+03:00
+DROP TABLE
+DROP completed: 2026-10-11T04:55:34,894305997+03:00
+ orders_table
+--------------
+
+(1 row)
+
+
+=== API probe while orders is absent ===
+/events HTTP 502
+
+=== Restore ===
+Restore started: 2026-10-11T04:55:41,530011503+03:00
+Restore completed: 2026-10-11T04:55:42,022051008+03:00
+
+=== After restore ===
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+   3604
+(1 row)
+
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null |
+ venue         | text                     |           | not null |
+ event_date    | timestamp with time zone |           | not null |
+ total_tickets | integer                  |           | not null |
+ price_cents   | integer                  |           | not null |
+ email         | character varying(255)   |           |          |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+
+/events HTTP 200
+Cycle finished: 2026-10-11T04:55:47,518871038+03:00

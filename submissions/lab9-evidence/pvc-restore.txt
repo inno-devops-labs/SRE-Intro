@@ -1,0 +1,33 @@
+PVC restore: 2026-10-11T05:12:47,802614155+03:00
+Restore completed: 2026-10-11T05:12:48,621003861+03:00
+ events
+--------
+      5
+(1 row)
+
+ orders
+--------
+   6096
+(1 row)
+
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null |
+ venue         | text                     |           | not null |
+ event_date    | timestamp with time zone |           | not null |
+ total_tickets | integer                  |           | not null |
+ price_cents   | integer                  |           | not null |
+ email         | character varying(255)   |           |          |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+deployment.apps/events restarted
+Waiting for deployment "events" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+/events HTTP 200
