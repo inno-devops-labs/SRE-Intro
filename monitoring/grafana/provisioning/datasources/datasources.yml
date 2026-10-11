@@ -2,6 +2,9 @@ apiVersion: 1
 
 datasources:
   - name: Prometheus
+    # Fixed uid so the provisioned alert rules in provisioning/alerting/ can
+    # reference this datasource (Lab 6).
+    uid: quickticket-prom
     type: prometheus
     access: proxy
     url: http://prometheus:9090

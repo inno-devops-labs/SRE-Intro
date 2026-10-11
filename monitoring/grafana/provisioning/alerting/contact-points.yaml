@@ -1,0 +1,19 @@
+# Lab 6 §6.2 — Grafana contact point, provisioned as code.
+#
+# The lab suggests https://webhook.site. We use a webhook receiver that runs
+# *inside the cluster* instead (monitoring/k8s/webhook-receiver.yaml): it is a
+# real HTTP endpoint that Grafana POSTs the full alert JSON to, and the payload
+# is visible with `kubectl logs -n monitoring deploy/webhook-receiver`, so the
+# evidence is reproducible and does not depend on a third-party site.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: quickticket-alerts
+    receivers:
+      - uid: quickticket-webhook
+        type: webhook
+        settings:
+          url: http://webhook-receiver.monitoring.svc.cluster.local:8090/alerts
+          httpMethod: POST
+        disableResolveMessage: false

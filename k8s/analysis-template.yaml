@@ -1,0 +1,42 @@
+# Lab 7 bonus §B.2 — Argo Rollouts AnalysisTemplate for the gateway canary.
+#
+# This is the course-provided `labs/lab7/analysis-template.yaml`, moved into
+# k8s/ so ArgoCD manages it together with the rest of QuickTicket (the lab's
+# "How to Submit" section expects `k8s/analysis-template.yaml`). The spec below
+# is unchanged; only these header comments and the note about which Prometheus
+# it points at were added.
+#
+# IMPORTANT — which Prometheus this queries:
+#   `address:` below is the in-cluster Prometheus in namespace `monitoring`.
+#   That Prometheus was deployed in Lab 6 from monitoring/k8s/prometheus.yaml,
+#   which is a strict SUPERSET of labs/lab7/prometheus.yaml: its `gateway`
+#   scrape job — including the
+#   `__meta_kubernetes_pod_label_rollouts_pod_template_hash -> rs_hash` relabel
+#   that the query below depends on — is byte-identical, and it additionally
+#   scrapes events + payments and loads the Lab 3 SLO recording rules.
+#   `labs/lab7/prometheus.yaml` was therefore NOT applied: doing so would have
+#   silently dropped those extras. See submissions/lab7.md §B.1.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: gateway-error-rate
+spec:
+  args:
+    - name: canary-hash
+  metrics:
+    - name: error-rate
+      initialDelay: 60s
+      interval: 20s
+      count: 3
+      successCondition: result[0] < 0.05
+      failureLimit: 1
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            (
+              sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+              or on() vector(0)
+            )
+            /
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))
