@@ -1,0 +1,129 @@
+# QuickTicket — scheduled logical backup of the Postgres database (Lab 9, Bonus B.2)
+#
+# Why this exists
+# ---------------
+# k8s/postgres.yaml already mounts a PersistentVolumeClaim, so the database
+# survives a pod restart. A PVC is NOT a backup: it does not survive the volume
+# being deleted, a bad migration, or an accidental `DROP TABLE`. Lab 9 measured
+# both — losing the PVC cost 1271 orders because the only dump on disk was
+# 5m47s old. This CronJob is what turns that RPO from "whenever a human last
+# remembered to run pg_dump" into a bounded 5 minutes.
+#
+# Storage comes from labs/lab9/backup-storage.yaml (PVC `postgres-backups`),
+# which must be applied first:
+#   kubectl apply -f labs/lab9/backup-storage.yaml
+#
+# Inspect the dumps with:
+#   kubectl exec deployment/backup-inspector -- ls -la /backups
+#
+# NOTE: `postgres-backups` is ReadWriteOnce and is also mounted by
+# `backup-inspector`. On this single-node k3d cluster both pods land on the same
+# node, so RWO is satisfied. On a multi-node cluster this would need RWX or a
+# nodeAffinity that pins them together.
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  labels:
+    app: postgres-backup
+    app.kubernetes.io/part-of: quickticket
+spec:
+  schedule: "*/5 * * * *"
+  # If a dump ever runs longer than 5 minutes, do NOT start a second one on top
+  # of it: two concurrent pg_dumps would compete for the same DB and the same
+  # RWO volume, and could interleave into the retention `rm`.
+  concurrencyPolicy: Forbid
+  # Keep etcd small. Three of each is enough to debug the last ~15 minutes.
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  # If the controller was down, don't fire a stampede of missed runs.
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      # A dump that has failed 3 times is failing for a reason a retry won't fix.
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+        spec:
+          # Jobs may not use restartPolicy: Always.
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-dump
+              # Same major version as the server (k8s/postgres.yaml pins
+              # postgres:17-alpine); pg_dump must be >= the server it dumps.
+              image: postgres:17-alpine
+              imagePullPolicy: IfNotPresent
+              env:
+                # Kubernetes Service DNS resolves `postgres` to the ClusterIP.
+                - name: PGHOST
+                  value: "postgres"
+                - name: PGUSER
+                  value: "quickticket"
+                - name: PGDATABASE
+                  value: "quickticket"
+                # Matches the plaintext credentials in k8s/postgres.yaml. In a
+                # real cluster this is a Secret + envFrom/secretKeyRef; the
+                # course manifests keep it inline deliberately.
+                - name: PGPASSWORD
+                  value: "quickticket"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  cd /backups
+
+                  TS=$(date -u +%Y%m%dT%H%M%SZ)
+                  OUT="quickticket_${TS}.dump"
+                  TMP="${OUT}.part"
+
+                  echo "[$(date -u +%FT%TZ)] dumping ${PGDATABASE} from ${PGHOST} -> ${OUT}"
+
+                  # Dump to a .part file first. A backup file must never be
+                  # visible under its final name until it is complete and
+                  # fsynced — otherwise the retention pass below could keep a
+                  # truncated dump and delete a good one.
+                  pg_dump -Fc --no-owner --no-acl -f "${TMP}"
+                  sync
+                  mv "${TMP}" "${OUT}"
+
+                  echo "[$(date -u +%FT%TZ)] wrote $(stat -c %s "${OUT}") bytes"
+
+                  # Verify the archive is readable before it is allowed to count
+                  # as one of the 5 we keep. An unverified backup is a rumour.
+                  if ! pg_restore --list "${OUT}" > /dev/null; then
+                    echo "FATAL: ${OUT} has an unreadable TOC, removing it"
+                    rm -f "${OUT}"
+                    exit 1
+                  fi
+                  echo "[$(date -u +%FT%TZ)] TOC verified"
+
+                  # Retention: keep only the 5 newest dumps.
+                  # `ls -1t` sorts newest-first; `tail -n +6` emits line 6 onward,
+                  # i.e. everything older than the 5 newest; `xargs -r` does
+                  # nothing when the list is empty.
+                  echo "[$(date -u +%FT%TZ)] retention: keeping the 5 newest dumps"
+                  ls -1t quickticket_*.dump | tail -n +6 | xargs -r rm -v
+
+                  # Clean up any .part left behind by a killed earlier run.
+                  rm -f -- *.part 2>/dev/null || true
+
+                  echo "[$(date -u +%FT%TZ)] done; /backups now holds $(ls -1 quickticket_*.dump | wc -l) dump(s):"
+                  ls -1t quickticket_*.dump
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups

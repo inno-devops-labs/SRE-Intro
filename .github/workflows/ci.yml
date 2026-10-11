@@ -1,0 +1,131 @@
+# QuickTicket CI — build the three service images, push them to ghcr.io,
+# then write the new immutable tag back into k8s/ so ArgoCD picks it up.
+#
+# Flow:  push to main -> build+push 3 images tagged with the commit SHA
+#                     -> rewrite `image:` lines in k8s/*.yaml
+#                     -> commit "ci: update image tags to <sha>" back to main
+#                     -> ArgoCD sees the new commit and syncs the cluster
+#
+# The `if:` guard on both jobs stops the tag-update commit from re-triggering
+# the workflow (that commit's message starts with "ci:"), which would otherwise
+# loop forever.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Only one CI run per branch at a time: two concurrent runs would both try to
+# push a tag-update commit to main and one would lose the race.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    # Skip runs triggered by this workflow's own "ci: update image tags" commit.
+    if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
+
+    permissions:
+      contents: read
+      packages: write # needed to push to ghcr.io
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [gateway, events, payments]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute lowercase image name
+        id: img
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          echo "image=ghcr.io/${OWNER,,}/quickticket-${{ matrix.service }}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app/${{ matrix.service }}
+          file: ./app/${{ matrix.service }}/Dockerfile
+          push: true
+          # github.sha is the full 40-char commit SHA: unique and immutable.
+          # `latest` is a moving convenience tag; k8s/ always pins the SHA.
+          tags: |
+            ${{ steps.img.outputs.image }}:${{ github.sha }}
+            ${{ steps.img.outputs.image }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  # ---------------------------------------------------------------------------
+  # Bonus task: close the GitOps loop automatically.
+  # After all three images exist in ghcr.io, rewrite the image tags in k8s/ and
+  # commit them back to main. ArgoCD is watching k8s/, so the deploy happens
+  # without anyone touching kubectl.
+  # ---------------------------------------------------------------------------
+  update-manifests:
+    name: update image tags in k8s/
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, 'ci:') }}
+
+    permissions:
+      contents: write # needed to push the manifest commit back to main
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Keep the GITHUB_TOKEN in .git/config so the final `git push` works.
+          persist-credentials: true
+          ref: main
+
+      - name: Update image tags in manifests
+        run: |
+          set -euo pipefail
+          SHA="${{ github.sha }}"
+          OWNER="${{ github.repository_owner }}"
+          OWNER="${OWNER,,}"
+          for svc in gateway events payments; do
+            sed -i -E "s|image: ghcr\.io/[^/]+/quickticket-${svc}:.*|image: ghcr.io/${OWNER}/quickticket-${svc}:${SHA}|" "k8s/${svc}.yaml"
+          done
+          grep -n 'image: ghcr.io' k8s/*.yaml
+
+      - name: Commit and push manifest update
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add k8s/
+          if git diff --cached --quiet; then
+            echo "manifests already point at ${{ github.sha }} — nothing to commit"
+            exit 0
+          fi
+          git commit -m "ci: update image tags to ${{ github.sha }}"
+          git push origin HEAD:main
+
+      - name: Summary
+        run: |
+          {
+            echo "### Images pushed"
+            OWNER="${{ github.repository_owner }}"; OWNER="${OWNER,,}"
+            for svc in gateway events payments; do
+              echo "- \`ghcr.io/${OWNER}/quickticket-${svc}:${{ github.sha }}\`"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
