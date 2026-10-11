@@ -1,0 +1,37 @@
+[2026-10-11 02:48:19,923] load-50-wj5lg/INFO/locust.main: Starting Locust 2.43.4
+[2026-10-11 02:48:19,924] load-50-wj5lg/INFO/locust.main: Run time limit set to 60 seconds
+[2026-10-11 02:48:19,925] load-50-wj5lg/INFO/locust.runners: Ramping to 50 users at a rate of 5.00 per second
+[2026-10-11 02:48:28,938] load-50-wj5lg/INFO/locust.runners: All users spawned: {"QuickTicketUser": 50} (50 total users)
+[2026-10-11 02:49:19,607] load-50-wj5lg/INFO/locust.main: --run-time limit reached, shutting down
+[2026-10-11 02:49:19,646] load-50-wj5lg/INFO/locust.main: Shutting down (exit code 1)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /events                                                                         1092  340(31.14%) |    529       2    1369    510 |   18.30        5.70
+POST     /events/3/reserve                                                                229  117(51.09%) |    571       6    1445    520 |    3.84        1.96
+POST     /events/5/reserve                                                                 71   37(52.11%) |    613      15    1245    590 |    1.19        0.62
+GET      /health                                                                          160   52(32.50%) |    451       3    1056    430 |    2.68        0.87
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                      1552  546(35.18%) |    531       2    1445    500 |   26.01        9.15
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /events                                                                               520    630    710    760    890    990   1100   1200   1300   1400   1400   1092
+POST     /events/3/reserve                                                                     520    720    820    910   1100   1200   1300   1400   1400   1400   1400    229
+POST     /events/5/reserve                                                                     590    700    820    850    930   1100   1200   1200   1200   1200   1200     71
+GET      /health                                                                               430    530    590    650    770    870   1000   1000   1100   1100   1100    160
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                            500    630    720    770    910   1000   1100   1200   1400   1400   1400   1552
+
+Error report
+# occurrences      Error
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+101                POST /events/3/reserve: HTTPError('500 Server Error: Internal Server Error for url: /events/3/reserve')
+338                GET /events: HTTPError('502 Server Error: Bad Gateway for url: /events')
+51                 GET /health: HTTPError('503 Server Error: Service Unavailable for url: /health')
+16                 POST /events/3/reserve: HTTPError('502 Server Error: Bad Gateway for url: /events/3/reserve')
+36                 POST /events/5/reserve: HTTPError('500 Server Error: Internal Server Error for url: /events/5/reserve')
+1                  POST /events/5/reserve: HTTPError('502 Server Error: Bad Gateway for url: /events/5/reserve')
+2                  GET /events: ConnectionRefusedError(111, 'Connection refused')
+1                  GET /health: ConnectionRefusedError(111, 'Connection refused')
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------

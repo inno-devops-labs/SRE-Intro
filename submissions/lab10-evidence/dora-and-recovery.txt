@@ -1,0 +1,71 @@
+Captured: 2026-10-11T06:00:20,321080909+03:00
+=== Gateway rollout and ReplicaSets ===
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          10/10
+  SetWeight:     100
+  ActualWeight:  100
+Images:          ghcr.io/damirbayazitov/quickticket-gateway:836ff2a39d0abff66c1cbd7d9720dee914c477de ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND         STATUS        AGE   INFO
+⟳ gateway                            Rollout      [32m✔[0m Healthy     6d3h
+├──# revision:8
+│  └──⧉ [32mgateway-7d79dcbb87[0m           ReplicaSet   [32m✔[0m Healthy     6d2h  [32mstable[0m
+│     ├──□ gateway-7d79dcbb87-t9jnv  Pod          [32m✔[0m Running     6d2h  ready:1/1,restarts:28
+│     ├──□ gateway-7d79dcbb87-gbnnl  Pod          [32m✔[0m Running     6d2h  ready:1/1,restarts:27
+│     ├──□ gateway-7d79dcbb87-thcs6  Pod          [32m✔[0m Running     6d2h  ready:1/1,restarts:27
+│     ├──□ gateway-7d79dcbb87-mgwq6  Pod          [32m✔[0m Running     6d2h  ready:1/1,restarts:26
+│     └──□ gateway-7d79dcbb87-sh67r  Pod          [32m✔[0m Running     6d1h  ready:1/1,restarts:27
+├──# revision:7
+│  ├──⧉ gateway-5bcbd9ff4            ReplicaSet   [0m•[0m ScaledDown  6d2h
+│  └──α [0mgateway-5bcbd9ff4-7-2[0m        AnalysisRun  [31m✖[0m Failed      6d2h  [31m✖[0m 2
+├──# revision:6
+│  └──α [0mgateway-7d79dcbb87-6-2[0m       AnalysisRun  [32m✔[0m Successful  6d2h  [32m✔[0m 3
+├──# revision:5
+│  └──⧉ gateway-9b68dc7f6            ReplicaSet   [0m•[0m ScaledDown  6d2h
+├──# revision:4
+│  └──⧉ gateway-b9dbd796d            ReplicaSet   [0m•[0m ScaledDown  6d3h
+├──# revision:3
+│  └──⧉ gateway-677f979d5c           ReplicaSet   [0m•[0m ScaledDown  6d2h
+└──# revision:1
+   └──⧉ gateway-7d798c7b65           ReplicaSet   [0m•[0m ScaledDown  6d3h
+NAME                 CREATED                READY
+gateway-5bcbd9ff4    2026-10-05T00:44:51Z   <none>
+gateway-677f979d5c   2026-10-05T00:00:58Z   <none>
+gateway-7d798c7b65   2026-10-04T23:45:19Z   <none>
+gateway-7d79dcbb87   2026-10-05T00:37:25Z   5
+gateway-9b68dc7f6    2026-10-05T00:27:48Z   <none>
+gateway-b9dbd796d    2026-10-04T23:45:52Z   <none>
+
+=== Relevant commit timestamps ===
+e443acc 2026-10-05T03:56:10+03:00 feat(lab7): add canary rollout and automated analysis
+ca597bd 2026-09-26T22:08:10Z ci: update image tags to 836ff2a39d0abff66c1cbd7d9720dee914c477de
+9647ca5 2026-09-26T21:50:56Z ci: update image tags to c1f384868d900fdcc7e39f83bb86884ed1b991f7
+c1f3848 2026-09-27T00:49:38+03:00 fix(lab5): quote workflow condition
+53483e2 2026-09-27T00:43:38+03:00 feat(lab5): automate image tag updates
+ad20f30 2026-09-27T00:28:13+03:00 Revert "test(lab5): deploy invalid gateway image"
+1fda658 2026-09-27T00:26:19+03:00 test(lab5): deploy invalid gateway image
+5495e6c 2026-09-27T00:10:51+03:00 deploy(lab5): use immutable GHCR image tags
+cac0f8d 2026-09-26T23:56:48+03:00 ci(lab5): build and push QuickTicket images
+1edb7ec 2026-09-21T06:45:42+03:00 feat(lab4): add Kubernetes manifests and Helm chart
+805e78c 2026-04-17T00:05:53+04:00 fix: remove student artifacts (k8s manifests, CI workflow) — students create these in labs 4-5
+71416a2 2026-04-16T14:46:12+04:00 fix: correct imagePullSecrets placement in manifests
+62b3241 2026-04-16T14:14:46+04:00 feat: add imagePullSecrets for ghcr.io private packages
+251abdb 2026-04-16T14:07:39+04:00 feat: use ghcr.io images in K8s manifests
+2cfbbb2 2026-04-16T13:55:04+04:00 ci: add CI pipeline for QuickTicket
+
+=== Gateway resources ===
+{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}
+
+=== Analysis runs ===
+NAME                     PHASE        STARTED
+gateway-5bcbd9ff4-7-2    Failed       2026-10-05T00:46:02Z
+gateway-7d79dcbb87-6-2   Successful   2026-10-05T00:38:35Z

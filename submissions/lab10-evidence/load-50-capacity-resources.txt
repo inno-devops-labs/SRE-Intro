@@ -1,0 +1,21 @@
+CPU and memory during 50-user load: 2026-10-11T05:57:34,290274230+03:00
+NAME                       CPU(cores)   MEMORY(bytes)
+gateway-7d79dcbb87-gbnnl   5m           38Mi
+gateway-7d79dcbb87-mgwq6   6m           46Mi
+gateway-7d79dcbb87-sh67r   12m          39Mi
+gateway-7d79dcbb87-t9jnv   14m          43Mi
+gateway-7d79dcbb87-thcs6   10m          38Mi
+NAME                     CPU(cores)   MEMORY(bytes)
+events-c67557bbd-jwr2v   104m         55Mi
+NAME                        CPU(cores)   MEMORY(bytes)
+payments-594db4df9d-csrgg   6m           41Mi
+NAME                        READY   STATUS    RESTARTS         AGE    IP            NODE                       NOMINATED NODE   READINESS GATES
+events-c67557bbd-jwr2v      1/1     Running   1 (3m1s ago)     43m    10.42.0.242   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-gbnnl    1/1     Running   27 (3m1s ago)    6d2h   10.42.0.223   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-mgwq6    1/1     Running   26 (8m20s ago)   6d2h   10.42.0.208   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-sh67r    1/1     Running   27 (2m39s ago)   6d1h   10.42.0.216   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-t9jnv    1/1     Running   28 (3m4s ago)    6d2h   10.42.0.222   k3d-quickticket-server-0   <none>           <none>
+gateway-7d79dcbb87-thcs6    1/1     Running   27 (3m ago)      6d2h   10.42.0.225   k3d-quickticket-server-0   <none>           <none>
+payments-594db4df9d-csrgg   1/1     Running   24 (4h35m ago)   6d1h   10.42.0.217   k3d-quickticket-server-0   <none>           <none>
+postgres-68466c5ccd-r8q5c   1/1     Running   0                43m    10.42.0.241   k3d-quickticket-server-0   <none>           <none>
+redis-6fcfb5475d-s2zf2      1/1     Running   25 (4h35m ago)   6d1h   10.42.0.221   k3d-quickticket-server-0   <none>           <none>
