@@ -1,0 +1,72 @@
+# Periodic logical backup of the quickticket DB (Lab 9 Bonus B.2).
+#
+# Every 5 minutes: pg_dump -Fc into the postgres-backups PVC
+# (labs/lab9/backup-storage.yaml), then keep only the 5 newest dumps.
+#
+# Apply with:   kubectl apply -f k8s/backup-cronjob.yaml
+# Run now:      kubectl create job --from=cronjob/postgres-backup manual-1
+# Inspect:      kubectl exec deployment/backup-inspector -- ls -la /backups
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid          # never stack two dumps if one runs long
+  startingDeadlineSeconds: 120       # a run missed by >2 min is skipped, not replayed
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 240     # a hung dump must not block the next slot
+      template:
+        metadata:
+          labels:
+            app: postgres-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-dump
+              image: postgres:17-alpine   # same major as the server, so pg_dump can read it
+              env:
+                - name: PGHOST
+                  value: "postgres"
+                - name: PGUSER
+                  value: "quickticket"
+                - name: PGDATABASE
+                  value: "quickticket"
+                - name: PGPASSWORD
+                  value: "quickticket"
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  cd /backups
+                  TS=$(date -u +%Y%m%dT%H%M%SZ)
+                  # Dump to a temp name first: a failed or partial dump must never
+                  # count as "newest" and push a good one out of retention.
+                  pg_dump -Fc -f "quickticket_${TS}.dump.partial"
+                  mv "quickticket_${TS}.dump.partial" "quickticket_${TS}.dump"
+                  echo "created quickticket_${TS}.dump ($(wc -c < "quickticket_${TS}.dump") bytes)"
+                  # Retention: keep the 5 newest. Sort by the UTC timestamp in the
+                  # name, not by mtime: busybox `ls -t` compares whole seconds and
+                  # breaks ties by name, which can rotate out the newest dumps.
+                  ls -1 quickticket_*.dump | sort -r | tail -n +6 | xargs -r rm -v
+                  rm -f ./*.partial
+                  echo "kept $(ls -1 quickticket_*.dump | wc -l) dumps:"
+                  ls -1 quickticket_*.dump | sort -r
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
