@@ -65,18 +65,28 @@ def startup():
     else:
         log.error("Could not connect to database after 10 attempts")
 
+    _connect_redis()
+
+
+def _connect_redis() -> bool:
+    """(Re)create the Redis client. Called at startup and again from _check_redis
+    while the client is missing, so events recovers on its own once Redis is back."""
+    global redis_client
     try:
-        redis_client = redis.Redis(
+        client = redis.Redis(
             host=REDIS_HOST, port=REDIS_PORT,
             socket_timeout=REDIS_TIMEOUT_MS / 1000,
             socket_connect_timeout=0.5,
             decode_responses=True,
         )
-        redis_client.ping()
+        client.ping()
+        redis_client = client
         log.info("Redis connected")
+        return True
     except Exception as e:
         log.warning(f"Redis connection failed: {e}")
         redis_client = None
+        return False
 
 
 def get_db():
@@ -120,9 +130,12 @@ def health():
         checks["postgres"] = "down"
     checks["redis"] = "ok" if _check_redis() else "down"
 
+    # Only Postgres gates readiness: without Redis, listing events still works and
+    # only reservations fail, so a Redis outage must not take events (and, through
+    # the gateway's own /health, the whole site) out of service.
     all_ok = all(v == "ok" for v in checks.values())
     return JSONResponse(
-        status_code=200 if all_ok else 503,
+        status_code=200 if checks["postgres"] == "ok" else 503,
         content={"status": "healthy" if all_ok else "degraded", "checks": checks},
     )
 
@@ -319,8 +332,8 @@ def _check_redis():
         return _redis_ok
     _redis_checked_at = now
     if not redis_client:
-        _redis_ok = False
-        return False
+        _redis_ok = _connect_redis()
+        return _redis_ok
     try:
         _redis_ok = redis_client.ping()
     except Exception:
