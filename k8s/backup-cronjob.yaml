@@ -1,0 +1,66 @@
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:17-alpine
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: quickticket
+                - name: PGDATABASE
+                  value: quickticket
+                - name: PGPASSWORD
+                  value: quickticket
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+
+                  TS="$(date -u +%Y%m%dT%H%M%SZ)"
+                  OUT="/backups/quickticket_${TS}.dump"
+                  n=1
+
+                  while [ -e "$OUT" ]; do
+                    OUT="/backups/quickticket_${TS}_${n}.dump"
+                    n=$((n + 1))
+                  done
+
+                  echo "Creating backup: $OUT"
+                  pg_dump -Fc -f "$OUT"
+                  test -s "$OUT"
+                  echo "Backup created: $OUT"
+
+                  cd /backups
+                  echo "Applying retention: keep newest 5 dumps"
+
+                  ls -1t quickticket_*.dump |
+                    tail -n +6 |
+                    while IFS= read -r old; do
+                      [ -n "$old" ] || continue
+                      rm -v -- "$old"
+                    done
+
+                  echo "Remaining backups:"
+                  ls -lh quickticket_*.dump
+
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
