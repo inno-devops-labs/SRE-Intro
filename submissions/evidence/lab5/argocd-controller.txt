@@ -1,0 +1,2 @@
+NAME                            READY   AGE
+argocd-application-controller   1/1     9m16s
