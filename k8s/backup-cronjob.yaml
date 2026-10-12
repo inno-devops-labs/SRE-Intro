@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 90
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 180
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:17-alpine
+              env:
+                - {name: PGHOST, value: "postgres"}
+                - {name: PGUSER, value: "quickticket"}
+                - {name: PGDATABASE, value: "quickticket"}
+                - {name: PGPASSWORD, value: "quickticket"}
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  cd /backups
+                  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+                  tmp="quickticket_${stamp}.dump.partial"
+                  out="quickticket_${stamp}.dump"
+                  pg_dump -Fc -f "$tmp"
+                  mv "$tmp" "$out"
+                  echo "created $out ($(wc -c < "$out") bytes)"
+                  old="$(ls -1 quickticket_*.dump 2>/dev/null | sort -r | sed -n '6,$p' || true)"
+                  if [ -n "$old" ]; then
+                    printf '%s\n' "$old" | xargs -r rm -v
+                  fi
+                  rm -f ./*.partial
+                  echo "backup count: $(ls -1 quickticket_*.dump | wc -l)"
+                  ls -1 quickticket_*.dump | sort -r
+              volumeMounts:
+                - {name: backups, mountPath: /backups}
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
