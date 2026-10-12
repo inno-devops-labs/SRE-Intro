@@ -1,0 +1,57 @@
+# Argo Rollouts AnalysisTemplate for gateway canary error-rate.
+#
+# This template queries in-cluster Prometheus (labs/lab7/prometheus.yaml) during
+# a canary rollout. If the canary's 5xx-error ratio exceeds 5% in 3 consecutive
+# 20s windows, the rollout is aborted automatically.
+#
+# Apply with:  kubectl apply -f labs/lab7/analysis-template.yaml
+#
+# --- Why the query looks this way -------------------------------------------
+#
+# 1) NUMERATOR uses `or on() vector(0)` because "zero 5xx responses" is a real
+#    answer. Without the fallback, if the canary has had no errors yet, the
+#    numerator returns an *empty vector* (no matching series exist) and Argo
+#    Rollouts panics with "reflect: slice index out of range".
+#
+# 2) DENOMINATOR is STRICT (no fallback). If the canary receives zero total
+#    traffic, the division returns an empty vector → analysis errors → rollout
+#    aborts. This is fail-safe: a canary you can't measure is a canary you
+#    can't trust. Do NOT add `or vector(0)` here or you'll silently mask
+#    "no traffic at all" as "zero errors" and promote blind.
+#
+# 3) `initialDelay: 60s` gives Prometheus time to:
+#    - discover the new canary pod via Kubernetes SD (~10s interval),
+#    - scrape it a few times (5s scrape interval),
+#    - build up >=60s of samples for a stable `rate()` window.
+#    Without this, the first 2–3 measurements commonly return empty →
+#    consecutiveErrors > consecutiveErrorLimit → false abort.
+#
+# 4) `podTemplateHashValue: Latest` (in gateway.yaml strategy args) passes the
+#    current canary's pod-template-hash as `canary-hash`, filtering Prometheus
+#    series to the canary replicas only.
+# ----------------------------------------------------------------------------
+
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: gateway-error-rate
+spec:
+  args:
+    - name: canary-hash
+  metrics:
+    - name: error-rate
+      initialDelay: 60s
+      interval: 20s
+      count: 3
+      successCondition: result[0] < 0.05
+      failureLimit: 1
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            (
+              sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}",status=~"5.."}[60s]))
+              or on() vector(0)
+            )
+            /
+            sum(rate(gateway_requests_total{rs_hash="{{args.canary-hash}}"}[60s]))

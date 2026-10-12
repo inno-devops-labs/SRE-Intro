@@ -1,0 +1,87 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - pause:
+            duration: 60s
+        - setWeight: 40
+        - pause:
+            duration: 60s
+        - setWeight: 60
+        - pause:
+            duration: 60s
+        - setWeight: 80
+        - pause:
+            duration: 30s
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      annotations:
+        abort-test: "1"
+      labels:
+        app: gateway
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: gateway
+          image: ghcr.io/silviafedorovskaya/quickticket-gateway:2d1a803a0cf9dc3c7ec64bb2523e5bd385a53861
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          env:
+            - name: APP_VERSION
+              value: "v2-abort-test"
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
