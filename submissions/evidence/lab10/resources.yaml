@@ -1,0 +1,593 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "7"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"events","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"events"}},"template":{"metadata":{"labels":{"app":"events"}},"spec":{"containers":[{"env":[{"name":"DB_HOST","value":"postgres"},{"name":"DB_PORT","value":"5432"},{"name":"DB_NAME","value":"quickticket"},{"name":"DB_USER","value":"quickticket"},{"name":"DB_PASS","value":"quickticket"},{"name":"DB_MAX_CONNS","value":"10"},{"name":"REDIS_HOST","value":"redis"},{"name":"REDIS_PORT","value":"6379"},{"name":"REDIS_TIMEOUT_MS","value":"1000"},{"name":"RESERVATION_TTL","value":"300"}],"image":"ghcr.io/walkerino/quickticket-events:17b2fdb163812e011ade153c83cf598de034a616","imagePullPolicy":"Always","livenessProbe":{"failureThreshold":3,"initialDelaySeconds":10,"periodSeconds":10,"tcpSocket":{"port":8081}},"name":"events","ports":[{"containerPort":8081,"name":"tcp"}],"readinessProbe":{"exec":{"command":["python","-c","import os\nimport socket\nfrom contextlib import closing\nimport psycopg2\nwith socket.create_connection((\"127.0.0.1\", 8081), timeout=0.5):\n    pass\nwith closing(psycopg2.connect(\n    host=os.environ[\"DB_HOST\"], port=os.environ[\"DB_PORT\"],\n    dbname=os.environ[\"DB_NAME\"], user=os.environ[\"DB_USER\"],\n    password=os.environ[\"DB_PASS\"], connect_timeout=2,\n    options=\"-c statement_timeout=1000\",\n)) as connection:\n    with connection.cursor() as cursor:\n        cursor.execute(\"SELECT 1\")\n        assert cursor.fetchone() == (1,)\n"]},"failureThreshold":2,"periodSeconds":5,"timeoutSeconds":3},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}},"startupProbe":{"failureThreshold":30,"periodSeconds":2,"tcpSocket":{"port":8081}}}],"initContainers":[{"command":["sh","-c","until pg_isready -h postgres -U quickticket -d quickticket; do sleep 2; done"],"image":"postgres:17-alpine","name":"wait-for-postgres","resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}},{"command":["sh","-c","until redis-cli -h redis ping | grep -q PONG; do sleep 2; done"],"image":"redis:7-alpine","name":"wait-for-redis","resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}]}}}}
+    creationTimestamp: "2026-10-12T07:23:01Z"
+    generation: 7
+    name: events
+    namespace: default
+    resourceVersion: "2289"
+    uid: d38ebe1a-3e9a-44bc-a64f-c5161cef87f7
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: events
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2026-10-12T10:32:14+03:00"
+        creationTimestamp: null
+        labels:
+          app: events
+      spec:
+        containers:
+        - env:
+          - name: DB_HOST
+            value: postgres
+          - name: DB_PORT
+            value: "5432"
+          - name: DB_NAME
+            value: quickticket
+          - name: DB_USER
+            value: quickticket
+          - name: DB_PASS
+            value: quickticket
+          - name: DB_MAX_CONNS
+            value: "10"
+          - name: REDIS_HOST
+            value: redis
+          - name: REDIS_PORT
+            value: "6379"
+          - name: REDIS_TIMEOUT_MS
+            value: "1000"
+          - name: RESERVATION_TTL
+            value: "300"
+          image: ghcr.io/walkerino/quickticket-events:17b2fdb163812e011ade153c83cf598de034a616
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 8081
+            timeoutSeconds: 1
+          name: events
+          ports:
+          - containerPort: 8081
+            name: tcp
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - python
+              - -c
+              - |
+                import os
+                import socket
+                from contextlib import closing
+                import psycopg2
+                with socket.create_connection(("127.0.0.1", 8081), timeout=0.5):
+                    pass
+                with closing(psycopg2.connect(
+                    host=os.environ["DB_HOST"], port=os.environ["DB_PORT"],
+                    dbname=os.environ["DB_NAME"], user=os.environ["DB_USER"],
+                    password=os.environ["DB_PASS"], connect_timeout=2,
+                    options="-c statement_timeout=1000",
+                )) as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute("SELECT 1")
+                        assert cursor.fetchone() == (1,)
+            failureThreshold: 2
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          startupProbe:
+            failureThreshold: 30
+            periodSeconds: 2
+            successThreshold: 1
+            tcpSocket:
+              port: 8081
+            timeoutSeconds: 1
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - until pg_isready -h postgres -U quickticket -d quickticket; do sleep 2;
+            done
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          name: wait-for-postgres
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - command:
+          - sh
+          - -c
+          - until redis-cli -h redis ping | grep -q PONG; do sleep 2; done
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          name: wait-for-redis
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-10-12T07:32:09Z"
+      lastUpdateTime: "2026-10-12T07:32:09Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-10-12T07:23:01Z"
+      lastUpdateTime: "2026-10-12T07:32:22Z"
+      message: ReplicaSet "events-6964b8c847" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 7
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"payments","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"payments"}},"template":{"metadata":{"labels":{"app":"payments"}},"spec":{"containers":[{"env":[{"name":"PAYMENT_FAILURE_RATE","value":"0.0"},{"name":"PAYMENT_LATENCY_MS","value":"0"}],"image":"ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616","imagePullPolicy":"Always","livenessProbe":{"failureThreshold":3,"initialDelaySeconds":10,"periodSeconds":10,"tcpSocket":{"port":8082}},"name":"payments","ports":[{"containerPort":8082,"name":"tcp"}],"readinessProbe":{"failureThreshold":2,"httpGet":{"path":"/health","port":8082},"periodSeconds":5,"timeoutSeconds":5},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}},"startupProbe":{"failureThreshold":30,"periodSeconds":2,"tcpSocket":{"port":8082}}}]}}}}
+    creationTimestamp: "2026-10-12T07:23:01Z"
+    generation: 1
+    name: payments
+    namespace: default
+    resourceVersion: "1097"
+    uid: f1a33e67-d3ba-4861-8bb4-f16b7698e2ac
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: payments
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: payments
+      spec:
+        containers:
+        - env:
+          - name: PAYMENT_FAILURE_RATE
+            value: "0.0"
+          - name: PAYMENT_LATENCY_MS
+            value: "0"
+          image: ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 8082
+            timeoutSeconds: 1
+          name: payments
+          ports:
+          - containerPort: 8082
+            name: tcp
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 2
+            httpGet:
+              path: /health
+              port: 8082
+              scheme: HTTP
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          startupProbe:
+            failureThreshold: 30
+            periodSeconds: 2
+            successThreshold: 1
+            tcpSocket:
+              port: 8082
+            timeoutSeconds: 1
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-10-12T07:23:17Z"
+      lastUpdateTime: "2026-10-12T07:23:17Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-10-12T07:23:01Z"
+      lastUpdateTime: "2026-10-12T07:23:17Z"
+      message: ReplicaSet "payments-7d8847677f" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"postgres","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"postgres"}},"strategy":{"type":"Recreate"},"template":{"metadata":{"labels":{"app":"postgres"}},"spec":{"containers":[{"env":[{"name":"POSTGRES_DB","value":"quickticket"},{"name":"POSTGRES_USER","value":"quickticket"},{"name":"POSTGRES_PASSWORD","value":"quickticket"},{"name":"PGDATA","value":"/var/lib/postgresql/data/pgdata"}],"image":"postgres:17-alpine","imagePullPolicy":"IfNotPresent","livenessProbe":{"initialDelaySeconds":10,"periodSeconds":10,"tcpSocket":{"port":5432}},"name":"postgres","ports":[{"containerPort":5432,"name":"tcp"}],"readinessProbe":{"exec":{"command":["pg_isready","-U","quickticket","-d","quickticket"]},"periodSeconds":5,"timeoutSeconds":3},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}},"volumeMounts":[{"mountPath":"/var/lib/postgresql/data","name":"data"}]}],"volumes":[{"name":"data","persistentVolumeClaim":{"claimName":"postgres-data"}}]}}}}
+    creationTimestamp: "2026-10-12T07:23:01Z"
+    generation: 2
+    name: postgres
+    namespace: default
+    resourceVersion: "2224"
+    uid: bff3ba08-8c71-4091-8ea9-c6bd40240bf7
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: postgres
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: postgres
+      spec:
+        containers:
+        - env:
+          - name: POSTGRES_DB
+            value: quickticket
+          - name: POSTGRES_USER
+            value: quickticket
+          - name: POSTGRES_PASSWORD
+            value: quickticket
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 5432
+            timeoutSeconds: 1
+          name: postgres
+          ports:
+          - containerPort: 5432
+            name: tcp
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - pg_isready
+              - -U
+              - quickticket
+              - -d
+              - quickticket
+            failureThreshold: 3
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-10-12T07:23:01Z"
+      lastUpdateTime: "2026-10-12T07:32:06Z"
+      message: ReplicaSet "postgres-845f555fcd" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-10-12T07:32:14Z"
+      lastUpdateTime: "2026-10-12T07:32:14Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"redis","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"redis"}},"template":{"metadata":{"labels":{"app":"redis"}},"spec":{"containers":[{"image":"redis:7-alpine","imagePullPolicy":"IfNotPresent","livenessProbe":{"initialDelaySeconds":10,"periodSeconds":10,"tcpSocket":{"port":6379}},"name":"redis","ports":[{"containerPort":6379,"name":"tcp"}],"readinessProbe":{"exec":{"command":["redis-cli","ping"]},"periodSeconds":5,"timeoutSeconds":3},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}}]}}}}
+    creationTimestamp: "2026-10-12T07:23:01Z"
+    generation: 1
+    name: redis
+    namespace: default
+    resourceVersion: "1018"
+    uid: 42e227dc-2c17-47e8-9061-fa7fb03688cb
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: redis
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: redis
+      spec:
+        containers:
+        - image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 6379
+            timeoutSeconds: 1
+          name: redis
+          ports:
+          - containerPort: 6379
+            name: tcp
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - redis-cli
+              - ping
+            failureThreshold: 3
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-10-12T07:23:13Z"
+      lastUpdateTime: "2026-10-12T07:23:13Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-10-12T07:23:01Z"
+      lastUpdateTime: "2026-10-12T07:23:13Z"
+      message: ReplicaSet "redis-6d695466ff" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: argoproj.io/v1alpha1
+  kind: Rollout
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"argoproj.io/v1alpha1","kind":"Rollout","metadata":{"annotations":{},"labels":{"version":"v2"},"name":"gateway","namespace":"default"},"spec":{"progressDeadlineSeconds":60,"replicas":5,"selector":{"matchLabels":{"app":"gateway"}},"strategy":{"canary":{"maxSurge":0,"maxUnavailable":1,"steps":[{"setWeight":20},{"pause":{"duration":"20s"}},{"analysis":{"args":[{"name":"canary-hash","valueFrom":{"podTemplateHashValue":"Latest"}}],"templates":[{"templateName":"gateway-error-rate"}]}},{"setWeight":60},{"pause":{"duration":"20s"}},{"setWeight":100}]}},"template":{"metadata":{"labels":{"app":"gateway"}},"spec":{"containers":[{"env":[{"name":"EVENTS_URL","value":"http://events:8081"},{"name":"PAYMENTS_URL","value":"http://payments:8082"},{"name":"GATEWAY_TIMEOUT_MS","value":"5000"},{"name":"APP_VERSION","value":"v5-auto-good"}],"image":"ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616","imagePullPolicy":"Always","livenessProbe":{"failureThreshold":3,"initialDelaySeconds":10,"periodSeconds":10,"tcpSocket":{"port":8080}},"name":"gateway","ports":[{"containerPort":8080,"name":"tcp"}],"readinessProbe":{"periodSeconds":5,"tcpSocket":{"port":8080}},"resources":{"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}},"startupProbe":{"failureThreshold":30,"periodSeconds":2,"tcpSocket":{"port":8080}}}]}}}}
+      rollout.argoproj.io/revision: "1"
+    creationTimestamp: "2026-10-12T07:23:01Z"
+    generation: 1
+    labels:
+      version: v2
+    name: gateway
+    namespace: default
+    resourceVersion: "1134"
+    uid: c9bc8b0a-e92a-47e4-8a85-7bcfa4ee6fcf
+  spec:
+    progressDeadlineSeconds: 60
+    replicas: 5
+    selector:
+      matchLabels:
+        app: gateway
+    strategy:
+      canary:
+        maxSurge: 0
+        maxUnavailable: 1
+        steps:
+        - setWeight: 20
+        - pause:
+            duration: 20s
+        - analysis:
+            args:
+            - name: canary-hash
+              valueFrom:
+                podTemplateHashValue: Latest
+            templates:
+            - templateName: gateway-error-rate
+        - setWeight: 60
+        - pause:
+            duration: 20s
+        - setWeight: 100
+    template:
+      metadata:
+        labels:
+          app: gateway
+      spec:
+        containers:
+        - env:
+          - name: EVENTS_URL
+            value: http://events:8081
+          - name: PAYMENTS_URL
+            value: http://payments:8082
+          - name: GATEWAY_TIMEOUT_MS
+            value: "5000"
+          - name: APP_VERSION
+            value: v5-auto-good
+          image: ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            tcpSocket:
+              port: 8080
+          name: gateway
+          ports:
+          - containerPort: 8080
+            name: tcp
+            protocol: TCP
+          readinessProbe:
+            periodSeconds: 5
+            tcpSocket:
+              port: 8080
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          startupProbe:
+            failureThreshold: 30
+            periodSeconds: 2
+            tcpSocket:
+              port: 8080
+  status:
+    HPAReplicas: 5
+    availableReplicas: 5
+    blueGreen: {}
+    canary: {}
+    conditions:
+    - lastTransitionTime: "2026-10-12T07:23:01Z"
+      lastUpdateTime: "2026-10-12T07:23:01Z"
+      message: RolloutCompleted
+      reason: RolloutCompleted
+      status: "True"
+      type: Completed
+    - lastTransitionTime: "2026-10-12T07:23:18Z"
+      lastUpdateTime: "2026-10-12T07:23:18Z"
+      message: Rollout is healthy
+      reason: RolloutHealthy
+      status: "True"
+      type: Healthy
+    - lastTransitionTime: "2026-10-12T07:23:01Z"
+      lastUpdateTime: "2026-10-12T07:23:18Z"
+      message: ReplicaSet "gateway-5b45bc8f9f" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-10-12T07:23:18Z"
+      lastUpdateTime: "2026-10-12T07:23:18Z"
+      message: Rollout has minimum availability
+      reason: AvailableReason
+      status: "True"
+      type: Available
+    currentPodHash: 5b45bc8f9f
+    currentStepHash: 846fbfbff5
+    currentStepIndex: 6
+    observedGeneration: "1"
+    phase: Healthy
+    readyReplicas: 5
+    replicas: 5
+    selector: app=gateway
+    stableRS: 5b45bc8f9f
+    updatedReplicas: 5
+kind: List
+metadata:
+  resourceVersion: ""

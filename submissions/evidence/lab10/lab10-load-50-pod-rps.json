@@ -1,0 +1,53 @@
+{
+  "status": "success",
+  "data": {
+    "resultType": "vector",
+    "result": [
+      {
+        "metric": {
+          "pod": "gateway-5b45bc8f9f-fprff"
+        },
+        "value": [
+          1791790485.174,
+          "5.240209608384335"
+        ]
+      },
+      {
+        "metric": {
+          "pod": "gateway-5b45bc8f9f-2zlnt"
+        },
+        "value": [
+          1791790485.174,
+          "12.440497619904797"
+        ]
+      },
+      {
+        "metric": {
+          "pod": "gateway-5b45bc8f9f-h847n"
+        },
+        "value": [
+          1791790485.174,
+          "5.640225609024361"
+        ]
+      },
+      {
+        "metric": {
+          "pod": "gateway-5b45bc8f9f-rt8x7"
+        },
+        "value": [
+          1791790485.174,
+          "7.96031841273651"
+        ]
+      },
+      {
+        "metric": {
+          "pod": "gateway-5b45bc8f9f-fc2rk"
+        },
+        "value": [
+          1791790485.174,
+          "8.601032123854862"
+        ]
+      }
+    ]
+  }
+}

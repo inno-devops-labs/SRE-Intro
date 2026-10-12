@@ -1,0 +1,272 @@
+$ kubectl config current-context
+k3d-quickticket-lab78
+
+$ kubectl create configmap locustfile --from-file=locustfile.py --dry-run=client -o yaml
+apiVersion: v1
+data:
+  locustfile.py: |
+    """In-cluster 7:2:1 read/reserve/health mix; HTTP status evidence is separate."""
+    import collections
+    import json
+    import random
+    import time
+    from locust import HttpUser, task, between, events
+    statuses = collections.Counter()
+    started = 0
+
+    @events.test_start.add_listener
+    def begin(environment, **kwargs):
+        global started
+        statuses.clear()
+        started = time.monotonic()
+
+    @events.request.add_listener
+    def count_status(response=None, **kwargs):
+        statuses[str(response.status_code) if response is not None else 'transport'] += 1
+
+    @events.test_stop.add_listener
+    def finish(environment, **kwargs):
+        s = environment.stats.total
+        seconds = time.monotonic() - started
+        print('LAB10_RESULT=' + json.dumps({
+            'users': environment.parsed_options.num_users,
+            'seconds': seconds, 'requests': s.num_requests,
+            'rps': s.num_requests / seconds,
+            'p50_ms': s.get_response_time_percentile(.50),
+            'p95_ms': s.get_response_time_percentile(.95),
+            'p99_ms': s.get_response_time_percentile(.99),
+            'statuses': dict(statuses),
+            'five_xx': sum(n for code,n in statuses.items() if code.startswith('5')),
+            'transport': statuses['transport'],
+        }), flush=True)
+
+    class QuickTicketUser(HttpUser):
+        wait_time = between(0.5, 2.0)
+
+        @task(7)
+        def list_events(self):
+            self.client.get('/events', timeout=10)
+
+        @task(2)
+        def reserve(self):
+            event = random.choice([3, 3, 3, 5])
+            with self.client.post(f'/events/{event}/reserve',
+                    name='/events/{id}/reserve', json={'quantity': 1},
+                    timeout=10, catch_response=True) as response:
+                if response.status_code == 409:
+                    response.success()  # Expected inventory conflict, still counted above.
+
+        @task(1)
+        def health(self):
+            self.client.get('/health', timeout=10)
+kind: ConfigMap
+metadata:
+  name: locustfile
+
+$ kubectl exec deploy/redis -- redis-cli FLUSHDB
+OK
+
+$ kubectl apply -f submissions/evidence/lab10/lab10-load-10.yaml
+job.batch/lab10-load-10 created
+
+$ kubectl wait --for=condition=Ready pod -l job-name=lab10-load-10 --timeout=120s
+pod/lab10-load-10-dz9nv condition met
+
+$ kubectl top pods
+NAME                                CPU(cores)   MEMORY(bytes)   
+backup-inspector-759ff87f86-75jkv   0m           0Mi             
+events-6964b8c847-wb27m             33m          41Mi            
+gateway-5b45bc8f9f-2zlnt            11m          40Mi            
+gateway-5b45bc8f9f-fc2rk            8m           39Mi            
+gateway-5b45bc8f9f-fprff            11m          39Mi            
+gateway-5b45bc8f9f-h847n            4m           40Mi            
+gateway-5b45bc8f9f-rt8x7            21m          40Mi            
+lab10-load-10-dz9nv                 20m          38Mi            
+payments-7d8847677f-mcttk           5m           35Mi            
+postgres-845f555fcd-v9m6j           20m          42Mi            
+redis-6d695466ff-6zrkf              10m          9Mi             
+
+$ kubectl wait --for=condition=Complete job/lab10-load-10 --timeout=90s
+job.batch/lab10-load-10 condition met
+
+$ kubectl logs job/lab10-load-10
+[2026-10-12 07:32:56,697] lab10-load-10-dz9nv/INFO/locust.main: Starting Locust 2.43.4
+[2026-10-12 07:32:56,697] lab10-load-10-dz9nv/INFO/locust.main: Run time limit set to 60 seconds
+[2026-10-12 07:32:56,697] lab10-load-10-dz9nv/INFO/locust.runners: Ramping to 10 users at a rate of 2.00 per second
+[2026-10-12 07:33:00,708] lab10-load-10-dz9nv/INFO/locust.runners: All users spawned: {"QuickTicketUser": 10} (10 total users)
+[2026-10-12 07:33:56,578] lab10-load-10-dz9nv/INFO/locust.main: --run-time limit reached, shutting down
+LAB10_RESULT={"users": 10, "seconds": 59.899573153000006, "requests": 463, "rps": 7.72960432985675, "p50_ms": 10, "p95_ms": 20, "p99_ms": 33, "statuses": {"200": 463}, "five_xx": 0, "transport": 0}
+[2026-10-12 07:33:56,593] lab10-load-10-dz9nv/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /events                                                                          327     0(0.00%) |     10       4      60     10 |    5.47        0.00
+POST     /events/{id}/reserve                                                              90     0(0.00%) |     12       5      55     11 |    1.51        0.00
+GET      /health                                                                           46     0(0.00%) |     13       6      33     11 |    0.77        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                       463     0(0.00%) |     11       4      60     10 |    7.75        0.00
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /events                                                                                10     11     13     14     15     17     22     23     60     60     60    327
+POST     /events/{id}/reserve                                                                   11     13     15     16     20     22     40     56     56     56     56     90
+GET      /health                                                                                12     15     17     18     21     21     33     33     33     33     33     46
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                             10     12     14     14     16     20     23     33     60     60     60    463
+
+
+$ kubectl exec deploy/redis -- redis-cli FLUSHDB
+OK
+
+$ kubectl apply -f submissions/evidence/lab10/lab10-load-50.yaml
+job.batch/lab10-load-50 created
+
+$ kubectl wait --for=condition=Ready pod -l job-name=lab10-load-50 --timeout=120s
+pod/lab10-load-50-tjf2c condition met
+
+$ kubectl top pods
+NAME                                CPU(cores)   MEMORY(bytes)   
+backup-inspector-759ff87f86-75jkv   0m           0Mi             
+events-6964b8c847-wb27m             70m          46Mi            
+gateway-5b45bc8f9f-2zlnt            38m          40Mi            
+gateway-5b45bc8f9f-fc2rk            27m          40Mi            
+gateway-5b45bc8f9f-fprff            12m          40Mi            
+gateway-5b45bc8f9f-h847n            17m          40Mi            
+gateway-5b45bc8f9f-rt8x7            23m          41Mi            
+lab10-load-50-tjf2c                 43m          40Mi            
+payments-7d8847677f-mcttk           7m           36Mi            
+postgres-845f555fcd-v9m6j           46m          42Mi            
+redis-6d695466ff-6zrkf              8m           9Mi             
+
+$ kubectl wait --for=condition=Complete job/lab10-load-50 --timeout=90s
+job.batch/lab10-load-50 condition met
+
+$ kubectl logs job/lab10-load-50
+[2026-10-12 07:33:59,930] lab10-load-50-tjf2c/INFO/locust.main: Starting Locust 2.43.4
+[2026-10-12 07:33:59,930] lab10-load-50-tjf2c/INFO/locust.main: Run time limit set to 60 seconds
+[2026-10-12 07:33:59,930] lab10-load-50-tjf2c/INFO/locust.runners: Ramping to 50 users at a rate of 5.00 per second
+[2026-10-12 07:34:08,948] lab10-load-50-tjf2c/INFO/locust.runners: All users spawned: {"QuickTicketUser": 50} (50 total users)
+[2026-10-12 07:34:59,824] lab10-load-50-tjf2c/INFO/locust.main: --run-time limit reached, shutting down
+LAB10_RESULT={"users": 50, "seconds": 59.91445006799995, "requests": 2221, "rps": 37.069521584180016, "p50_ms": 6, "p95_ms": 140, "p99_ms": 300, "statuses": {"200": 2194, "502": 5, "500": 2, "409": 20}, "five_xx": 7, "transport": 0}
+[2026-10-12 07:34:59,842] lab10-load-50-tjf2c/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /events                                                                         1554     4(0.26%) |     20       3     449      6 |   25.97        0.07
+POST     /events/{id}/reserve                                                             443     3(0.68%) |     29       3     652      7 |    7.40        0.05
+GET      /health                                                                          224     0(0.00%) |     18       4     367      7 |    3.74        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                      2221     7(0.32%) |     21       3     652      6 |   37.11        0.12
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /events                                                                                 6      7      7      9     31    140    200    240    440    450    450   1554
+POST     /events/{id}/reserve                                                                    7      8     11     14     40    140    370    460    650    650    650    443
+GET      /health                                                                                 7      7      8      9     16     60    240    310    370    370    370    224
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                              6      7      8      9     31    140    220    300    520    650    650   2221
+
+Error report
+# occurrences      Error                                                                                               
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+4                  GET /events: HTTPError('502 Server Error: Bad Gateway for url: /events')                            
+2                  POST /events/{id}/reserve: HTTPError('500 Server Error: Internal Server Error for url: /events/{id}/reserve')
+1                  POST /events/{id}/reserve: HTTPError('502 Server Error: Bad Gateway for url: /events/{id}/reserve') 
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+$ kubectl exec deploy/redis -- redis-cli FLUSHDB
+OK
+
+$ kubectl apply -f submissions/evidence/lab10/lab10-load-100.yaml
+job.batch/lab10-load-100 created
+
+$ kubectl wait --for=condition=Ready pod -l job-name=lab10-load-100 --timeout=120s
+pod/lab10-load-100-bvxcl condition met
+
+$ kubectl top pods
+NAME                                CPU(cores)   MEMORY(bytes)   
+backup-inspector-759ff87f86-75jkv   0m           0Mi             
+events-6964b8c847-wb27m             199m         55Mi            
+gateway-5b45bc8f9f-2zlnt            38m          41Mi            
+gateway-5b45bc8f9f-fc2rk            38m          41Mi            
+gateway-5b45bc8f9f-fprff            41m          42Mi            
+gateway-5b45bc8f9f-h847n            45m          43Mi            
+gateway-5b45bc8f9f-rt8x7            37m          42Mi            
+lab10-load-100-bvxcl                60m          43Mi            
+payments-7d8847677f-mcttk           8m           36Mi            
+postgres-845f555fcd-v9m6j           127m         44Mi            
+redis-6d695466ff-6zrkf              6m           9Mi             
+
+$ kubectl wait --for=condition=Complete job/lab10-load-100 --timeout=90s
+job.batch/lab10-load-100 condition met
+
+$ kubectl logs job/lab10-load-100
+[2026-10-12 07:35:03,059] lab10-load-100-bvxcl/INFO/locust.main: Starting Locust 2.43.4
+[2026-10-12 07:35:03,059] lab10-load-100-bvxcl/INFO/locust.main: Run time limit set to 60 seconds
+[2026-10-12 07:35:03,060] lab10-load-100-bvxcl/INFO/locust.runners: Ramping to 100 users at a rate of 10.00 per second
+[2026-10-12 07:35:12,068] lab10-load-100-bvxcl/INFO/locust.runners: All users spawned: {"QuickTicketUser": 100} (100 total users)
+[2026-10-12 07:36:02,945] lab10-load-100-bvxcl/INFO/locust.main: --run-time limit reached, shutting down
+LAB10_RESULT={"users": 100, "seconds": 59.90669531899994, "requests": 3564, "rps": 59.492515503015, "p50_ms": 290, "p95_ms": 730, "p99_ms": 1100, "statuses": {"200": 2077, "500": 346, "502": 1008, "503": 133}, "five_xx": 1487, "transport": 0}
+[2026-10-12 07:36:02,963] lab10-load-100-bvxcl/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /events                                                                         2507  947(37.77%) |    306       2    1247    280 |   41.90       15.83
+POST     /events/{id}/reserve                                                             694  407(58.65%) |    410       2    1295    390 |   11.60        6.80
+GET      /health                                                                          363  133(36.64%) |    334       4    1231    290 |    6.07        2.22
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                      3564 1487(41.72%) |    329       2    1295    290 |   59.57       24.85
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /events                                                                               280    360    410    450    570    680    850    960   1200   1200   1200   2507
+POST     /events/{id}/reserve                                                                  400    500    560    600    730    900   1100   1200   1300   1300   1300    694
+GET      /health                                                                               290    390    450    490    620    720    910   1100   1200   1200   1200    363
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                            290    390    450    490    610    730    930   1100   1300   1300   1300   3564
+
+Error report
+# occurrences      Error                                                                                               
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+346                POST /events/{id}/reserve: HTTPError('500 Server Error: Internal Server Error for url: /events/{id}/reserve')
+947                GET /events: HTTPError('502 Server Error: Bad Gateway for url: /events')                            
+133                GET /health: HTTPError('503 Server Error: Service Unavailable for url: /health')                    
+61                 POST /events/{id}/reserve: HTTPError('502 Server Error: Bad Gateway for url: /events/{id}/reserve') 
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+$ kubectl get pods,svc,rollout -o wide
+NAME                                    READY   STATUS      RESTARTS   AGE     IP           NODE                             NOMINATED NODE   READINESS GATES
+pod/backup-inspector-759ff87f86-75jkv   1/1     Running     0          3m42s   10.42.1.24   k3d-quickticket-lab78-server-0   <none>           <none>
+pod/events-6964b8c847-wb27m             1/1     Running     0          3m51s   10.42.0.17   k3d-quickticket-lab78-agent-0    <none>           <none>
+pod/gateway-5b45bc8f9f-2zlnt            1/1     Running     0          13m     10.42.1.9    k3d-quickticket-lab78-server-0   <none>           <none>
+pod/gateway-5b45bc8f9f-fc2rk            1/1     Running     0          13m     10.42.1.10   k3d-quickticket-lab78-server-0   <none>           <none>
+pod/gateway-5b45bc8f9f-fprff            1/1     Running     0          13m     10.42.0.6    k3d-quickticket-lab78-agent-0    <none>           <none>
+pod/gateway-5b45bc8f9f-h847n            1/1     Running     0          13m     10.42.0.8    k3d-quickticket-lab78-agent-0    <none>           <none>
+pod/gateway-5b45bc8f9f-rt8x7            1/1     Running     0          13m     10.42.0.7    k3d-quickticket-lab78-agent-0    <none>           <none>
+pod/lab10-load-10-dz9nv                 0/1     Completed   0          3m17s   10.42.0.18   k3d-quickticket-lab78-agent-0    <none>           <none>
+pod/lab10-load-100-bvxcl                0/1     Completed   0          63s     10.42.0.20   k3d-quickticket-lab78-agent-0    <none>           <none>
+pod/lab10-load-50-tjf2c                 0/1     Completed   0          2m6s    10.42.0.19   k3d-quickticket-lab78-agent-0    <none>           <none>
+pod/lab10-prepull-rfftt                 0/1     Completed   0          5m29s   10.42.1.16   k3d-quickticket-lab78-server-0   <none>           <none>
+pod/lab9-manual-6-7tn22                 0/1     Completed   0          3m18s   10.42.1.30   k3d-quickticket-lab78-server-0   <none>           <none>
+pod/lab9-manual-7-dhhwr                 0/1     Completed   0          3m15s   10.42.1.31   k3d-quickticket-lab78-server-0   <none>           <none>
+pod/payments-7d8847677f-mcttk           1/1     Running     0          13m     10.42.1.6    k3d-quickticket-lab78-server-0   <none>           <none>
+pod/postgres-845f555fcd-v9m6j           1/1     Running     0          3m52s   10.42.1.22   k3d-quickticket-lab78-server-0   <none>           <none>
+pod/postgres-backup-29863175-dhfxl      0/1     Completed   0          65s     10.42.1.32   k3d-quickticket-lab78-server-0   <none>           <none>
+pod/redis-6d695466ff-6zrkf              1/1     Running     0          13m     10.42.1.8    k3d-quickticket-lab78-server-0   <none>           <none>
+
+NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE   SELECTOR
+service/events       ClusterIP   10.43.50.76     <none>        8081/TCP   13m   app=events
+service/gateway      ClusterIP   10.43.34.197    <none>        8080/TCP   13m   app=gateway
+service/kubernetes   ClusterIP   10.43.0.1       <none>        443/TCP    13m   <none>
+service/payments     ClusterIP   10.43.40.216    <none>        8082/TCP   13m   app=payments
+service/postgres     ClusterIP   10.43.131.236   <none>        5432/TCP   13m   app=postgres
+service/redis        ClusterIP   10.43.4.190     <none>        6379/TCP   13m   app=redis
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           13m
+
+$ kubectl exec deploy/redis -- redis-cli FLUSHDB
+OK
+

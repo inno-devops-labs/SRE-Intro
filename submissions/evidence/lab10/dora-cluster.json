@@ -1,0 +1,1006 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "1",
+                    "deployment.kubernetes.io/max-replicas": "2",
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "2026-10-12T07:23:01Z",
+                "generation": 1,
+                "labels": {
+                    "app": "events",
+                    "pod-template-hash": "874b9857"
+                },
+                "name": "events-874b9857",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "events",
+                        "uid": "d38ebe1a-3e9a-44bc-a64f-c5161cef87f7"
+                    }
+                ],
+                "resourceVersion": "1174",
+                "uid": "f9ec86c4-bd96-4d6a-925c-3fa2311c4e9a"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app": "events",
+                        "pod-template-hash": "874b9857"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "events",
+                            "pod-template-hash": "874b9857"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "DB_HOST",
+                                        "value": "postgres"
+                                    },
+                                    {
+                                        "name": "DB_PORT",
+                                        "value": "5432"
+                                    },
+                                    {
+                                        "name": "DB_NAME",
+                                        "value": "quickticket"
+                                    },
+                                    {
+                                        "name": "DB_USER",
+                                        "value": "quickticket"
+                                    },
+                                    {
+                                        "name": "DB_PASS",
+                                        "value": "quickticket"
+                                    },
+                                    {
+                                        "name": "DB_MAX_CONNS",
+                                        "value": "10"
+                                    },
+                                    {
+                                        "name": "REDIS_HOST",
+                                        "value": "redis"
+                                    },
+                                    {
+                                        "name": "REDIS_PORT",
+                                        "value": "6379"
+                                    },
+                                    {
+                                        "name": "REDIS_TIMEOUT_MS",
+                                        "value": "1000"
+                                    },
+                                    {
+                                        "name": "RESERVATION_TTL",
+                                        "value": "300"
+                                    }
+                                ],
+                                "image": "ghcr.io/walkerino/quickticket-events:17b2fdb163812e011ade153c83cf598de034a616",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 8081
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "events",
+                                "ports": [
+                                    {
+                                        "containerPort": 8081,
+                                        "name": "tcp",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "python",
+                                            "-c",
+                                            "import os\nimport socket\nfrom contextlib import closing\nimport psycopg2\nwith socket.create_connection((\"127.0.0.1\", 8081), timeout=0.5):\n    pass\nwith closing(psycopg2.connect(\n    host=os.environ[\"DB_HOST\"], port=os.environ[\"DB_PORT\"],\n    dbname=os.environ[\"DB_NAME\"], user=os.environ[\"DB_USER\"],\n    password=os.environ[\"DB_PASS\"], connect_timeout=2,\n    options=\"-c statement_timeout=1000\",\n)) as connection:\n    with connection.cursor() as cursor:\n        cursor.execute(\"SELECT 1\")\n        assert cursor.fetchone() == (1,)\n"
+                                        ]
+                                    },
+                                    "failureThreshold": 2,
+                                    "periodSeconds": 5,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 3
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "startupProbe": {
+                                    "failureThreshold": 30,
+                                    "periodSeconds": 2,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 8081
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "initContainers": [
+                            {
+                                "command": [
+                                    "sh",
+                                    "-c",
+                                    "until pg_isready -h postgres -U quickticket -d quickticket; do sleep 2; done"
+                                ],
+                                "image": "postgres:17-alpine",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "wait-for-postgres",
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            },
+                            {
+                                "command": [
+                                    "sh",
+                                    "-c",
+                                    "until redis-cli -h redis ping | grep -q PONG; do sleep 2; done"
+                                ],
+                                "image": "redis:7-alpine",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "wait-for-redis",
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "fullyLabeledReplicas": 1,
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        },
+        {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "metadata": {
+                "annotations": {
+                    "rollout.argoproj.io/desired-replicas": "5",
+                    "rollout.argoproj.io/revision": "1"
+                },
+                "creationTimestamp": "2026-10-12T07:23:01Z",
+                "generation": 2,
+                "labels": {
+                    "app": "gateway",
+                    "rollouts-pod-template-hash": "5b45bc8f9f"
+                },
+                "name": "gateway-5b45bc8f9f",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "argoproj.io/v1alpha1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Rollout",
+                        "name": "gateway",
+                        "uid": "c9bc8b0a-e92a-47e4-8a85-7bcfa4ee6fcf"
+                    }
+                ],
+                "resourceVersion": "1132",
+                "uid": "159f710d-b9b6-4c0a-8873-7dc0cbcff77b"
+            },
+            "spec": {
+                "replicas": 5,
+                "selector": {
+                    "matchLabels": {
+                        "app": "gateway",
+                        "rollouts-pod-template-hash": "5b45bc8f9f"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "gateway",
+                            "rollouts-pod-template-hash": "5b45bc8f9f"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "EVENTS_URL",
+                                        "value": "http://events:8081"
+                                    },
+                                    {
+                                        "name": "PAYMENTS_URL",
+                                        "value": "http://payments:8082"
+                                    },
+                                    {
+                                        "name": "GATEWAY_TIMEOUT_MS",
+                                        "value": "5000"
+                                    },
+                                    {
+                                        "name": "APP_VERSION",
+                                        "value": "v5-auto-good"
+                                    }
+                                ],
+                                "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 8080
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "gateway",
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "name": "tcp",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "failureThreshold": 3,
+                                    "periodSeconds": 5,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 8080
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "startupProbe": {
+                                    "failureThreshold": 30,
+                                    "periodSeconds": 2,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 8080
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 5,
+                "fullyLabeledReplicas": 5,
+                "observedGeneration": 2,
+                "readyReplicas": 5,
+                "replicas": 5
+            }
+        },
+        {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "2",
+                    "deployment.kubernetes.io/max-replicas": "3",
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "2026-10-12T07:25:59Z",
+                "generation": 1,
+                "labels": {
+                    "app": "mixedload",
+                    "pod-template-hash": "7df44847cd"
+                },
+                "name": "mixedload-7df44847cd",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "mixedload",
+                        "uid": "71b85a89-43bf-4084-9dba-5835febb3231"
+                    }
+                ],
+                "resourceVersion": "1344",
+                "uid": "d3fda2b9-dce8-4363-8b4a-c04507fd87ab"
+            },
+            "spec": {
+                "replicas": 2,
+                "selector": {
+                    "matchLabels": {
+                        "app": "mixedload",
+                        "pod-template-hash": "7df44847cd"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "mixedload",
+                            "pod-template-hash": "7df44847cd"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "args": [
+                                    "while true; do\n  curl --max-time 12 -s -o /dev/null -w 'events %{http_code} %{time_total}s\\n' http://gateway:8080/events\n  RES=$(curl --max-time 12 -s -X POST http://gateway:8080/events/7808/reserve \\\n    -H 'Content-Type: application/json' -d '{\"quantity\":1}')\n  RID=$(echo \"$RES\" | sed -n 's/.*reservation_id\":\"\\([^\"]*\\).*/\\1/p')\n  if [ -n \"$RID\" ]; then\n    curl --max-time 12 -s -X POST -o /dev/null -w 'pay %{http_code} %{time_total}s\\n' \\\n      \"http://gateway:8080/reserve/$RID/pay\"\n  else\n    echo \"reserve failed: $RES\"\n  fi\n  sleep 0.3\ndone\n"
+                                ],
+                                "command": [
+                                    "sh",
+                                    "-c"
+                                ],
+                                "image": "curlimages/curl@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777",
+                                "imagePullPolicy": "IfNotPresent",
+                                "name": "curl",
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 2,
+                "fullyLabeledReplicas": 2,
+                "observedGeneration": 1,
+                "readyReplicas": 2,
+                "replicas": 2
+            }
+        },
+        {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "1",
+                    "deployment.kubernetes.io/max-replicas": "2",
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "2026-10-12T07:23:01Z",
+                "generation": 1,
+                "labels": {
+                    "app": "payments",
+                    "pod-template-hash": "7d8847677f"
+                },
+                "name": "payments-7d8847677f",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "payments",
+                        "uid": "f1a33e67-d3ba-4861-8bb4-f16b7698e2ac"
+                    }
+                ],
+                "resourceVersion": "1095",
+                "uid": "6437cf00-f616-4ad2-80a0-e0934f748e5a"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app": "payments",
+                        "pod-template-hash": "7d8847677f"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "payments",
+                            "pod-template-hash": "7d8847677f"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "PAYMENT_FAILURE_RATE",
+                                        "value": "0.0"
+                                    },
+                                    {
+                                        "name": "PAYMENT_LATENCY_MS",
+                                        "value": "0"
+                                    }
+                                ],
+                                "image": "ghcr.io/walkerino/quickticket-payments:17b2fdb163812e011ade153c83cf598de034a616",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 8082
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "payments",
+                                "ports": [
+                                    {
+                                        "containerPort": 8082,
+                                        "name": "tcp",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "failureThreshold": 2,
+                                    "httpGet": {
+                                        "path": "/health",
+                                        "port": 8082,
+                                        "scheme": "HTTP"
+                                    },
+                                    "periodSeconds": 5,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 5
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "startupProbe": {
+                                    "failureThreshold": 30,
+                                    "periodSeconds": 2,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 8082
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "fullyLabeledReplicas": 1,
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        },
+        {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "1",
+                    "deployment.kubernetes.io/max-replicas": "1",
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "2026-10-12T07:23:01Z",
+                "generation": 1,
+                "labels": {
+                    "app": "postgres",
+                    "pod-template-hash": "56db6d697c"
+                },
+                "name": "postgres-56db6d697c",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "postgres",
+                        "uid": "bff3ba08-8c71-4091-8ea9-c6bd40240bf7"
+                    }
+                ],
+                "resourceVersion": "1146",
+                "uid": "04c45136-724e-46f8-96b0-53eade712c77"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app": "postgres",
+                        "pod-template-hash": "56db6d697c"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "postgres",
+                            "pod-template-hash": "56db6d697c"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "POSTGRES_DB",
+                                        "value": "quickticket"
+                                    },
+                                    {
+                                        "name": "POSTGRES_USER",
+                                        "value": "quickticket"
+                                    },
+                                    {
+                                        "name": "POSTGRES_PASSWORD",
+                                        "value": "quickticket"
+                                    }
+                                ],
+                                "image": "postgres:17-alpine",
+                                "imagePullPolicy": "IfNotPresent",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 5432
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "postgres",
+                                "ports": [
+                                    {
+                                        "containerPort": 5432,
+                                        "name": "tcp",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "pg_isready",
+                                            "-U",
+                                            "quickticket",
+                                            "-d",
+                                            "quickticket"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "periodSeconds": 5,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 3
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/var/lib/postgresql/data",
+                                        "name": "data"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "emptyDir": {},
+                                "name": "data"
+                            }
+                        ]
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "fullyLabeledReplicas": 1,
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        },
+        {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "metadata": {
+                "annotations": {
+                    "deployment.kubernetes.io/desired-replicas": "1",
+                    "deployment.kubernetes.io/max-replicas": "2",
+                    "deployment.kubernetes.io/revision": "1"
+                },
+                "creationTimestamp": "2026-10-12T07:23:01Z",
+                "generation": 1,
+                "labels": {
+                    "app": "redis",
+                    "pod-template-hash": "6d695466ff"
+                },
+                "name": "redis-6d695466ff",
+                "namespace": "default",
+                "ownerReferences": [
+                    {
+                        "apiVersion": "apps/v1",
+                        "blockOwnerDeletion": true,
+                        "controller": true,
+                        "kind": "Deployment",
+                        "name": "redis",
+                        "uid": "42e227dc-2c17-47e8-9061-fa7fb03688cb"
+                    }
+                ],
+                "resourceVersion": "1016",
+                "uid": "e02848a0-072d-4798-8809-912f2a57a65d"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "matchLabels": {
+                        "app": "redis",
+                        "pod-template-hash": "6d695466ff"
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "redis",
+                            "pod-template-hash": "6d695466ff"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": "redis:7-alpine",
+                                "imagePullPolicy": "IfNotPresent",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 6379
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "redis",
+                                "ports": [
+                                    {
+                                        "containerPort": 6379,
+                                        "name": "tcp",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "redis-cli",
+                                            "ping"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "periodSeconds": 5,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 3
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "schedulerName": "default-scheduler",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                }
+            },
+            "status": {
+                "availableReplicas": 1,
+                "fullyLabeledReplicas": 1,
+                "observedGeneration": 1,
+                "readyReplicas": 1,
+                "replicas": 1
+            }
+        },
+        {
+            "apiVersion": "argoproj.io/v1alpha1",
+            "kind": "Rollout",
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"argoproj.io/v1alpha1\",\"kind\":\"Rollout\",\"metadata\":{\"annotations\":{},\"labels\":{\"version\":\"v2\"},\"name\":\"gateway\",\"namespace\":\"default\"},\"spec\":{\"progressDeadlineSeconds\":60,\"replicas\":5,\"selector\":{\"matchLabels\":{\"app\":\"gateway\"}},\"strategy\":{\"canary\":{\"maxSurge\":0,\"maxUnavailable\":1,\"steps\":[{\"setWeight\":20},{\"pause\":{\"duration\":\"20s\"}},{\"analysis\":{\"args\":[{\"name\":\"canary-hash\",\"valueFrom\":{\"podTemplateHashValue\":\"Latest\"}}],\"templates\":[{\"templateName\":\"gateway-error-rate\"}]}},{\"setWeight\":60},{\"pause\":{\"duration\":\"20s\"}},{\"setWeight\":100}]}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"gateway\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"EVENTS_URL\",\"value\":\"http://events:8081\"},{\"name\":\"PAYMENTS_URL\",\"value\":\"http://payments:8082\"},{\"name\":\"GATEWAY_TIMEOUT_MS\",\"value\":\"5000\"},{\"name\":\"APP_VERSION\",\"value\":\"v5-auto-good\"}],\"image\":\"ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616\",\"imagePullPolicy\":\"Always\",\"livenessProbe\":{\"failureThreshold\":3,\"initialDelaySeconds\":10,\"periodSeconds\":10,\"tcpSocket\":{\"port\":8080}},\"name\":\"gateway\",\"ports\":[{\"containerPort\":8080,\"name\":\"tcp\"}],\"readinessProbe\":{\"periodSeconds\":5,\"tcpSocket\":{\"port\":8080}},\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"256Mi\"},\"requests\":{\"cpu\":\"50m\",\"memory\":\"64Mi\"}},\"startupProbe\":{\"failureThreshold\":30,\"periodSeconds\":2,\"tcpSocket\":{\"port\":8080}}}]}}}}\n",
+                    "rollout.argoproj.io/revision": "1"
+                },
+                "creationTimestamp": "2026-10-12T07:23:01Z",
+                "generation": 1,
+                "labels": {
+                    "version": "v2"
+                },
+                "name": "gateway",
+                "namespace": "default",
+                "resourceVersion": "1134",
+                "uid": "c9bc8b0a-e92a-47e4-8a85-7bcfa4ee6fcf"
+            },
+            "spec": {
+                "progressDeadlineSeconds": 60,
+                "replicas": 5,
+                "selector": {
+                    "matchLabels": {
+                        "app": "gateway"
+                    }
+                },
+                "strategy": {
+                    "canary": {
+                        "maxSurge": 0,
+                        "maxUnavailable": 1,
+                        "steps": [
+                            {
+                                "setWeight": 20
+                            },
+                            {
+                                "pause": {
+                                    "duration": "20s"
+                                }
+                            },
+                            {
+                                "analysis": {
+                                    "args": [
+                                        {
+                                            "name": "canary-hash",
+                                            "valueFrom": {
+                                                "podTemplateHashValue": "Latest"
+                                            }
+                                        }
+                                    ],
+                                    "templates": [
+                                        {
+                                            "templateName": "gateway-error-rate"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "setWeight": 60
+                            },
+                            {
+                                "pause": {
+                                    "duration": "20s"
+                                }
+                            },
+                            {
+                                "setWeight": 100
+                            }
+                        ]
+                    }
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "gateway"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "EVENTS_URL",
+                                        "value": "http://events:8081"
+                                    },
+                                    {
+                                        "name": "PAYMENTS_URL",
+                                        "value": "http://payments:8082"
+                                    },
+                                    {
+                                        "name": "GATEWAY_TIMEOUT_MS",
+                                        "value": "5000"
+                                    },
+                                    {
+                                        "name": "APP_VERSION",
+                                        "value": "v5-auto-good"
+                                    }
+                                ],
+                                "image": "ghcr.io/walkerino/quickticket-gateway:17b2fdb163812e011ade153c83cf598de034a616",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 10,
+                                    "periodSeconds": 10,
+                                    "tcpSocket": {
+                                        "port": 8080
+                                    }
+                                },
+                                "name": "gateway",
+                                "ports": [
+                                    {
+                                        "containerPort": 8080,
+                                        "name": "tcp",
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "periodSeconds": 5,
+                                    "tcpSocket": {
+                                        "port": 8080
+                                    }
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "50m",
+                                        "memory": "64Mi"
+                                    }
+                                },
+                                "startupProbe": {
+                                    "failureThreshold": 30,
+                                    "periodSeconds": 2,
+                                    "tcpSocket": {
+                                        "port": 8080
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            "status": {
+                "HPAReplicas": 5,
+                "availableReplicas": 5,
+                "blueGreen": {},
+                "canary": {},
+                "conditions": [
+                    {
+                        "lastTransitionTime": "2026-10-12T07:23:01Z",
+                        "lastUpdateTime": "2026-10-12T07:23:01Z",
+                        "message": "RolloutCompleted",
+                        "reason": "RolloutCompleted",
+                        "status": "True",
+                        "type": "Completed"
+                    },
+                    {
+                        "lastTransitionTime": "2026-10-12T07:23:18Z",
+                        "lastUpdateTime": "2026-10-12T07:23:18Z",
+                        "message": "Rollout is healthy",
+                        "reason": "RolloutHealthy",
+                        "status": "True",
+                        "type": "Healthy"
+                    },
+                    {
+                        "lastTransitionTime": "2026-10-12T07:23:01Z",
+                        "lastUpdateTime": "2026-10-12T07:23:18Z",
+                        "message": "ReplicaSet \"gateway-5b45bc8f9f\" has successfully progressed.",
+                        "reason": "NewReplicaSetAvailable",
+                        "status": "True",
+                        "type": "Progressing"
+                    },
+                    {
+                        "lastTransitionTime": "2026-10-12T07:23:18Z",
+                        "lastUpdateTime": "2026-10-12T07:23:18Z",
+                        "message": "Rollout has minimum availability",
+                        "reason": "AvailableReason",
+                        "status": "True",
+                        "type": "Available"
+                    }
+                ],
+                "currentPodHash": "5b45bc8f9f",
+                "currentStepHash": "846fbfbff5",
+                "currentStepIndex": 6,
+                "observedGeneration": "1",
+                "phase": "Healthy",
+                "readyReplicas": 5,
+                "replicas": 5,
+                "selector": "app=gateway",
+                "stableRS": "5b45bc8f9f",
+                "updatedReplicas": 5
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

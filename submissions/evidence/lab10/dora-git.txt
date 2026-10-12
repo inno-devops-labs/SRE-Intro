@@ -1,0 +1,23 @@
+5d1b1c81f114d0468998ac0d308201d3222cb8b3 2026-10-05T11:39:58+03:00 feat(lab8): verify chaos scenarios and preserve reads during Redis outage
+5e479542be951806261aea2292e02fda3a1f81d8 2026-10-05T11:19:16+03:00 docs(lab7): remove terminal padding from captured output
+65812da9f00fd66329d2baf14965fe6733f3a4a0 2026-10-05T11:18:58+03:00 feat(lab7): implement and verify manual and automated canary delivery
+ce4b3fce5dcf6d030b069af1f595ef6598ef4a46 2026-09-27T14:13:11+03:00 docs(lab6): record restored GitOps source and stopped test load
+61ccd50631d371cefdab2e431d1a1ec2a0df6225 2026-09-27T14:11:57+03:00 docs(lab6): finish captured alert timeline
+df24b67c5102afb45919ee1268ffcd20e7f73815 2026-09-27T14:11:42+03:00 ci: open the two requested lab submission pull requests
+32f5fd39e1eb94de1b410937dd4b2531e395d94b 2026-09-27T14:11:24+03:00 feat(lab6): provision SLO alerts and document real incident response
+fe7e973386fcfb97cf544ce77186f3e6cbda0620 2026-09-27T14:05:47+03:00 Revert "test(lab6): inject 50 percent payment failures in training cluster"
+2234d14b8216bab5563968743475a32ceb7c4020 2026-09-27T14:04:01+03:00 docs(lab5): normalize captured terminal whitespace
+9eeb1c0365f4b8e2a586598ef8bab69ad0ba4d33 2026-09-27T14:03:44+03:00 docs(lab5): record successful CI, GitOps sync and measured rollback
+19f056b9d922b00d7f0fcb562efabfc028ff6cf8 2026-09-27T14:01:13+03:00 test(lab6): inject 50 percent payment failures in training cluster
+8648feae31763da20c87562b46dc8a0439b99b2c 2026-09-27T14:00:18+03:00 Revert "test(lab5): deploy nonexistent gateway tag for rollback exercise"
+205a41c5f8a56c398406ac226e0beb45d77f1ed8 2026-09-27T13:58:39+03:00 test(lab5): deploy nonexistent gateway tag for rollback exercise
+96323bf5c9ebb298cea7f0353fa97988db067ac2 2026-09-27T13:57:48+03:00 feat(lab5): verify GitOps label sync with public GHCR images
+3800c402c81cc8647dcab49cafc455875071c2c1 2026-09-27T10:56:18Z ci: update image tags to 17b2fdb163812e011ade153c83cf598de034a616
+17b2fdb163812e011ade153c83cf598de034a616 2026-09-27T13:54:24+03:00 feat(lab5): build multi-platform images and automate GitOps image updates
+20aae868ee8783a1a017ae5c2492f5770dbaaec5 2026-09-21T11:36:34+03:00 fix(lab3): show discrete gauge thresholds and incident colors
+226546ea712d6dd2fa5ec64e1619052ed42cd41b 2026-09-21T11:34:32+03:00 feat(lab3): add monitoring, SLO rules and failure experiments
+79a4e6262d004a6e6685c5bca2aca0f4910d61fe 2026-09-21T11:29:56+03:00 feat(lab4): deploy QuickTicket to Kubernetes with probes and Helm
+9dcd17daf93abe4b74d470eaa1f6a6d9c21f4866 2026-09-13T15:44:27+03:00 docs(lab2): clean terminal output whitespace
+2ed69360b1806c8f5d9c2fbbd40c4645e5a684ce 2026-09-13T15:44:12+03:00 feat(lab2): inspect containers and run services as non-root
+87c74aaef3ab9f6c00a893d6b960dcd8a2116f0f 2026-09-13T15:30:02+03:00 docs(lab1): simplify GitHub community section
+788a04d377cf522d25820185b0909c28d3b9d86b 2026-09-13T15:26:59+03:00 docs(lab1): add deployment and reliability experiment report

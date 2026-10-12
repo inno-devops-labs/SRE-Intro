@@ -1,0 +1,124 @@
+Excerpt of actual log; complete original is events-load-errors.log.gz.
+Original lines: 101466
+PoolError occurrences: 2222
+
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/fastapi/applications.py", line 1159, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/applications.py", line 96, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/usr/local/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/middleware/base.py", line 197, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/main.py", line 100, in metrics_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/starlette/middleware/base.py", line 173, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/usr/local/lib/python3.13/site-packages/starlette/middleware/base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/usr/local/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/routing.py", line 676, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/routing.py", line 697, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/routing.py", line 282, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/usr/local/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.13/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/fastapi/routing.py", line 674, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/fastapi/routing.py", line 330, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/starlette/concurrency.py", line 34, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/anyio/to_thread.py", line 65, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/usr/local/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 2706, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "/app/main.py", line 140, in list_events
+    conn = db_pool.getconn()
+  File "/usr/local/lib/python3.13/site-packages/psycopg2/pool.py", line 169, in getconn
+    return self._getconn(key)
+           ~~~~~~~~~~~~~^^^^^
+  File "/usr/local/lib/python3.13/site-packages/psycopg2/pool.py", line 92, in _getconn
+    raise PoolError("connection pool exhausted")
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.1.10:52886 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.9:54018 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.0.6:48816 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.0.8:38668 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.9:34660 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.10:52856 - "POST /events/3/reserve HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.13/site-packages/anyio/_backends/_asyncio.py", line 1100, in run
+    result = context.run(func, *args)
+  File "/app/main.py", line 205, in reserve_tickets
+    available = _get_available(event_id, total_tickets)
+  File "/app/main.py", line 290, in _get_available
+    conn = db_pool.getconn()
+  File "/usr/local/lib/python3.13/site-packages/psycopg2/pool.py", line 169, in getconn
+    return self._getconn(key)
+           ~~~~~~~~~~~~~^^^^^
+  File "/usr/local/lib/python3.13/site-packages/psycopg2/pool.py", line 92, in _getconn
+    raise PoolError("connection pool exhausted")
+psycopg2.pool.PoolError: connection pool exhausted
+{"time":"2026-10-12 07:36:03,079","level":"INFO","service":"events","msg":"Reserved 1 tickets for event 3: 7c9238ce-3252-4016-90e6-7d0057ea3883"}
+INFO:     10.42.0.7:54918 - "POST /events/3/reserve HTTP/1.1" 200 OK
+INFO:     10.42.1.10:52284 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.0.7:54928 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.0.6:38316 - "POST /events/3/reserve HTTP/1.1" 200 OK
+INFO:     10.42.0.7:54822 - "POST /events/5/reserve HTTP/1.1" 200 OK
+INFO:     10.42.1.10:52294 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.42.0.6:38370 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.10:52298 - "POST /events/3/reserve HTTP/1.1" 200 OK
+INFO:     10.42.0.7:54924 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.0.8:58546 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.9:37118 - "GET /events HTTP/1.1" 200 OK
+INFO:     10.42.1.9:37146 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-12 07:36:03,289","level":"INFO","service":"events","msg":"Reserved 1 tickets for event 3: f6963027-9ff9-4a5c-9f42-e624851dcda0"}
+INFO:     10.42.1.10:52314 - "GET /events HTTP/1.1" 200 OK
+{"time":"2026-10-12 07:36:03,377","level":"INFO","service":"events","msg":"Reserved 1 tickets for event 3: 72e604df-a46a-4d5b-9cc9-76fb379302cc"}
+INFO:     10.42.1.9:37134 - "POST /events/3/reserve HTTP/1.1" 200 OK
+INFO:     10.42.0.8:58554 - "POST /events/3/reserve HTTP/1.1" 200 OK

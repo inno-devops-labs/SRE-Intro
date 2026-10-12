@@ -1,0 +1,32 @@
+[2026-10-12 07:33:59,930] lab10-load-50-tjf2c/INFO/locust.main: Starting Locust 2.43.4
+[2026-10-12 07:33:59,930] lab10-load-50-tjf2c/INFO/locust.main: Run time limit set to 60 seconds
+[2026-10-12 07:33:59,930] lab10-load-50-tjf2c/INFO/locust.runners: Ramping to 50 users at a rate of 5.00 per second
+[2026-10-12 07:34:08,948] lab10-load-50-tjf2c/INFO/locust.runners: All users spawned: {"QuickTicketUser": 50} (50 total users)
+[2026-10-12 07:34:59,824] lab10-load-50-tjf2c/INFO/locust.main: --run-time limit reached, shutting down
+LAB10_RESULT={"users": 50, "seconds": 59.91445006799995, "requests": 2221, "rps": 37.069521584180016, "p50_ms": 6, "p95_ms": 140, "p99_ms": 300, "statuses": {"200": 2194, "502": 5, "500": 2, "409": 20}, "five_xx": 7, "transport": 0}
+[2026-10-12 07:34:59,842] lab10-load-50-tjf2c/INFO/locust.main: Shutting down (exit code 0)
+Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+GET      /events                                                                         1554     4(0.26%) |     20       3     449      6 |   25.97        0.07
+POST     /events/{id}/reserve                                                             443     3(0.68%) |     29       3     652      7 |    7.40        0.05
+GET      /health                                                                          224     0(0.00%) |     18       4     367      7 |    3.74        0.00
+--------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
+         Aggregated                                                                      2221     7(0.32%) |     21       3     652      6 |   37.11        0.12
+
+Response time percentiles (approximated)
+Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+GET      /events                                                                                 6      7      7      9     31    140    200    240    440    450    450   1554
+POST     /events/{id}/reserve                                                                    7      8     11     14     40    140    370    460    650    650    650    443
+GET      /health                                                                                 7      7      8      9     16     60    240    310    370    370    370    224
+--------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
+         Aggregated                                                                              6      7      8      9     31    140    220    300    520    650    650   2221
+
+Error report
+# occurrences      Error                                                                                               
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+4                  GET /events: HTTPError('502 Server Error: Bad Gateway for url: /events')                            
+2                  POST /events/{id}/reserve: HTTPError('500 Server Error: Internal Server Error for url: /events/{id}/reserve')
+1                  POST /events/{id}/reserve: HTTPError('502 Server Error: Bad Gateway for url: /events/{id}/reserve') 
+------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+

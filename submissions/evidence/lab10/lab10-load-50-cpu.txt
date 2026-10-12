@@ -1,0 +1,12 @@
+NAME                                CPU(cores)   MEMORY(bytes)   
+backup-inspector-759ff87f86-75jkv   0m           0Mi             
+events-6964b8c847-wb27m             70m          46Mi            
+gateway-5b45bc8f9f-2zlnt            38m          40Mi            
+gateway-5b45bc8f9f-fc2rk            27m          40Mi            
+gateway-5b45bc8f9f-fprff            12m          40Mi            
+gateway-5b45bc8f9f-h847n            17m          40Mi            
+gateway-5b45bc8f9f-rt8x7            23m          41Mi            
+lab10-load-50-tjf2c                 43m          40Mi            
+payments-7d8847677f-mcttk           7m           36Mi            
+postgres-845f555fcd-v9m6j           46m          42Mi            
+redis-6d695466ff-6zrkf              8m           9Mi             
