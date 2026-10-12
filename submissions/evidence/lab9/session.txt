@@ -1,0 +1,301 @@
+$ kubectl config current-context
+k3d-quickticket-lab78
+
+$ kubectl exec -i deploy/postgres -- psql -U quickticket -d quickticket
+INSERT 0 0
+
+$ kubectl apply -f k8s/mixedload.yaml
+deployment.apps/mixedload unchanged
+
+$ kubectl rollout status deploy/mixedload --timeout=90s
+deployment "mixedload" successfully rolled out
+
+$ /tmp/sre-lab9-py/bin/alembic stamp 0001
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running stamp_revision 0002 -> 0001
+
+$ /tmp/sre-lab9-py/bin/alembic upgrade head
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Add optional email without backfill or table rewrite.
+
+$ /tmp/sre-lab9-py/bin/alembic history
+0001 -> 0002 (head), Add optional email without backfill or table rewrite.
+<base> -> 0001, Baseline of existing app/seed.sql schema; stamp, do not create tables.
+
+$ kubectl exec deploy/postgres -- psql -U quickticket -d quickticket -c \d events
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default               
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null | 
+ venue         | text                     |           | not null | 
+ event_date    | timestamp with time zone |           | not null | 
+ total_tickets | integer                  |           | not null | 
+ price_cents   | integer                  |           | not null | 
+ email         | character varying(255)   |           |          | 
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+
+$ ls -lh /tmp/quickticket.dump
+-rw-r--r--@ 1 islam  wheel    55K Oct 12 10:31 /tmp/quickticket.dump
+
+$ file /tmp/quickticket.dump
+/tmp/quickticket.dump: PostgreSQL custom database dump - v1.16-0
+
+$ kubectl get pod -l app=postgres -o jsonpath={.items[0].metadata.name}
+postgres-56db6d697c-kgjsc
+$ kubectl cp /tmp/quickticket.dump postgres-56db6d697c-kgjsc:/tmp/backup.dump
+
+$ kubectl exec deploy/postgres -- pg_restore --list /tmp/backup.dump
+;
+; Archive created at 2026-10-12 07:31:17 UTC
+;     dbname: quickticket
+;     TOC Entries: 18
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.11
+;     Dumped by pg_dump version: 17.11
+;
+;
+; Selected TOC Entries:
+;
+217; 1259 16402 TABLE public alembic_version quickticket
+218; 1259 16405 TABLE public events quickticket
+219; 1259 16410 SEQUENCE public events_id_seq quickticket
+3481; 0 0 SEQUENCE OWNED BY public events_id_seq quickticket
+220; 1259 16411 TABLE public orders quickticket
+3316; 2604 16418 DEFAULT public events id quickticket
+3471; 0 16402 TABLE DATA public alembic_version quickticket
+3472; 0 16405 TABLE DATA public events quickticket
+3474; 0 16411 TABLE DATA public orders quickticket
+3482; 0 0 SEQUENCE SET public events_id_seq quickticket
+3320; 2606 16420 CONSTRAINT public alembic_version alembic_version_pkc quickticket
+3322; 2606 16422 CONSTRAINT public events events_pkey quickticket
+3324; 2606 16424 CONSTRAINT public orders orders_pkey quickticket
+3325; 2606 16425 FK CONSTRAINT public orders orders_event_id_fkey quickticket
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+1390
+
+$ kubectl scale deploy/mixedload --replicas=0
+deployment.apps/mixedload scaled
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+1402
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc DROP TABLE orders CASCADE
+DROP TABLE
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT to_regclass('public.orders');
+6
+
+
+$ curl -s -o /dev/null -w events after DROP: %{http_code}
+ http://localhost:18080/events
+events after DROP: 502
+
+$ kubectl exec deploy/postgres -- pg_restore --exit-on-error -U quickticket -d quickticket --clean --if-exists /tmp/backup.dump
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+1390
+
+$ kubectl rollout restart deploy/events
+deployment.apps/events restarted
+
+$ kubectl rollout status deploy/events --timeout=90s
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+
+$ kubectl scale deploy/mixedload --replicas=2
+deployment.apps/mixedload scaled
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+1537
+
+$ kubectl delete pod -l app=postgres --wait=true
+pod "postgres-56db6d697c-kgjsc" deleted from default namespace
+
+$ kubectl rollout status deploy/postgres --timeout=90s
+Waiting for deployment "postgres" rollout to finish: 0 of 1 updated replicas are available...
+deployment "postgres" successfully rolled out
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT to_regclass('public.events'), to_regclass('public.orders')
+|
+
+$ kubectl get pod -l app=postgres -o jsonpath={.items[0].metadata.name}
+postgres-56db6d697c-p46tz
+$ kubectl cp /tmp/quickticket.dump postgres-56db6d697c-p46tz:/tmp/backup.dump
+
+$ kubectl exec deploy/postgres -- pg_restore --exit-on-error -U quickticket -d quickticket --clean --if-exists /tmp/backup.dump
+
+$ kubectl rollout restart deploy/events
+deployment.apps/events restarted
+
+$ kubectl rollout status deploy/events --timeout=90s
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+
+$ kubectl scale deploy/mixedload --replicas=0
+deployment.apps/mixedload scaled
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+1441
+
+$ kubectl apply -f k8s/postgres.yaml
+persistentvolumeclaim/postgres-data created
+deployment.apps/postgres configured
+service/postgres unchanged
+
+$ kubectl rollout status deploy/postgres --timeout=90s
+Waiting for deployment "postgres" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "postgres" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "postgres" rollout to finish: 0 out of 1 new replicas have been updated...
+Waiting for deployment "postgres" rollout to finish: 0 of 1 updated replicas are available...
+deployment "postgres" successfully rolled out
+
+$ kubectl get pod -l app=postgres -o jsonpath={.items[0].metadata.name}
+postgres-845f555fcd-54x9p
+$ kubectl cp /tmp/quickticket.dump postgres-845f555fcd-54x9p:/tmp/backup.dump
+
+$ kubectl exec deploy/postgres -- pg_restore --exit-on-error -U quickticket -d quickticket --clean --if-exists /tmp/backup.dump
+
+$ kubectl rollout restart deploy/events
+deployment.apps/events restarted
+
+$ kubectl rollout status deploy/events --timeout=90s
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+1388
+
+$ kubectl delete pod -l app=postgres --wait=true
+pod "postgres-845f555fcd-54x9p" deleted from default namespace
+
+$ kubectl rollout status deploy/postgres --timeout=90s
+deployment "postgres" successfully rolled out
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+1388
+
+$ kubectl rollout restart deploy/events
+deployment.apps/events restarted
+
+$ kubectl rollout status deploy/events --timeout=90s
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+
+$ kubectl apply -f labs/lab9/backup-storage.yaml
+persistentvolumeclaim/postgres-backups created
+deployment.apps/backup-inspector created
+
+$ kubectl rollout status deploy/backup-inspector --timeout=90s
+Waiting for deployment "backup-inspector" rollout to finish: 0 of 1 updated replicas are available...
+deployment "backup-inspector" successfully rolled out
+
+$ kubectl apply -f k8s/backup-cronjob.yaml
+cronjob.batch/postgres-backup created
+
+$ kubectl create job --from=cronjob/postgres-backup lab9-manual-1
+job.batch/lab9-manual-1 created
+
+$ kubectl wait --for=condition=Complete job/lab9-manual-1 --timeout=90s
+job.batch/lab9-manual-1 condition met
+
+$ kubectl logs job/lab9-manual-1
+created quickticket_20261012T073231Z.dump
+
+$ kubectl create job --from=cronjob/postgres-backup lab9-manual-2
+job.batch/lab9-manual-2 created
+
+$ kubectl wait --for=condition=Complete job/lab9-manual-2 --timeout=90s
+job.batch/lab9-manual-2 condition met
+
+$ kubectl logs job/lab9-manual-2
+created quickticket_20261012T073234Z.dump
+
+$ kubectl create job --from=cronjob/postgres-backup lab9-manual-3
+job.batch/lab9-manual-3 created
+
+$ kubectl wait --for=condition=Complete job/lab9-manual-3 --timeout=90s
+job.batch/lab9-manual-3 condition met
+
+$ kubectl logs job/lab9-manual-3
+created quickticket_20261012T073237Z.dump
+
+$ kubectl create job --from=cronjob/postgres-backup lab9-manual-4
+job.batch/lab9-manual-4 created
+
+$ kubectl wait --for=condition=Complete job/lab9-manual-4 --timeout=90s
+job.batch/lab9-manual-4 condition met
+
+$ kubectl logs job/lab9-manual-4
+created quickticket_20261012T073241Z.dump
+
+$ kubectl create job --from=cronjob/postgres-backup lab9-manual-5
+job.batch/lab9-manual-5 created
+
+$ kubectl wait --for=condition=Complete job/lab9-manual-5 --timeout=90s
+job.batch/lab9-manual-5 condition met
+
+$ kubectl logs job/lab9-manual-5
+created quickticket_20261012T073244Z.dump
+
+$ kubectl create job --from=cronjob/postgres-backup lab9-manual-6
+job.batch/lab9-manual-6 created
+
+$ kubectl wait --for=condition=Complete job/lab9-manual-6 --timeout=90s
+job.batch/lab9-manual-6 condition met
+
+$ kubectl logs job/lab9-manual-6
+created quickticket_20261012T073247Z.dump
+removed 'quickticket_20261012T073231Z.dump'
+
+$ kubectl create job --from=cronjob/postgres-backup lab9-manual-7
+job.batch/lab9-manual-7 created
+
+$ kubectl wait --for=condition=Complete job/lab9-manual-7 --timeout=90s
+job.batch/lab9-manual-7 condition met
+
+$ kubectl logs job/lab9-manual-7
+created quickticket_20261012T073250Z.dump
+removed 'quickticket_20261012T073234Z.dump'
+
+$ kubectl exec deploy/backup-inspector -- ls -la /backups
+total 288
+drwxrwxrwx    2 root     root          4096 Oct 12 07:32 .
+drwxr-xr-x    1 root     root          4096 Oct 12 07:32 ..
+-rw-r--r--    1 root     root         56288 Oct 12 07:32 quickticket_20261012T073237Z.dump
+-rw-r--r--    1 root     root         56288 Oct 12 07:32 quickticket_20261012T073241Z.dump
+-rw-r--r--    1 root     root         56288 Oct 12 07:32 quickticket_20261012T073244Z.dump
+-rw-r--r--    1 root     root         56288 Oct 12 07:32 quickticket_20261012T073247Z.dump
+-rw-r--r--    1 root     root         56288 Oct 12 07:32 quickticket_20261012T073250Z.dump
+
+$ kubectl get pvc
+NAME               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+postgres-backups   Bound    pvc-cde07d5b-fa16-4088-916f-c7f408a7643e   1Gi        RWO            local-path     <unset>                 30s
+postgres-data      Bound    pvc-393ce5b8-6e6c-4320-a6f7-17063e7ea9be   1Gi        RWO            local-path     <unset>                 62s
+
+$ kubectl delete deploy/mixedload
+deployment.apps "mixedload" deleted from default namespace
+

@@ -1,0 +1,143 @@
+$ kubectl config current-context
+k3d-quickticket-lab78
+
+$ kubectl exec -i deploy/postgres -- psql -U quickticket -d quickticket
+INSERT 0 1
+
+$ kubectl apply -f k8s/mixedload.yaml
+deployment.apps/mixedload created
+
+$ kubectl rollout status deploy/mixedload --timeout=90s
+Waiting for deployment "mixedload" rollout to finish: 0 of 2 updated replicas are available...
+Waiting for deployment "mixedload" rollout to finish: 1 of 2 updated replicas are available...
+deployment "mixedload" successfully rolled out
+
+$ /tmp/sre-lab9-py/bin/alembic stamp 0001
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running stamp_revision  -> 0001
+
+$ /tmp/sre-lab9-py/bin/alembic upgrade head
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Add optional email without backfill or table rewrite.
+
+$ /tmp/sre-lab9-py/bin/alembic history
+0001 -> 0002 (head), Add optional email without backfill or table rewrite.
+<base> -> 0001, Baseline of existing app/seed.sql schema; stamp, do not create tables.
+
+$ kubectl exec deploy/postgres -- psql -U quickticket -d quickticket -c \d events
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default               
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null | 
+ venue         | text                     |           | not null | 
+ event_date    | timestamp with time zone |           | not null | 
+ total_tickets | integer                  |           | not null | 
+ price_cents   | integer                  |           | not null | 
+ email         | character varying(255)   |           |          | 
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+
+$ ls -lh /tmp/quickticket.dump
+-rw-r--r--@ 1 islam  wheel    32K Oct 12 10:28 /tmp/quickticket.dump
+
+$ file /tmp/quickticket.dump
+/tmp/quickticket.dump: PostgreSQL custom database dump - v1.16-0
+
+$ kubectl exec -i deploy/postgres -- sh -c cat > /tmp/backup.dump
+
+$ kubectl exec deploy/postgres -- pg_restore --list /tmp/backup.dump
+;
+; Archive created at 2026-10-12 07:28:18 UTC
+;     dbname: quickticket
+;     TOC Entries: 18
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.11
+;     Dumped by pg_dump version: 17.11
+;
+;
+; Selected TOC Entries:
+;
+220; 1259 16412 TABLE public alembic_version quickticket
+218; 1259 16386 TABLE public events quickticket
+217; 1259 16385 SEQUENCE public events_id_seq quickticket
+3481; 0 0 SEQUENCE OWNED BY public events_id_seq quickticket
+219; 1259 16394 TABLE public orders quickticket
+3316; 2604 16389 DEFAULT public events id quickticket
+3474; 0 16412 TABLE DATA public alembic_version quickticket
+3472; 0 16386 TABLE DATA public events quickticket
+3473; 0 16394 TABLE DATA public orders quickticket
+3482; 0 0 SEQUENCE SET public events_id_seq quickticket
+3324; 2606 16416 CONSTRAINT public alembic_version alembic_version_pkc quickticket
+3320; 2606 16393 CONSTRAINT public events events_pkey quickticket
+3322; 2606 16402 CONSTRAINT public orders orders_pkey quickticket
+3325; 2606 16403 FK CONSTRAINT public orders orders_event_id_fkey quickticket
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+760
+
+$ kubectl scale deploy/mixedload --replicas=0
+deployment.apps/mixedload scaled
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+772
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc DROP TABLE orders CASCADE
+DROP TABLE
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT to_regclass('public.orders');
+6
+
+
+$ curl -s -o /dev/null -w events after DROP: %{http_code}
+ http://localhost:18080/events
+events after DROP: 502
+
+$ kubectl exec deploy/postgres -- pg_restore --exit-on-error -U quickticket -d quickticket --clean --if-exists /tmp/backup.dump
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+758
+
+$ kubectl rollout restart deploy/events
+deployment.apps/events restarted
+
+$ kubectl rollout status deploy/events --timeout=90s
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+
+$ kubectl scale deploy/mixedload --replicas=2
+deployment.apps/mixedload scaled
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT count(*) FROM events; SELECT count(*) FROM orders;
+6
+970
+
+$ kubectl delete pod -l app=postgres --wait=true
+pod "postgres-56db6d697c-zzdb2" deleted from default namespace
+
+$ kubectl rollout status deploy/postgres --timeout=90s
+Waiting for deployment "postgres" rollout to finish: 0 of 1 updated replicas are available...
+deployment "postgres" successfully rolled out
+
+$ kubectl exec deploy/postgres -- psql -v ON_ERROR_STOP=1 -U quickticket -d quickticket -Atc SELECT to_regclass('public.events'), to_regclass('public.orders')
+|
+
+$ kubectl exec -i deploy/postgres -- sh -c cat > /tmp/backup.dump
+
+$ kubectl exec deploy/postgres -- pg_restore --exit-on-error -U quickticket -d quickticket --clean --if-exists /tmp/backup.dump
+pg_restore: error: could not read from input file: end of file
+command terminated with exit code 1
+

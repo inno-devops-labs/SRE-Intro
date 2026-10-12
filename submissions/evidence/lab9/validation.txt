@@ -1,0 +1,4 @@
+persistentvolumeclaim/postgres-data unchanged (server dry run)
+deployment.apps/postgres unchanged (server dry run)
+service/postgres unchanged (server dry run)
+cronjob.batch/postgres-backup unchanged (server dry run)

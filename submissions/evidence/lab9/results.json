@@ -1,0 +1,50 @@
+{
+  "migration_seconds": 0.29959287499968923,
+  "backup_time": "2026-10-12T07:31:17.263254+00:00",
+  "backup_bytes": 56288,
+  "backup_counts": [
+    "6",
+    "1390"
+  ],
+  "before_drop": [
+    "6",
+    "1402"
+  ],
+  "after_drop": "6\n\n",
+  "restored": [
+    "6",
+    "1390"
+  ],
+  "prekill": [
+    "6",
+    "1537"
+  ],
+  "postkill": [
+    "6",
+    "1441"
+  ],
+  "kill": "2026-10-12T07:31:37.277268+00:00",
+  "podready": "2026-10-12T07:31:44.124325+00:00",
+  "empty": "|\n",
+  "restored_at": "2026-10-12T07:31:44.516390+00:00",
+  "appready": "2026-10-12T07:31:49.256641+00:00",
+  "rto_seconds": 11.980093416999807,
+  "pvc_before": [
+    "6",
+    "1388"
+  ],
+  "pvc_after": [
+    "6",
+    "1388"
+  ],
+  "pvc_kill": "2026-10-12T07:32:13.210671+00:00",
+  "pvc_appready": "2026-10-12T07:32:23.081662+00:00",
+  "pvc_rto_seconds": 9.871672708000006,
+  "archive_counts": [
+    "6",
+    "1388"
+  ],
+  "rpo_age_at_disaster_seconds": 20.014014,
+  "lost_orders": 149,
+  "rpo_age_at_final_observation_seconds": 34.133006125000065
+}
