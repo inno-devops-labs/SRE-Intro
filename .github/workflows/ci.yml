@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/lab5
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push gateway
+        run: |
+          docker build \
+            -t ghcr.io/minimaxc/quickticket-gateway:${{ github.sha }} \
+            ./app/gateway
+          docker push \
+            ghcr.io/minimaxc/quickticket-gateway:${{ github.sha }}
+
+      - name: Build and push events
+        run: |
+          docker build \
+            -t ghcr.io/minimaxc/quickticket-events:${{ github.sha }} \
+            ./app/events
+          docker push \
+            ghcr.io/minimaxc/quickticket-events:${{ github.sha }}
+
+      - name: Build and push payments
+        run: |
+          docker build \
+            -t ghcr.io/minimaxc/quickticket-payments:${{ github.sha }} \
+            ./app/payments
+          docker push \
+            ghcr.io/minimaxc/quickticket-payments:${{ github.sha }}
