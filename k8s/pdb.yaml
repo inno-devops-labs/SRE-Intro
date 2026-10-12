@@ -1,0 +1,52 @@
+# PodDisruptionBudgets: how many pods of each service a *voluntary* disruption
+# (node drain, eviction API, cluster upgrade) may take down at once.
+# They do not protect against crashes or node failure; replicas do that.
+#
+# Apply with: kubectl apply -f k8s/pdb.yaml
+---
+# gateway: 5 replicas on the critical path. 2 must stay up, so a drain may take
+# 3 at once. minAvailable: 4 would let a drain proceed only one pod at a time and
+# block it entirely whenever a pod is already unhealthy.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+# events: 2 replicas, every read and reserve goes through it. Keep 1.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: events
+---
+# payments: 2 replicas, checkout depends on it. Keep 1.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payments
+---
+# notifications: best-effort (fire-and-forget from the gateway, Lab 11).
+# maxUnavailable scales with the replica count instead of pinning a minimum.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: notifications

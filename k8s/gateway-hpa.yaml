@@ -1,0 +1,21 @@
+# HorizontalPodAutoscaler for the gateway Rollout (Lab 12, optional 12.9).
+# HPA works on any resource with a scale subresource; Argo Rollouts has one.
+# Utilization is measured against the container's CPU *request* (50m).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gateway
+spec:
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: gateway
+  minReplicas: 5    # never below the Lab 7 base (canary steps assume 5)
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
