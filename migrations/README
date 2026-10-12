@@ -1,0 +1,12 @@
+Run from the repository root. Start a port-forward to the lab database:
+  kubectl port-forward svc/postgres 15432:5432
+
+Install migrations/requirements.txt into a virtual environment.
+For an existing database initialized with app/seed.sql, run once:
+  alembic stamp 0001
+Then apply the email migration:
+  alembic upgrade head
+  alembic current
+
+The baseline represents the existing schema; it does not create tables.
+Do not stamp an uninitialized database or stamp 0002 before applying it.
