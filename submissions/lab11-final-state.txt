@@ -1,0 +1,36 @@
+OK
+NAME                                READY   STATUS    RESTARTS      AGE
+pod/events-78bbff9c9f-v4sc7         1/1     Running   0             118s
+pod/gateway-5c7c5fbb66-cxp6q        1/1     Running   0             110s
+pod/gateway-5c7c5fbb66-hcwdr        1/1     Running   0             86s
+pod/gateway-5c7c5fbb66-hffmq        1/1     Running   0             103s
+pod/gateway-5c7c5fbb66-vjqv5        1/1     Running   0             118s
+pod/gateway-5c7c5fbb66-xq4tb        1/1     Running   0             94s
+pod/notifications-f4dd7f654-68jm6   1/1     Running   0             15m
+pod/payments-5744c894c8-w44tj       1/1     Running   0             118s
+pod/postgres-c8778f757-tkdxl        1/1     Running   1 (24h ago)   5d22h
+pod/redis-d8d9865df-2bjvg           1/1     Running   1 (24h ago)   12d
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           12d
+NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+postgres-data   Bound    pvc-bcd533dc-88ec-45de-bda1-99e633590165   1Gi        RWO            local-path     <unset>                 5d22h
+events {"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}} [{"name":"DB_HOST","value":"postgres"},{"name":"DB_PORT","value":"5432"},{"name":"DB_NAME","value":"quickticket"},{"name":"DB_USER","value":"quickticket"},{"name":"DB_PASS","value":"quickticket"},{"name":"DB_MAX_CONNS","value":"10"},{"name":"REDIS_HOST","value":"redis"},{"name":"REDIS_PORT","value":"6379"},{"name":"REDIS_TIMEOUT_MS","value":"1000"},{"name":"RESERVATION_TTL","value":"300"}]
+payments {"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}} [{"name":"PAYMENT_FAILURE_RATE","value":"0.0"},{"name":"PAYMENT_LATENCY_MS","value":"0"}]
+notifications {"limits":{"cpu":"200m","memory":"256Mi"},"requests":{"cpu":"50m","memory":"64Mi"}} [{"name":"NOTIFY_FAILURE_RATE","value":"0.0"},{"name":"NOTIFY_LATENCY_MS","value":"0"}]
+[{"name":"NOTIFICATIONS_URL","value":"http://notifications:8083"},{"name":"RETRY_MAX","value":"3"},{"name":"RETRY_BASE_DELAY_MS","value":"100"},{"name":"CB_FAILURE_THRESHOLD","value":"5"},{"name":"CB_COOLDOWN_S","value":"30"},{"name":"RATE_LIMIT_RPS","value":"10"},{"name":"BULKHEAD_PAYMENTS_MAX","value":"10"},{"name":"BULKHEAD_PAYMENTS_TIMEOUT_S","value":"0.5"},{"name":"EVENTS_URL","value":"http://events:8081"},{"name":"PAYMENTS_URL","value":"http://payments:8082"},{"name":"GATEWAY_TIMEOUT_MS","value":"5000"},{"name":"APP_VERSION","value":"v4"}] count
+-------
+     6
+(1 row)
+
+ count
+-------
+  4749
+(1 row)
+
+    version_num
+-------------------
+ 0002_events_email
+(1 row)
+
+false
