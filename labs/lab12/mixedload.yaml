@@ -1,0 +1,30 @@
+# Lab 8 traffic aimed at a dedicated Lab 12 event; preserve existing orders.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mixedload
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mixedload
+  template:
+    metadata:
+      labels:
+        app: mixedload
+    spec:
+      containers:
+      - name: curl
+        image: curlimages/curl:latest
+        command:
+        - sh
+        - -c
+        args:
+        - "while true; do\n  # Read path (no dependencies on payments / Redis)\n \
+          \ curl -s http://gateway:8080/events > /dev/null\n\n  # Full checkout chain\
+          \ (exercises events+postgres+redis+payments)\n  RES=$(curl -s -X POST http://gateway:8080/events/6/reserve\
+          \ \\\n          -H \"Content-Type: application/json\" \\\n          -d '{\"\
+          quantity\":1}')\n  RID=$(echo \"$RES\" | sed -n 's/.*reservation_id\":\"\
+          \\([^\"]*\\).*/\\1/p')\n  if [ -n \"$RID\" ]; then\n    curl -s -X POST\
+          \ http://gateway:8080/reserve/$RID/pay > /dev/null\n  fi\n\n  sleep 0.3\n\
+          done\n"

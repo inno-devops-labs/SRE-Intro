@@ -1,0 +1,84 @@
+2026-10-18T10:39:47Z
+NAME      REFERENCE         TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: <unknown>/70%   5         12        0          0s
+2026-10-18T10:39:52Z
+NAME      REFERENCE         TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: <unknown>/70%   5         12        0          5s
+2026-10-18T10:39:57Z
+NAME      REFERENCE         TARGETS              MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: <unknown>/70%   5         12        0          10s
+2026-10-18T10:40:02Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 52%/70%   5         12        5          15s
+2026-10-18T10:40:07Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 52%/70%   5         12        5          20s
+2026-10-18T10:40:12Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 52%/70%   5         12        5          25s
+2026-10-18T10:40:17Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 93%/70%   5         12        5          30s
+2026-10-18T10:40:22Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 93%/70%   5         12        5          35s
+2026-10-18T10:40:27Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 93%/70%   5         12        5          41s
+2026-10-18T10:40:33Z
+NAME      REFERENCE         TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 101%/70%   5         12        7          46s
+2026-10-18T10:40:38Z
+NAME      REFERENCE         TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 101%/70%   5         12        7          51s
+2026-10-18T10:40:43Z
+NAME      REFERENCE         TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 101%/70%   5         12        7          56s
+2026-10-18T10:40:48Z
+NAME      REFERENCE         TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 103%/70%   5         12        7          61s
+2026-10-18T10:40:53Z
+NAME      REFERENCE         TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 103%/70%   5         12        7          66s
+2026-10-18T10:40:58Z
+NAME      REFERENCE         TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 103%/70%   5         12        7          71s
+2026-10-18T10:41:03Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 78%/70%   5         12        7          76s
+2026-10-18T10:41:08Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 78%/70%   5         12        7          81s
+2026-10-18T10:41:13Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 78%/70%   5         12        7          86s
+2026-10-18T10:41:18Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 76%/70%   5         12        8          91s
+2026-10-18T10:41:23Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 76%/70%   5         12        8          96s
+2026-10-18T10:41:28Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 76%/70%   5         12        8          101s
+2026-10-18T10:41:33Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 67%/70%   5         12        8          106s
+2026-10-18T10:41:38Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 67%/70%   5         12        8          111s
+2026-10-18T10:41:43Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 67%/70%   5         12        8          116s
+2026-10-18T10:41:48Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 66%/70%   5         12        8          2m1s
+2026-10-18T10:41:54Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 66%/70%   5         12        8          2m7s
+2026-10-18T10:41:59Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 66%/70%   5         12        8          2m12s
+2026-10-18T10:42:04Z
+NAME      REFERENCE         TARGETS        MINPODS   MAXPODS   REPLICAS   AGE
+gateway   Rollout/gateway   cpu: 56%/70%   5         12        8          2m17s

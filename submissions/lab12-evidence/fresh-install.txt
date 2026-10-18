@@ -1,0 +1,7 @@
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running stamp_revision  -> b12000000004
+{"time":"2026-10-18 10:39:23,666","level":"INFO","service":"events","msg":"DB pool created (max=25)"}
+{"time":"2026-10-18 10:39:23,668","level":"INFO","service":"events","msg":"Redis connected"}
+Fresh seed: five events; list/detail date API unchanged; startup successful
+Disposable fresh-install database removed

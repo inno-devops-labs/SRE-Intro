@@ -1,0 +1,33 @@
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backup-inspector   1/1     1            1           6d3h
+deployment.apps/events             2/2     2            2           6d4h
+deployment.apps/gateway            0/0     0            0           6d2h
+deployment.apps/mixedload          2/2     2            2           6d4h
+deployment.apps/notifications      2/2     2            2           2d21h
+deployment.apps/payments           2/2     2            2           6d4h
+deployment.apps/postgres           1/1     1            1           6d4h
+deployment.apps/redis              1/1     1            1           6d4h
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           6d2h
+NAME                MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+events-pdb          1               N/A               1                     10m
+gateway-pdb         2               N/A               3                     10m
+notifications-pdb   N/A             1                 1                     10m
+payments-pdb        1               N/A               1                     10m
+No resources found in default namespace.
+NAME                            READY   STATUS    RESTARTS   AGE     IP            NODE                       NOMINATED NODE   READINESS GATES
+events-5dddb98d84-75sv4         1/1     Running   0          4m50s   10.42.0.219   k3d-quickticket-server-0   <none>           <none>
+events-5dddb98d84-v6pn5         1/1     Running   0          4m46s   10.42.0.220   k3d-quickticket-server-0   <none>           <none>
+gateway-7c79cddb95-2ptbz        1/1     Running   0          7m11s   10.42.0.215   k3d-quickticket-server-0   <none>           <none>
+gateway-7c79cddb95-4hgbv        1/1     Running   0          7m8s    10.42.0.216   k3d-quickticket-server-0   <none>           <none>
+gateway-7c79cddb95-8djsw        1/1     Running   0          7m14s   10.42.0.214   k3d-quickticket-server-0   <none>           <none>
+gateway-7c79cddb95-gsm84        1/1     Running   0          7m17s   10.42.0.213   k3d-quickticket-server-0   <none>           <none>
+gateway-7c79cddb95-vrhwr        1/1     Running   0          7m20s   10.42.0.212   k3d-quickticket-server-0   <none>           <none>
+notifications-87f4ff5d9-4jnbr   1/1     Running   0          10m     10.42.0.199   k3d-quickticket-server-0   <none>           <none>
+notifications-87f4ff5d9-7jqj6   1/1     Running   0          10m     10.42.0.197   k3d-quickticket-server-0   <none>           <none>
+payments-6d8b58c97b-l5vmh       1/1     Running   0          10m     10.42.0.195   k3d-quickticket-server-0   <none>           <none>
+payments-6d8b58c97b-pbxwg       1/1     Running   0          10m     10.42.0.200   k3d-quickticket-server-0   <none>           <none>
+200 {"status":"healthy","checks":{"events":"ok","payments":"ok","notifications":"ok","circuit_payments":"CLOSED"}}
+payments [{"name":"PAYMENT_FAILURE_RATE","value":"0.0"},{"name":"PAYMENT_LATENCY_MS","value":"0"}]
+notifications [{"name":"NOTIFY_FAILURE_RATE","value":"0.0"},{"name":"NOTIFY_LATENCY_MS","value":"0"}]

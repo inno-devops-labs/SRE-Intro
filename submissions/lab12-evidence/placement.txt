@@ -1,0 +1,6 @@
+NAME                       READY   STATUS    RESTARTS   AGE     IP            NODE                       NOMINATED NODE   READINESS GATES
+gateway-6bc78b9d-llz8f     1/1     Running   0          2d21h   10.42.0.115   k3d-quickticket-server-0   <none>           <none>
+gateway-6bc78b9d-qrmsf     1/1     Running   0          2d21h   10.42.0.116   k3d-quickticket-server-0   <none>           <none>
+gateway-6bc78b9d-x5zxc     1/1     Running   0          2d21h   10.42.0.118   k3d-quickticket-server-0   <none>           <none>
+gateway-6bc78b9d-z66vg     1/1     Running   0          2d21h   10.42.0.113   k3d-quickticket-server-0   <none>           <none>
+gateway-7c79cddb95-w6wj2   1/1     Running   0          85s     10.42.0.198   k3d-quickticket-server-0   <none>           <none>

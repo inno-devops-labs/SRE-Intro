@@ -1,0 +1,26 @@
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running stamp_revision  -> 1536dcffc4c9
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 1536dcffc4c9 -> a68dfd8aa03c, add email column to events
+INFO  [alembic.runtime.migration] Running upgrade a68dfd8aa03c -> b12000000001, Index the existing date without blocking writes.
+INFO  [alembic.runtime.migration] Running upgrade b12000000001 -> b12000000002, Expand: old code remains compatible; deploy A after this revision.
+INFO  [alembic.runtime.migration] Running upgrade b12000000002 -> b12000000003, Backfill after deploy A; preserve the date index on the new column.
+INFO  [alembic.runtime.migration] Running upgrade b12000000003 -> b12000000004, Contract only after every events pod runs deploy B.
+UPGRADE: final column, all five dates and valid index verified
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running downgrade b12000000004 -> b12000000003, Contract only after every events pod runs deploy B.
+INFO  [alembic.runtime.migration] Running downgrade b12000000003 -> b12000000002, Backfill after deploy A; preserve the date index on the new column.
+INFO  [alembic.runtime.migration] Running downgrade b12000000002 -> b12000000001, Expand: old code remains compatible; deploy A after this revision.
+INFO  [alembic.runtime.migration] Running downgrade b12000000001 -> a68dfd8aa03c, Index the existing date without blocking writes.
+DOWNGRADE: original dates restored; new column removed
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade a68dfd8aa03c -> b12000000001, Index the existing date without blocking writes.
+INFO  [alembic.runtime.migration] Running upgrade b12000000001 -> b12000000002, Expand: old code remains compatible; deploy A after this revision.
+INFO  [alembic.runtime.migration] Running upgrade b12000000002 -> b12000000003, Backfill after deploy A; preserve the date index on the new column.
+INFO  [alembic.runtime.migration] Running upgrade b12000000003 -> b12000000004, Contract only after every events pod runs deploy B.
+RE-UPGRADE: all four migrations succeeded again
+Disposable verification database removed
