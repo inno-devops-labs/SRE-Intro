@@ -1,0 +1,43 @@
+# Lab 12: client-side prober. gateway_requests_total is written by the gateway
+# itself, so a request that dies with a gateway pod (connection refused/reset)
+# is never counted there. This pod records what a client actually got.
+# It reuses the already imported gateway image (python, no extra pull).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prober
+  labels:
+    app: prober
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prober
+  template:
+    metadata:
+      labels:
+        app: prober
+    spec:
+      containers:
+        - name: prober
+          image: quickticket-gateway:v1
+          imagePullPolicy: Never
+          command: ["python", "-u", "-c"]
+          args:
+            - |
+              import time, urllib.request, urllib.error
+              # new TCP connection per request, 5 req/s through the gateway Service
+              while True:
+                  t = time.time()
+                  try:
+                      with urllib.request.urlopen("http://gateway:8080/events", timeout=3) as r:
+                          code = str(r.status)
+                  except urllib.error.HTTPError as e:
+                      code = str(e.code)
+                  except Exception as e:
+                      code = "ERR:" + type(e).__name__
+                  print(f"{t:.3f} {code}")
+                  time.sleep(max(0.0, 0.2 - (time.time() - t)))
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 100m, memory: 64Mi}

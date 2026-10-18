@@ -1,0 +1,65 @@
+# Lab 11: notifications is a best-effort destination. The gateway calls it
+# fire-and-forget after a successful /pay, so nothing here is on the critical path.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications
+  labels:
+    app: notifications
+spec:
+  # Lab 12: two replicas like the other backends (best effort, see k8s/pdb.yaml).
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notifications
+  template:
+    metadata:
+      labels:
+        app: notifications
+    spec:
+      containers:
+        - name: notifications
+          image: quickticket-notifications:v1
+          # Built locally and imported with `k3d image import`; Never makes a
+          # missed import fail loudly as ErrImageNeverPull instead of a Docker Hub pull.
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8083
+          env:
+            - name: NOTIFY_FAILURE_RATE
+              value: "0.0"
+            - name: NOTIFY_LATENCY_MS
+              value: "0"
+          # /health has no dependencies here, so it is safe for both probes.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8083
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8083
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifications
+spec:
+  type: ClusterIP
+  selector:
+    app: notifications
+  ports:
+    - port: 8083
+      targetPort: 8083
