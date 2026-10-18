@@ -1,0 +1,116 @@
+# QuickTicket — notifications service (Lab 11 §11.2)
+#
+# Fourth microservice. Pure destination: the gateway POSTs /notify
+# fire-and-forget, nothing calls out of here. NOTIFY_FAILURE_RATE /
+# NOTIFY_LATENCY_MS are the fault-injection knobs, mirroring
+# PAYMENT_FAILURE_RATE / PAYMENT_LATENCY_MS on payments; flip them with
+# `kubectl set env deployment/notifications ...`.
+#
+# Conventions preserved from Lab 4's handoff:
+#   * one file = Deployment + Service
+#   * selector is `app: notifications` ONLY (immutable, and the whole course
+#     uses `kubectl ... -l app=notifications`)
+#   * imagePullPolicy: Never — the image is built locally and loaded with
+#     `k3d image import`, it does not exist in any registry
+#   * resource requests/limits on the container
+#   * prometheus.io/{scrape,port,path} annotations on the pod template
+#   * 1 replica (Lab 12 may scale it)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications
+  labels:
+    app: notifications
+    app.kubernetes.io/part-of: quickticket
+spec:
+  # Lab 12 §12.1 — 2 replicas. notifications is fire-and-forget (Lab 11: the
+  # gateway swallows its errors and it is deliberately NOT in `critical_ok`),
+  # so the second replica buys availability of a best-effort path, not of the
+  # critical path. Its PDB is correspondingly softer: `maxUnavailable: 1`.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notifications
+  template:
+    metadata:
+      labels:
+        app: notifications
+        app.kubernetes.io/part-of: quickticket
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Same inert ghcr pull secret as the other three services: no pull is
+      # attempted while imagePullPolicy is Never, but it keeps the pod spec
+      # ready for the day CI publishes the image.
+      imagePullSecrets:
+        - name: ghcr-secret
+      # Lab 12 §12.6 — same graceful-shutdown budget as the gateway Rollout.
+      # The lab only asks for this on the gateway, but §12.2's coordinated
+      # pod-kill measured 2 x HTTP 502 at the gateway caused by killing an
+      # *events* pod: without a preStop hook the app closes its listener
+      # before kube-proxy has removed it from the Service, and the in-flight
+      # connections are reset. Fixing only the gateway would leave that hole
+      # open on every other service.
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: notifications
+          image: ghcr.io/vanady39/quickticket-notifications:lab11
+          imagePullPolicy: Never
+          env:
+            - name: NOTIFY_FAILURE_RATE
+              value: "0.0"
+            - name: NOTIFY_LATENCY_MS
+              value: "0"
+          ports:
+            - name: http
+              containerPort: 8083
+          # Lab 12 §12.6 — hold SIGTERM back for 10s so the endpoints /
+          # kube-proxy removal of this pod completes before the app stops
+          # accepting connections. See k8s/gateway.yaml for the full rationale.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          # Probe rule from Lab 4's handoff: readiness may test dependencies,
+          # liveness must not. notifications has NO downstream dependencies at
+          # all (no DB, no Redis, no HTTP fan-out), so /health is a pure
+          # self-check and is safe for both — exactly like payments.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8083
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8083
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifications
+  labels:
+    app: notifications
+    app.kubernetes.io/part-of: quickticket
+spec:
+  type: ClusterIP
+  selector:
+    app: notifications
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8083

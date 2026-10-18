@@ -7,14 +7,24 @@ services:
       - EVENTS_URL=http://events:8081
       - PAYMENTS_URL=http://payments:8082
       - GATEWAY_TIMEOUT_MS=5000
+      # Lab 11 — fire-and-forget notifications + resilience-pattern tunables.
+      - NOTIFICATIONS_URL=http://notifications:8083
+      - RETRY_MAX=${RETRY_MAX:-3}
+      - RETRY_BASE_DELAY_MS=${RETRY_BASE_DELAY_MS:-100}
+      - CB_FAILURE_THRESHOLD=${CB_FAILURE_THRESHOLD:-5}
+      - CB_COOLDOWN_S=${CB_COOLDOWN_S:-30}
+      - RATE_LIMIT_RPS=${RATE_LIMIT_RPS:-10}
+      - BULKHEAD_PAYMENTS_MAX=${BULKHEAD_PAYMENTS_MAX:-10}
+      - BULKHEAD_PAYMENTS_TIMEOUT_S=${BULKHEAD_PAYMENTS_TIMEOUT_S:-0.5}
     depends_on:
       - events
       - payments
+      - notifications
 
   events:
     build: ./events
     ports:
-      - "8081:8081"
+      - "8091:8081"
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -39,6 +49,16 @@ services:
     environment:
       - PAYMENT_FAILURE_RATE=${PAYMENT_FAILURE_RATE:-0.0}
       - PAYMENT_LATENCY_MS=${PAYMENT_LATENCY_MS:-0}
+
+  # Lab 11 — 4th service. Pure destination for the gateway's fire-and-forget
+  # notify call; NOTIFY_* are its fault-injection knobs.
+  notifications:
+    build: ./notifications
+    ports:
+      - "8083:8083"
+    environment:
+      - NOTIFY_FAILURE_RATE=${NOTIFY_FAILURE_RATE:-0.0}
+      - NOTIFY_LATENCY_MS=${NOTIFY_LATENCY_MS:-0}
 
   postgres:
     image: postgres:17-alpine

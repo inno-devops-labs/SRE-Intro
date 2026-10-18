@@ -140,11 +140,26 @@ def list_events():
     conn = db_pool.getconn()
     try:
         cur = conn.cursor()
+        # Lab 12 Bonus — Deploy B of the event_date -> scheduled_at rename.
+        # The backfill (M2) is complete and scheduled_at is NOT NULL, so the
+        # COALESCE fallback of Deploy A is now dead weight: it can only ever
+        # return the first argument. Dropping it is what makes M3 (drop
+        # event_date) safe — after this build is fully rolled out, no running
+        # pod names the old column anywhere.
+        #
+        # The JSON key stays `date` (unchanged since Lab 1) and the SELECT
+        # keeps the `event_date` alias, so the rename is invisible to the
+        # gateway and to every client. Renaming a column in the database and
+        # renaming a field in a public API are two separate migrations; doing
+        # them in one step is how you turn an internal change into a breaking
+        # one.
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue,
+                   e.scheduled_at AS event_date,
+                   e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
-            GROUP BY e.id ORDER BY e.event_date
+            GROUP BY e.id ORDER BY e.scheduled_at
         """)
         rows = cur.fetchall()
         cur.close()
@@ -165,8 +180,11 @@ def get_event(event_id: int):
     conn = db_pool.getconn()
     try:
         cur = conn.cursor()
+        # Lab 12 Bonus — Deploy B. Single-mode read, same as /events.
         cur.execute("""
-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
+            SELECT e.id, e.name, e.venue,
+                   e.scheduled_at AS event_date,
+                   e.total_tickets, e.price_cents,
                    COALESCE(SUM(o.quantity), 0) as confirmed
             FROM events e LEFT JOIN orders o ON e.id = o.event_id
             WHERE e.id = %s GROUP BY e.id

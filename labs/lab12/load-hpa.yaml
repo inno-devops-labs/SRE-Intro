@@ -1,0 +1,73 @@
+# Lab 12 §12.9 — HPA observation load.
+#
+# Copied from labs/lab10/locust-runner.yaml with -u 200 -r 20 -t 120s, per the
+# lab instructions. Everything below this header is Lab 10's, unchanged.
+#
+# Requires the `locustfile` ConfigMap that Lab 10 created:
+#   kubectl create configmap locustfile --from-file=locustfile.py=labs/lab10/locustfile.py \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# ⚠️ Lab 11 put a rate limiter on the gateway (RATE_LIMIT_RPS=10 per pod, so
+# ~50 rps per normalised path across 5 replicas). 200 concurrent users are far
+# above that ceiling, so most of this run is answered with HTTP 429. That is
+# the correct behaviour and it is deliberately NOT tuned away here: the point
+# of the run is CPU pressure on the gateway, and a shed request still costs a
+# trip through the whole middleware stack.
+#
+# --- original Lab 10 header ---
+# Locust load-test plumbing for Lab 10.
+#
+# Why in-cluster: `kubectl port-forward svc/gateway` targets ONE pod for
+# the whole session. To load-test all 5 gateway replicas through
+# kube-proxy, the load generator itself must run inside the cluster.
+#
+# The ConfigMap that feeds locustfile.py to the Locust pod is NOT declared
+# inline here — you build it from `labs/lab10/locustfile.py` so the actual
+# Python file stays syntax-highlighted and editable in your fork:
+#
+#   cp labs/lab10/locustfile.py locustfile.py          # commit it to your fork
+#   kubectl create configmap locustfile \
+#     --from-file=locustfile.py=locustfile.py \
+#     --dry-run=client -o yaml | kubectl apply -f -    # re-run after every edit
+#
+# This file contains only the Job template. You instantiate one per load
+# level (load-10, load-50, load-100, load-200) by copying, renaming, and
+# editing the -u / -r / -t args.
+#
+# Apply the template to verify nothing is syntactically broken:
+#   kubectl apply -f labs/lab10/locust-runner.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # TEMPLATE — rename per run (load-10, load-50, …). K8s requires lowercase.
+  name: load-hpa
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: locust
+          image: locustio/locust:2.43.4
+          command: ["locust"]
+          args:
+            - "-f"
+            - "/mnt/locust/locustfile.py"
+            - "--host=http://gateway:8080"
+            - "--headless"
+            - "-u"
+            - "200"                        # Lab 12 §12.9 — enough concurrency to push gateway CPU past the 70% HPA target
+            - "-r"
+            - "20"                         # ramp 20 users/s
+            - "-t"
+            - "120s"                       # long enough for two HPA control loops (15s period)
+            - "--only-summary"
+          volumeMounts:
+            - name: locustfile
+              mountPath: /mnt/locust
+      volumes:
+        - name: locustfile
+          configMap:
+            name: locustfile

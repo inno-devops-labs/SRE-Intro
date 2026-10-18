@@ -1,0 +1,108 @@
+# QuickTicket — PodDisruptionBudgets (Lab 12 §12.3)
+#
+# A PDB constrains *voluntary* disruptions only: `kubectl drain`, the eviction
+# API, cluster-autoscaler scale-down, descheduler rebalancing. It does NOT
+# protect against involuntary ones — node crash, kernel OOM kill, a
+# `kubectl delete pod`, or the kubelet losing the node. That distinction is the
+# whole point: a PDB is a contract with *maintenance automation*, telling it
+# "you may take pods away from me, but never faster than this".
+#
+# Which four services get one: the four QuickTicket *application* services
+# (gateway, events, payments, notifications). Postgres and Redis are
+# deliberately excluded — both are single-replica on this cluster, and any PDB
+# over a 1-replica workload either allows nothing (minAvailable: 1 → drain
+# blocks forever) or allows everything (maxUnavailable: 1 → no protection).
+# The honest answer for a single-replica datastore is "run it as a StatefulSet
+# with >1 replica and real replication", not "put a PDB on it".
+#
+# Selector note: `gateway` is an Argo Rollouts `Rollout`, not a Deployment
+# (Lab 7). That does not matter here — a PDB targets *pods* by label selector,
+# never a controller kind, so `app: gateway` matches the Rollout's pods exactly
+# as it would a Deployment's.
+#
+# Apply:  kubectl apply -f k8s/pdb.yaml
+# Check:  kubectl get pdb
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+  labels:
+    app: gateway
+    app.kubernetes.io/part-of: quickticket
+spec:
+  # 5 replicas, minAvailable 2 → ALLOWED DISRUPTIONS = 3.
+  #
+  # Why not `minAvailable: 4`? Because a PDB that is too strict does not make
+  # the system safer, it makes maintenance impossible: a node drain evicts
+  # pods one at a time and waits for the budget to recover between each, so
+  # with 4-of-5 required the drain of a node holding 2 gateway pods would stall
+  # indefinitely and an operator would eventually `--force` past the budget —
+  # which is strictly worse than a budget that is respected.
+  #
+  # Why not `minAvailable: 1`? Because 1 gateway pod cannot carry production
+  # RPS. With Lab 11's rate limiter at RATE_LIMIT_RPS=10 per pod that is a hard
+  # ceiling of 10 rps per normalised path, versus 50 rps at full strength.
+  #
+  # 2 is the number that keeps ~40% of steady-state capacity online while
+  # still letting three pods move at once.
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+  labels:
+    app: events
+    app.kubernetes.io/part-of: quickticket
+spec:
+  # 2 replicas, minAvailable 1 → ALLOWED DISRUPTIONS = 1.
+  # events is a hard dependency of every gateway request path (/events,
+  # /events/{id}, /events/{id}/reserve), so "at least one alive, always".
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+  labels:
+    app: payments
+    app.kubernetes.io/part-of: quickticket
+spec:
+  # 2 replicas, minAvailable 1 → ALLOWED DISRUPTIONS = 1.
+  # payments is on the checkout critical path; Lab 11's circuit breaker will
+  # fast-fail /pay with 503 once payments starts erroring, so keeping one
+  # replica alive through a drain is what stops the breaker from opening.
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payments
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+  labels:
+    app: notifications
+    app.kubernetes.io/part-of: quickticket
+spec:
+  # Expressed as maxUnavailable rather than minAvailable on purpose.
+  #
+  # The two forms happen to be numerically identical at 2 replicas
+  # (maxUnavailable: 1 == minAvailable: 1), but they behave differently as the
+  # replica count changes: `minAvailable: 1` is an absolute floor, while
+  # `maxUnavailable: 1` is a *rate limit* on disruption that keeps allowing one
+  # eviction at a time no matter how large the deployment grows. For a
+  # best-effort, fire-and-forget service (Lab 11: the gateway swallows its
+  # errors and it is not in `critical_ok`) the right contract is "don't take
+  # them all at once", not "guarantee me capacity".
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: notifications

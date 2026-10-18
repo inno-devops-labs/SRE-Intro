@@ -1,0 +1,106 @@
+# QuickTicket — payments service (charge simulator, no backing store)
+#
+# Translated from the `payments` service in app/docker-compose.yaml.
+# PAYMENT_FAILURE_RATE / PAYMENT_LATENCY_MS are the fault-injection knobs used
+# from Lab 1 onwards; flip them with `kubectl set env deployment/payments ...`.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+  labels:
+    app: payments
+    app.kubernetes.io/part-of: quickticket
+spec:
+  # Lab 12 §12.1 — 2 replicas, paired with `payments-pdb` (minAvailable: 1).
+  # payments is on the checkout critical path: losing it entirely turns every
+  # /pay into a 502/504 at the gateway.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+        app.kubernetes.io/part-of: quickticket
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/metrics"
+    spec:
+      # ghcr.io packages are private by default; this secret holds a classic PAT
+      # with read:packages. Inert while imagePullPolicy is Never (no pull is
+      # attempted) — required as soon as the policy flips to Always.
+      imagePullSecrets:
+        - name: ghcr-secret
+      # Lab 12 §12.6 — same graceful-shutdown budget as the gateway Rollout.
+      # The lab only asks for this on the gateway, but §12.2's coordinated
+      # pod-kill measured 2 x HTTP 502 at the gateway caused by killing an
+      # *events* pod: without a preStop hook the app closes its listener
+      # before kube-proxy has removed it from the Service, and the in-flight
+      # connections are reset. Fixing only the gateway would leave that hole
+      # open on every other service.
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: payments
+          image: ghcr.io/vanady39/quickticket-payments:ae1a4579f016fd3e7b68ad97a4b998660af38d3c
+          # Lab 5 §5.3: the manifests now carry the ghcr.io reference that CI
+          # writes on every push. The registry copy does not exist yet (the fork
+          # has not been pushed), so the image in the cluster is the locally
+          # built one re-tagged with this name and loaded via `k3d image import`,
+          # and the policy stays Never. Flip to Always once CI has published.
+          imagePullPolicy: Never
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: "0.0"
+            - name: PAYMENT_LATENCY_MS
+              value: "0"
+          ports:
+            - name: http
+              containerPort: 8082
+          # Lab 12 §12.6 — hold SIGTERM back for 10s so the endpoints /
+          # kube-proxy removal of this pod completes before the app stops
+          # accepting connections. See k8s/gateway.yaml for the full rationale.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          # payments has no downstream dependencies, so /health is a pure
+          # self-check — safe for both liveness and readiness.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+  labels:
+    app: payments
+    app.kubernetes.io/part-of: quickticket
+spec:
+  type: ClusterIP
+  selector:
+    app: payments
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
