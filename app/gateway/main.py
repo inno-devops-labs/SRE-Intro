@@ -1,17 +1,4 @@
-"""QuickTicket Gateway — API router and entry point.
-
-Lab 11 scaffold. The wiring (middleware, /pay handler composition, helper
-functions, Prometheus metrics) is in place. The three resilience-pattern
-classes/functions have empty no-op bodies marked `# TODO (Lab 11): ...`.
-
-Default behavior (no patterns implemented):
-  - call_with_retry: calls func once, no retry
-  - CircuitBreaker.call:  calls func, never trips
-  - RateLimiter.allow:    always returns True
-
-So labs 1-10 run unchanged. Lab 11 students replace the TODOs with real
-implementations and the patterns light up.
-"""
+"""QuickTicket Gateway — API router and entry point."""
 
 import asyncio
 import os
@@ -24,7 +11,7 @@ from collections import defaultdict, deque
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 # --- Config ---
 EVENTS_URL = os.getenv("EVENTS_URL", "http://events:8081")
@@ -44,6 +31,10 @@ CB_COOLDOWN_S = float(os.getenv("CB_COOLDOWN_S", "30"))
 
 # Rate limiter (Lab 11) — per endpoint, sliding window
 RATE_LIMIT_RPS = int(os.getenv("RATE_LIMIT_RPS", "10"))
+
+# Bulkhead (Lab 11 bonus) — bounds concurrent payments calls
+BULKHEAD_PAYMENTS_MAX = int(os.getenv("BULKHEAD_PAYMENTS_MAX", "10"))
+BULKHEAD_PAYMENTS_TIMEOUT_S = float(os.getenv("BULKHEAD_PAYMENTS_TIMEOUT_S", "0.5"))
 
 # --- Logging ---
 logging.basicConfig(
@@ -69,6 +60,12 @@ CB_STATE_TRANSITIONS = Counter(
 RATE_LIMIT_REJECTIONS = Counter(
     "gateway_rate_limit_rejections_total", "Requests rejected by rate limiter", ["path"]
 )
+BULKHEAD_IN_FLIGHT = Gauge(
+    "gateway_bulkhead_in_flight", "Current bulkhead occupants", ["target"]
+)
+BULKHEAD_REJECTIONS = Counter(
+    "gateway_bulkhead_rejections_total", "Bulkhead acquisition rejections", ["target"]
+)
 
 client = httpx.AsyncClient(timeout=GATEWAY_TIMEOUT_MS / 1000)
 
@@ -85,24 +82,47 @@ def _normalize_path(path: str) -> str:
 
 # --- Resilience patterns (Lab 11 implementation slots) -----------------------
 #
-# Each of the three primitives below is wired into the request path already
-# (see the middleware + /pay handler). The bodies start as no-ops, so the
-# gateway behaves identically to lab 10 if you don't change them. In lab 11,
-# you replace the `# TODO (Lab 11): ...` blocks with real implementations.
+# The three primitives below are wired into the request path by the middleware
+# and the /pay handler.
 
 
 async def call_with_retry(func, target: str, max_retries: int = RETRY_MAX):
     """Call `func` with retry-on-transient-error.
 
-    No-op default: calls func once and returns. Lab 11 task 11.4 replaces this
-    body with exponential backoff + jitter, retryable/non-retryable branching,
-    and Prometheus counters on the `gateway_retry_total{target,result}` metric.
-
-    See lab 11 §11.4 for the behavior contract. The wiring (in /pay below)
-    will pick up your implementation automatically.
+    Retry transient downstream failures with exponential backoff and jitter,
+    recording retry outcomes in `gateway_retry_total{target,result}`.
     """
-    # TODO (Lab 11): implement exponential backoff + jitter here.
-    return await func()
+    base_delay = RETRY_BASE_DELAY_MS / 1000
+
+    for attempt in range(max_retries):
+        try:
+            result = await func()
+            if attempt > 0:
+                RETRY_TOTAL.labels(target, "succeeded_after_retry").inc()
+            return result
+        except Exception as exc:
+            retryable = isinstance(
+                exc, (httpx.TimeoutException, httpx.ConnectError)
+            )
+            if isinstance(exc, httpx.HTTPStatusError):
+                status = exc.response.status_code
+                retryable = status >= 500 or status in (408, 429)
+
+            if isinstance(exc, httpx.HTTPStatusError) and not retryable:
+                RETRY_TOTAL.labels(target, "non_retryable").inc()
+                raise
+
+            if not retryable:
+                RETRY_TOTAL.labels(target, "non_retryable").inc()
+                raise
+
+            if attempt == max_retries - 1:
+                RETRY_TOTAL.labels(target, "exhausted").inc()
+                raise
+
+            delay = base_delay * (2**attempt) + random.uniform(0, base_delay)
+            RETRY_TOTAL.labels(target, "retried").inc()
+            await asyncio.sleep(delay)
 
 
 class CircuitOpenError(Exception):
@@ -112,8 +132,7 @@ class CircuitOpenError(Exception):
 class CircuitBreaker:
     """Stateful circuit breaker. Lab 11 task 11.7.
 
-    No-op default: state is always CLOSED, .call just calls func. Replace the
-    body of .call with a real CLOSED → OPEN → HALF_OPEN state machine that
+    Protect calls with a CLOSED → OPEN → HALF_OPEN state machine that
     fast-fails with CircuitOpenError once `failures >= threshold`, recovers
     after `cooldown_s`, and emits `gateway_circuit_breaker_transitions_total`.
     """
@@ -141,19 +160,32 @@ class CircuitBreaker:
     async def call(self, func):
         """Run func with circuit-breaker protection.
 
-        No-op default: just calls func. Lab 11 task 11.7 replaces this with
-        the state machine. Raise `CircuitOpenError` when the circuit is open.
+        Raise `CircuitOpenError` when the circuit is open.
         """
-        # TODO (Lab 11): implement CLOSED/OPEN/HALF_OPEN state machine here.
-        return await func()
+        if self.state == self.OPEN:
+            if time.time() - self.opened_at >= self.cooldown:
+                self._transition(self.HALF_OPEN)
+            else:
+                raise CircuitOpenError(f"circuit[{self.name}] OPEN")
+
+        try:
+            result = await func()
+            self.failures = 0
+            self._transition(self.CLOSED)
+            return result
+        except Exception:
+            self.failures += 1
+            self.opened_at = time.time()
+            if self.state == self.HALF_OPEN or self.failures >= self.threshold:
+                self._transition(self.OPEN)
+            raise
 
 
 class RateLimiter:
     """Per-key sliding-window rate limiter. Lab 11 task 11.8.
 
-    No-op default: .allow always returns True. Replace it with a sliding
-    1-second window that tracks request timestamps per key and rejects
-    once `len(window) >= self.rps`.
+    Apply a sliding 1-second window per key and reject once
+    `len(window) >= self.rps`.
     """
 
     def __init__(self, rps: int):
@@ -164,14 +196,55 @@ class RateLimiter:
     def allow(self, key: str) -> bool:
         """Return True if the request should be allowed.
 
-        No-op default: always True. Lab 11 task 11.8 replaces this body.
+        Return True when the request fits within the current window.
         """
-        # TODO (Lab 11): implement sliding-window check here.
+        now = time.time()
+        q = self.hits[key]
+        cutoff = now - self.window_s
+        while q and q[0] < cutoff:
+            q.popleft()
+        if len(q) >= self.rps:
+            return False
+        q.append(now)
         return True
+
+
+class BulkheadFullError(Exception):
+    """Raised when a bulkhead cannot acquire a slot before its timeout."""
+
+
+class Bulkhead:
+    """Bound concurrent calls to a downstream dependency."""
+
+    def __init__(self, name: str, max_concurrent: int, acquire_timeout_s: float):
+        self.name = name
+        self.acquire_timeout_s = acquire_timeout_s
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def call(self, func):
+        try:
+            await asyncio.wait_for(
+                self.semaphore.acquire(), timeout=self.acquire_timeout_s
+            )
+        except asyncio.TimeoutError as exc:
+            BULKHEAD_REJECTIONS.labels(self.name).inc()
+            raise BulkheadFullError(
+                f"bulkhead[{self.name}] is full"
+            ) from exc
+
+        BULKHEAD_IN_FLIGHT.labels(self.name).inc()
+        try:
+            return await func()
+        finally:
+            BULKHEAD_IN_FLIGHT.labels(self.name).dec()
+            self.semaphore.release()
 
 
 payments_cb = CircuitBreaker(CB_FAILURE_THRESHOLD, CB_COOLDOWN_S, name="payments")
 rate_limiter = RateLimiter(RATE_LIMIT_RPS)
+payments_bulkhead = Bulkhead(
+    "payments", BULKHEAD_PAYMENTS_MAX, BULKHEAD_PAYMENTS_TIMEOUT_S
+)
 
 
 # --- Middleware ---
@@ -193,8 +266,7 @@ async def metrics_middleware(request: Request, call_next):
 async def rate_limit_middleware(request: Request, call_next):
     """Apply the rate limiter to every request (except metrics + health).
 
-    Calls `rate_limiter.allow(path)` — which is a no-op (always-True) until
-    Lab 11 students implement it.
+    Calls `rate_limiter.allow(path)` for each eligible request.
     """
     path = _normalize_path(request.url.path)
     if path in ("/metrics", "/health"):
@@ -327,8 +399,13 @@ async def pay_reservation(reservation_id: str):
         return resp
 
     try:
-        pay_resp = await payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        pay_resp = await payments_bulkhead.call(
+            lambda: payments_cb.call(lambda: call_with_retry(_charge, target="payments"))
+        )
         payment_ref = pay_resp.json().get("payment_ref", "unknown")
+    except BulkheadFullError:
+        log.error("payments bulkhead is full, skipping payments call")
+        raise HTTPException(503, "Payment service temporarily unavailable (bulkhead full)")
     except CircuitOpenError:
         log.error("circuit open, skipping payments call")
         raise HTTPException(503, "Payment service temporarily unavailable (circuit open)")
