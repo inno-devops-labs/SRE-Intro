@@ -1,0 +1,19 @@
+NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+gateway   5         5         5            5           3d5h
+NAME                     READY   STATUS    RESTARTS   AGE
+gateway-6bc78b9d-blbj8   1/1     Running   0          3m22s
+gateway-6bc78b9d-llz8f   1/1     Running   0          3m44s
+gateway-6bc78b9d-qrmsf   1/1     Running   0          3m44s
+gateway-6bc78b9d-x5zxc   1/1     Running   0          3m22s
+gateway-6bc78b9d-z66vg   1/1     Running   0          5m46s
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+notifications   1/1     1            1           11m
+payments        1/1     1            1           3d7h
+mixedload       2/2     2            2           3d7h
+gateway         0/0     0            0           3d5h
+{"app":"gateway"}
+payments {'status': 'healthy', 'failure_rate': 0.0, 'latency_ms': 0}
+notifications {'status': 'healthy', 'failure_rate': 0.0, 'latency_ms': 0}
+gateway {'status': 'healthy', 'checks': {'events': 'ok', 'payments': 'ok', 'notifications': 'ok', 'circuit_payments': 'CLOSED'}}
+NAME                   STATUS       AGE
+gateway-6bc78b9d-2-2   Successful   5m25s

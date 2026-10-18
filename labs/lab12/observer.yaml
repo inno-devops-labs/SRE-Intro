@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab12-observer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab12-observer
+  template:
+    metadata:
+      labels:
+        app: lab12-observer
+    spec:
+      containers:
+      - name: observer
+        image: quickticket-gateway:lab11-final
+        imagePullPolicy: Never
+        command:
+        - python
+        - /probe/observe.py
+        env:
+        - name: LAB12_EVENT_ID
+          value: '6'
+        volumeMounts:
+        - name: script
+          mountPath: /probe
+      volumes:
+      - name: script
+        configMap:
+          name: lab12-observer

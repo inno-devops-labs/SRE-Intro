@@ -1,0 +1,32 @@
+# Temporary control experiment: same image, only the bulkhead wrapper bypassed.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab11-bulkhead
+  labels:
+    app: gateway
+    experiment: lab11
+spec:
+  containers:
+  - name: gateway
+    image: quickticket-gateway:lab11-final
+    imagePullPolicy: Never
+    ports:
+    - containerPort: 8080
+    env:
+    - name: RATE_LIMIT_RPS
+      value: '1000'
+    - name: BULKHEAD_PAYMENTS_MAX
+      value: '10'
+    - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+      value: '0.5'
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8080
+    command:
+    - python
+    - -c
+    - "import main, uvicorn\nclass Unbounded:\n async def call(self, func):\n  return\
+      \ await func()\nmain.payments_bulkhead = Unbounded()\nuvicorn.run(main.app,\
+      \ host=\"0.0.0.0\", port=8080)"

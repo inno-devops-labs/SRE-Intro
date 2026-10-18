@@ -1,0 +1,1 @@
+{"mode": "bulkhead", "pay_outcomes": {"200": 18, "500": 12}, "rejected_latency": {}, "events_outcomes": {"200": 29, "502": 1}, "events_latency": {"p99_ms": 954.67, "max_ms": 954.67}, "EVENTS": {"ok": 29, "slow": 1}, "peak_occupancy": 0}

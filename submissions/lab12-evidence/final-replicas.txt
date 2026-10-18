@@ -1,0 +1,13 @@
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backup-inspector   1/1     1            1           6d3h
+deployment.apps/events             2/2     2            2           6d4h
+deployment.apps/gateway            0/0     0            0           6d2h
+deployment.apps/lab12-observer     1/1     1            1           5m6s
+deployment.apps/mixedload          2/2     2            2           6d4h
+deployment.apps/notifications      2/2     2            2           2d21h
+deployment.apps/payments           2/2     2            2           6d4h
+deployment.apps/postgres           1/1     1            1           6d4h
+deployment.apps/redis              1/1     1            1           6d4h
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           6d2h

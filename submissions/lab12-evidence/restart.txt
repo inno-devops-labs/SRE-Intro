@@ -1,0 +1,4 @@
+rollout 'gateway' restarts in 0s
+Progressing - waiting for rollout spec update to be observed
+Progressing - rollout is restarting
+Healthy

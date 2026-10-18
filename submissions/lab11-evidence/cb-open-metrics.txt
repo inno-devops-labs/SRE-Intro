@@ -1,0 +1,29 @@
+http://10.42.0.95:8080
+gateway_retry_total{result="retried",target="payments"} 13.0
+gateway_retry_total{result="succeeded_after_retry",target="payments"} 2.0
+gateway_retry_total{result="exhausted",target="payments"} 5.0
+gateway_circuit_breaker_transitions_total{to="OPEN"} 1.0
+gateway_bulkhead_in_flight{target="payments"} 0.0
+http://10.42.0.96:8080
+gateway_retry_total{result="retried",target="payments"} 13.0
+gateway_retry_total{result="succeeded_after_retry",target="payments"} 2.0
+gateway_retry_total{result="exhausted",target="payments"} 5.0
+gateway_circuit_breaker_transitions_total{to="OPEN"} 1.0
+gateway_bulkhead_in_flight{target="payments"} 0.0
+http://10.42.0.92:8080
+gateway_retry_total{result="retried",target="payments"} 11.0
+gateway_retry_total{result="succeeded_after_retry",target="payments"} 1.0
+gateway_retry_total{result="exhausted",target="payments"} 5.0
+gateway_circuit_breaker_transitions_total{to="OPEN"} 1.0
+gateway_bulkhead_in_flight{target="payments"} 0.0
+http://10.42.0.93:8080
+gateway_retry_total{result="retried",target="payments"} 15.0
+gateway_retry_total{result="succeeded_after_retry",target="payments"} 3.0
+gateway_retry_total{result="exhausted",target="payments"} 5.0
+gateway_circuit_breaker_transitions_total{to="OPEN"} 1.0
+gateway_bulkhead_in_flight{target="payments"} 0.0
+http://10.42.0.94:8080
+gateway_retry_total{result="retried",target="payments"} 10.0
+gateway_retry_total{result="exhausted",target="payments"} 5.0
+gateway_circuit_breaker_transitions_total{to="OPEN"} 1.0
+gateway_bulkhead_in_flight{target="payments"} 0.0

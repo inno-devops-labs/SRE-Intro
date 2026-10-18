@@ -1,0 +1,54 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"autoscaling/v2","kind":"HorizontalPodAutoscaler","metadata":{"annotations":{},"name":"gateway","namespace":"default"},"spec":{"maxReplicas":12,"metrics":[{"resource":{"name":"cpu","target":{"averageUtilization":70,"type":"Utilization"}},"type":"Resource"}],"minReplicas":5,"scaleTargetRef":{"apiVersion":"argoproj.io/v1alpha1","kind":"Rollout","name":"gateway"}}}
+  creationTimestamp: "2026-10-18T10:39:47Z"
+  name: gateway
+  namespace: default
+  resourceVersion: "29639"
+  uid: b73c20f2-2de8-467d-a9e0-a3a1fff32d61
+spec:
+  maxReplicas: 12
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 70
+        type: Utilization
+    type: Resource
+  minReplicas: 5
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: gateway
+status:
+  conditions:
+  - lastTransitionTime: "2026-10-18T10:40:02Z"
+    message: recent recommendations were higher than current one, applying the highest
+      recent recommendation
+    reason: ScaleDownStabilized
+    status: "True"
+    type: AbleToScale
+  - lastTransitionTime: "2026-10-18T10:40:02Z"
+    message: the HPA was able to successfully calculate a replica count from cpu resource
+      utilization (percentage of request)
+    reason: ValidMetricFound
+    status: "True"
+    type: ScalingActive
+  - lastTransitionTime: "2026-10-18T10:40:02Z"
+    message: the desired count is within the acceptable range
+    reason: DesiredWithinRange
+    status: "False"
+    type: ScalingLimited
+  currentMetrics:
+  - resource:
+      current:
+        averageUtilization: 56
+        averageValue: 28m
+      name: cpu
+    type: Resource
+  currentReplicas: 8
+  desiredReplicas: 8
+  lastScaleTime: "2026-10-18T10:41:02Z"

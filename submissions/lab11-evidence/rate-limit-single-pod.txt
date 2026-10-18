@@ -1,0 +1,2 @@
+{"mode": "rate", "outcomes": {"200": 9, "429": 91}, "retry_after": ["1"]}
+{"below_limit": {"200": 5}}

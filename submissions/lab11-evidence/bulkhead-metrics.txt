@@ -1,0 +1,6 @@
+http://10.42.0.107:8080
+gateway_retry_total{result="retried",target="payments"} 4.0
+gateway_retry_total{result="succeeded_after_retry",target="payments"} 3.0
+gateway_bulkhead_in_flight{target="payments"} 0.0
+gateway_bulkhead_rejections_total{target="payments"} 20.0
+gateway_bulkhead_rejections_created{target="payments"} 1.7920708973620028e+09

@@ -1,0 +1,6 @@
+2026-10-18T10:36:10ZNAME                       CREATED
+gateway-7c79cddb95-2ptbz   2026-10-18T10:36:19Z
+gateway-7c79cddb95-4hgbv   2026-10-18T10:36:22Z
+gateway-7c79cddb95-8djsw   2026-10-18T10:36:16Z
+gateway-7c79cddb95-gsm84   2026-10-18T10:36:13Z
+gateway-7c79cddb95-vrhwr   2026-10-18T10:36:10Z

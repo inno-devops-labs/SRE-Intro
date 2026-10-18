@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab12-load-hpa
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: locust
+        image: locustio/locust:2.43.4
+        command:
+        - locust
+        args:
+        - -f
+        - /mnt/locust/locustfile.py
+        - --host=http://gateway:8080
+        - --headless
+        - -u
+        - '200'
+        - -r
+        - '20'
+        - -t
+        - 120s
+        - --only-summary
+        volumeMounts:
+        - name: locustfile
+          mountPath: /mnt/locust
+      volumes:
+      - name: locustfile
+        configMap:
+          name: lab12-locustfile

@@ -1,0 +1,2 @@
+{"mode": "checkout", "outcomes": {"200": 30}, "pay_latency": {"p99_ms": 20.54, "max_ms": 20.54}}
+{"mode": "checkout", "outcomes": {"200": 10, "reserve_409": 20}, "pay_latency": {"p99_ms": 14.02, "max_ms": 14.02}}

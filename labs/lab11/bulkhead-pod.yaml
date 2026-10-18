@@ -1,0 +1,28 @@
+# Temporary experiment only. Before applying, restrict the gateway Service to
+# the healthy Rollout's rollouts-pod-template-hash, so this pod receives only
+# directed probe traffic. Restore the Service selector after deleting this pod.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab11-bulkhead
+  labels:
+    app: gateway  # Enables the existing Prometheus pod discovery.
+    experiment: lab11
+spec:
+  containers:
+    - name: gateway
+      image: quickticket-gateway:lab11-final
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 8080
+      env:
+        - name: RATE_LIMIT_RPS
+          value: "1000" # Exercise concurrency admission, not the rate limiter.
+        - name: BULKHEAD_PAYMENTS_MAX
+          value: "10"
+        - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+          value: "0.5"
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 8080

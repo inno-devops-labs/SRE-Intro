@@ -1,0 +1,3 @@
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade b12000000002 -> b12000000003, Backfill after deploy A; preserve the date index on the new column.

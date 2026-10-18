@@ -1,0 +1,683 @@
+{
+  "time": 1792319898.288289,
+  "phase": "after-deploy-a",
+  "observer": {
+    "started": 1792319659.3805356,
+    "time": 1792319898.225073,
+    "counts": {
+      "list:200": 231,
+      "reserve:200": 231,
+      "pay:200": 231,
+      "confirmed": 231
+    }
+  },
+  "prometheus": {
+    "sum(gateway_requests_total{status=~\"5..\"}) or vector(0)": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1792319898.559,
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "sum(increase(gateway_requests_total{status=~\"5..\"}[3m])) or vector(0)": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1792319898.607,
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "sum(increase(gateway_requests_total{path=\"/reserve/{id}/pay\",status=\"200\"}[1m])) or vector(0)": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1792319898.651,
+              "390.54932274862193"
+            ]
+          }
+        ]
+      }
+    },
+    "sum(up{job=\"gateway\"})": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1792319898.696,
+              "5"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "pods": [
+    {
+      "name": "events-589db796c9-8s7pf",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-events:lab12-a"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://5beee9550622cb9bff087a29897b762e7d571e0a7555a0548ac4f3c796d94389",
+          "image": "docker.io/library/quickticket-events:lab12-a",
+          "imageID": "sha256:e646e226ad6889a1eaa54675851a7e4bff8016583eb6e89740f5c6048f2dab94",
+          "lastState": {},
+          "name": "events",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:37:59Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-4q44x",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "events-589db796c9-k5fm9",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-events:lab12-a"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://a8b290b805cd4531a24c1bb0af59e1541214b262c9aa92f39fdd9eeeb4828f0a",
+          "image": "docker.io/library/quickticket-events:lab12-a",
+          "imageID": "sha256:e646e226ad6889a1eaa54675851a7e4bff8016583eb6e89740f5c6048f2dab94",
+          "lastState": {},
+          "name": "events",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:37:55Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-9xnkz",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gateway-7c79cddb95-2ptbz",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-gateway:lab11-final"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://87cc4b61ac12395db6bfc794dac5db8d143a2813043b3f1277ddb6785083076a",
+          "image": "docker.io/library/quickticket-gateway:lab11-final",
+          "imageID": "sha256:31ecc4f01d77335dcc53793e9ed9c42c81c786aa5f2f9c469f04adb7631581a1",
+          "lastState": {},
+          "name": "gateway",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:36:19Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-lfn66",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gateway-7c79cddb95-4hgbv",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-gateway:lab11-final"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://04b93f089e8b7fbd0237f7193e121a965c227f2f76239c80271796147d64a501",
+          "image": "docker.io/library/quickticket-gateway:lab11-final",
+          "imageID": "sha256:31ecc4f01d77335dcc53793e9ed9c42c81c786aa5f2f9c469f04adb7631581a1",
+          "lastState": {},
+          "name": "gateway",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:36:22Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-9mvpd",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gateway-7c79cddb95-8djsw",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-gateway:lab11-final"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://5710b06b9fb02c60d820f07faeb81228870f272398c3090f0af4b739cab7fc63",
+          "image": "docker.io/library/quickticket-gateway:lab11-final",
+          "imageID": "sha256:31ecc4f01d77335dcc53793e9ed9c42c81c786aa5f2f9c469f04adb7631581a1",
+          "lastState": {},
+          "name": "gateway",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:36:16Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-jfp2v",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gateway-7c79cddb95-gsm84",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-gateway:lab11-final"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://4b1cf31e79df392bd4c2ec6f0d82f5102463a75e4ec0323b147d90191db07b91",
+          "image": "docker.io/library/quickticket-gateway:lab11-final",
+          "imageID": "sha256:31ecc4f01d77335dcc53793e9ed9c42c81c786aa5f2f9c469f04adb7631581a1",
+          "lastState": {},
+          "name": "gateway",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:36:13Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-wd5lh",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gateway-7c79cddb95-vrhwr",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-gateway:lab11-final"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://5ee6ac706295f6eb674d10204f006e68f3c01272703c4277763244cde49ff773",
+          "image": "docker.io/library/quickticket-gateway:lab11-final",
+          "imageID": "sha256:31ecc4f01d77335dcc53793e9ed9c42c81c786aa5f2f9c469f04adb7631581a1",
+          "lastState": {},
+          "name": "gateway",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:36:11Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-gzxvx",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "notifications-87f4ff5d9-4jnbr",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-notifications:v1"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://dac1b65224af96e8bb845d560f339c1090f236eedeea43793b8a63ee32134f2f",
+          "image": "docker.io/library/quickticket-notifications:v1",
+          "imageID": "sha256:71308cebb31bd1d86d735bcc697ac36461039e6a3451bdb4d12ec7679163cbdd",
+          "lastState": {},
+          "name": "notifications",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:32:57Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-p9kl9",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "notifications-87f4ff5d9-7jqj6",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "quickticket-notifications:v1"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://6daa6e451f2abb9449e3df5ac52c1bc502d64c32f6cea1acd1d530db2c4eb87e",
+          "image": "docker.io/library/quickticket-notifications:v1",
+          "imageID": "sha256:71308cebb31bd1d86d735bcc697ac36461039e6a3451bdb4d12ec7679163cbdd",
+          "lastState": {},
+          "name": "notifications",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:32:55Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-l2j6s",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "payments-6d8b58c97b-l5vmh",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "ghcr.io/wyroxx/quickticket-payments:1aaff1a590851432a683b368cef4197c7bda2024"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://db63060793b59200a237fc528ba96885e048eae8c393f209a13608f19f5c2dd1",
+          "image": "ghcr.io/wyroxx/quickticket-payments:1aaff1a590851432a683b368cef4197c7bda2024",
+          "imageID": "ghcr.io/wyroxx/quickticket-payments@sha256:bc1dc357c6505de6c6ede92a235024a78da1f766f8a07387b2814692efc5c9f1",
+          "lastState": {},
+          "name": "payments",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:32:56Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-gdlsq",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "payments-6d8b58c97b-pbxwg",
+      "node": "k3d-quickticket-server-0",
+      "images": [
+        "ghcr.io/wyroxx/quickticket-payments:1aaff1a590851432a683b368cef4197c7bda2024"
+      ],
+      "status": [
+        {
+          "allocatedResources": {
+            "cpu": "50m",
+            "memory": "64Mi"
+          },
+          "containerID": "containerd://07f84f88b9a1f91fd116b7e2b3bb07fe842d836db88737be5eab8cbbb9dd5ec5",
+          "image": "ghcr.io/wyroxx/quickticket-payments:1aaff1a590851432a683b368cef4197c7bda2024",
+          "imageID": "ghcr.io/wyroxx/quickticket-payments@sha256:bc1dc357c6505de6c6ede92a235024a78da1f766f8a07387b2814692efc5c9f1",
+          "lastState": {},
+          "name": "payments",
+          "ready": true,
+          "resources": {
+            "limits": {
+              "cpu": "200m",
+              "memory": "256Mi"
+            },
+            "requests": {
+              "cpu": "50m",
+              "memory": "64Mi"
+            }
+          },
+          "restartCount": 0,
+          "started": true,
+          "state": {
+            "running": {
+              "startedAt": "2026-10-18T10:33:00Z"
+            }
+          },
+          "user": {
+            "linux": {
+              "gid": 0,
+              "supplementalGroups": [
+                0
+              ],
+              "uid": 0
+            }
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+              "name": "kube-api-access-jpkjz",
+              "readOnly": true,
+              "recursiveReadOnly": "Disabled"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

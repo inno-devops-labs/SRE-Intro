@@ -1,0 +1,11 @@
+pod "gateway-7c79cddb95-2kfkp" deleted from default namespace
+pod "events-79485ddcf9-q9n58" deleted from default namespace
+pod/gateway-7c79cddb95-2kfkp condition met
+pod/events-79485ddcf9-q9n58 condition met
+pod/events-79485ddcf9-hxxjb condition met
+pod/events-79485ddcf9-s8ctp condition met
+pod/gateway-7c79cddb95-bm9h5 condition met
+pod/gateway-7c79cddb95-g67s2 condition met
+pod/gateway-7c79cddb95-gb2tk condition met
+pod/gateway-7c79cddb95-lbdgc condition met
+pod/gateway-7c79cddb95-w6wj2 condition met
