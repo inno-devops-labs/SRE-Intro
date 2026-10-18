@@ -1,0 +1,4 @@
+2026-10-18T09:37:27.939377+00:00
+$ /tmp/kubectl-argo-rollouts restart gateway
+rollout 'gateway' restarts in 0s
+Exit status: 0

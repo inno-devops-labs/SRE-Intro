@@ -1,0 +1,11 @@
+2026-10-18T09:34:34.681115+00:00
+$ python3 scripts/lab12_wait_gateway.py
+phase, updated, ready, total: ('Paused', 1, 5, 5)
+phase, updated, ready, total: ('Progressing', 1, 5, 5)
+phase, updated, ready, total: ('Progressing', 1, 4, 4)
+phase, updated, ready, total: ('Progressing', 3, 4, 6)
+phase, updated, ready, total: ('Paused', 3, 6, 6)
+phase, updated, ready, total: ('Progressing', 5, 4, 6)
+phase, updated, ready, total: ('Healthy', 5, 5, 5)
+Current generation is healthy; stableRS: 59c65c6bbd
+Exit status: 0

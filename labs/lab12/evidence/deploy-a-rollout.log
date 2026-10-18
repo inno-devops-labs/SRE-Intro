@@ -1,0 +1,4 @@
+2026-10-18T09:39:33.771356+00:00
+$ kubectl rollout status deployment/events --timeout=180s
+deployment "events" successfully rolled out
+Exit status: 0

@@ -1,0 +1,6 @@
+2026-10-18T09:41:28.328297+00:00
+$ env DATABASE_URL=postgresql://quickticket:quickticket@127.0.0.1:15432/quickticket .venv/bin/alembic upgrade 12d_drop_event_date
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 12c_backfill_scheduled_at -> 12d_drop_event_date, drop events event date.
+Exit status: 0

@@ -1,0 +1,5 @@
+2026-10-18T09:34:14.622748+00:00
+$ kubectl apply -f k8s/gateway.yaml
+rollout.argoproj.io/gateway configured
+service/gateway unchanged
+Exit status: 0

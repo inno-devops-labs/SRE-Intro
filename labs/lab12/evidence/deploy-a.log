@@ -1,0 +1,4 @@
+2026-10-18T09:39:12.751635+00:00
+$ kubectl patch deployment events --type=strategic -p '{"spec":{"template":{"spec":{"containers":[{"name":"events","image":"quickticket-events:lab12-a","imagePullPolicy":"Never"}]}}}}'
+deployment.apps/events patched
+Exit status: 0

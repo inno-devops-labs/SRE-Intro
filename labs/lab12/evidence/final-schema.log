@@ -1,0 +1,33 @@
+2026-10-18T09:41:44.899204+00:00
+$ kubectl exec deployment/postgres -- psql -U quickticket -d quickticket -c '\d events' -c 'TABLE alembic_version;' -c 'SELECT id, name, scheduled_at FROM events ORDER BY id;'
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default               
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null | 
+ venue         | text                     |           | not null | 
+ total_tickets | integer                  |           | not null | 
+ price_cents   | integer                  |           | not null | 
+ email         | character varying(255)   |           |          | 
+ scheduled_at  | timestamp with time zone |           | not null | 
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+     version_num     
+---------------------
+ 12d_drop_event_date
+(1 row)
+
+ id |         name         |      scheduled_at      
+----+----------------------+------------------------
+  1 | Go Conference 2026   | 2026-09-15 09:00:00+00
+  2 | SRE Meetup           | 2026-10-01 18:00:00+00
+  3 | Cloud Native Summit  | 2026-11-20 10:00:00+00
+  4 | Python Workshop      | 2026-09-22 14:00:00+00
+  5 | Kubernetes Deep Dive | 2026-10-10 10:00:00+00
+  6 | Lab 9 Load Event     | 2026-12-01 12:00:00+00
+(6 rows)
+
+Exit status: 0

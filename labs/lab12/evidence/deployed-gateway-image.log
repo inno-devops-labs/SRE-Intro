@@ -1,0 +1,9 @@
+2026-10-18T09:40:41.129543+00:00
+$ kubectl get pod -l app=gateway -o 'custom-columns=NAME:.metadata.name,IMAGE:.spec.containers[0].image,IMAGE_ID:.status.containerStatuses[0].imageID'
+NAME                       IMAGE                       IMAGE_ID
+gateway-59c65c6bbd-44lbx   quickticket-gateway:lab12   sha256:ab953cdba98f0a6be8928e5f3c43b282125741c0fca2d65fedd4a06cfd30c995
+gateway-59c65c6bbd-5gg8m   quickticket-gateway:lab12   sha256:ab953cdba98f0a6be8928e5f3c43b282125741c0fca2d65fedd4a06cfd30c995
+gateway-59c65c6bbd-cvl6n   quickticket-gateway:lab12   sha256:ab953cdba98f0a6be8928e5f3c43b282125741c0fca2d65fedd4a06cfd30c995
+gateway-59c65c6bbd-p2bmr   quickticket-gateway:lab12   sha256:ab953cdba98f0a6be8928e5f3c43b282125741c0fca2d65fedd4a06cfd30c995
+gateway-59c65c6bbd-wxgh6   quickticket-gateway:lab12   sha256:ab953cdba98f0a6be8928e5f3c43b282125741c0fca2d65fedd4a06cfd30c995
+Exit status: 0

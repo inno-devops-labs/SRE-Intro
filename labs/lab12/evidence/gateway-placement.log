@@ -1,0 +1,9 @@
+2026-10-18T09:36:08.439934+00:00
+$ kubectl get pods -l app=gateway -o wide
+NAME                       READY   STATUS    RESTARTS   AGE    IP           NODE                       NOMINATED NODE   READINESS GATES
+gateway-59c65c6bbd-cm7l6   1/1     Running   0          113s   10.42.0.56   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-nb9nk    1/1     Running   0          68m    10.42.0.11   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-t2csx    1/1     Running   0          68m    10.42.0.12   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-th88c    1/1     Running   0          68m    10.42.0.10   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-xdthw    1/1     Running   0          68m    10.42.0.13   k3d-quickticket-server-0   <none>           <none>
+Exit status: 0

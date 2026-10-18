@@ -1,0 +1,20 @@
+2026-10-18T09:39:45.191614+00:00
+$ kubectl apply --dry-run=server -f k8s/
+deployment.apps/events configured (server dry run)
+service/events unchanged (server dry run)
+rollout.argoproj.io/gateway configured (server dry run)
+service/gateway unchanged (server dry run)
+deployment.apps/notifications unchanged (server dry run)
+service/notifications unchanged (server dry run)
+deployment.apps/payments unchanged (server dry run)
+service/payments unchanged (server dry run)
+poddisruptionbudget.policy/gateway-pdb configured (server dry run)
+poddisruptionbudget.policy/events-pdb configured (server dry run)
+poddisruptionbudget.policy/payments-pdb configured (server dry run)
+poddisruptionbudget.policy/notifications-pdb configured (server dry run)
+persistentvolumeclaim/postgres-data unchanged (server dry run)
+deployment.apps/postgres unchanged (server dry run)
+service/postgres unchanged (server dry run)
+deployment.apps/redis configured (server dry run)
+service/redis configured (server dry run)
+Exit status: 0

@@ -1,0 +1,61 @@
+2026-10-18T09:33:51.714751+00:00
+5xx_total
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- http://localhost:9090/api/v1/query?query=sum%28gateway_requests_total%7Bstatus%3D~%225..%22%7D%29+or+vector%280%29
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1792316032.196,"187"]}]}}
+5xx_increase_3m
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- http://localhost:9090/api/v1/query?query=sum%28increase%28gateway_requests_total%7Bstatus%3D~%225..%22%7D%5B3m%5D%29%29+or+vector%280%29
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1792316032.298,"1.017304361153286"]}]}}
+requests_increase_3m
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- http://localhost:9090/api/v1/query?query=sum%28increase%28gateway_requests_total%7Bpath%21%3D%22%2Fhealth%22%7D%5B3m%5D%29%29
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1792316032.380,"1193.8421875729066"]}]}}
+scrape_targets
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- http://localhost:9090/api/v1/query?query=sum%28up%7Bjob%3D%22gateway%22%7D%29
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1792316032.453,"5"]}]}}
+checkout_success_3m
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- http://localhost:9090/api/v1/query?query=sum%28increase%28gateway_requests_total%7Bpath%3D%22%2Freserve%2F%7Bid%7D%2Fpay%22%2Cstatus%3D%22200%22%7D%5B3m%5D%29%29+or+vector%280%29
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{},"value":[1792316032.567,"286.12582035582915"]}]}}
+$ kubectl get deploy,rollout,pdb
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backup-inspector   1/1     1            1           8d
+deployment.apps/events             2/2     2            2           27d
+deployment.apps/mixedload          2/2     2            2           2m31s
+deployment.apps/notifications      2/2     2            2           68m
+deployment.apps/payments           2/2     2            2           27d
+deployment.apps/postgres           1/1     1            1           27d
+deployment.apps/redis              1/1     1            1           27d
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           13d
+
+NAME                                           MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+poddisruptionbudget.policy/events-pdb          1               N/A               1                     2m52s
+poddisruptionbudget.policy/gateway-pdb         2               N/A               3                     2m52s
+poddisruptionbudget.policy/notifications-pdb   N/A             1                 1                     2m52s
+poddisruptionbudget.policy/payments-pdb        1               N/A               1                     2m52s
+
+$ kubectl logs deployment/mixedload --tail=12 --all-pods=true
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-xvhgf/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+[pod/mixedload-65b7459cd4-z7dgb/curl]  status=200
+

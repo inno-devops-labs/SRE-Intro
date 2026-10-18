@@ -1,0 +1,99 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 245B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.13-slim
+#2 DONE 0.3s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 10.81kB done
+#4 DONE 0.0s
+
+#5 [1/5] FROM docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e97c4822c1af3df53a1476cf5ddc6c087c0c10bc3a5678c2f
+#5 resolve docker.io/library/python:3.13-slim@sha256:70729b46c69b4f1e97c4822c1af3df53a1476cf5ddc6c087c0c10bc3a5678c2f done
+#5 DONE 0.0s
+
+#6 [2/5] WORKDIR /app
+#6 CACHED
+
+#7 [3/5] COPY requirements.txt .
+#7 DONE 0.1s
+
+#8 [4/5] RUN pip install --no-cache-dir -r requirements.txt
+#8 6.303 Collecting fastapi==0.136.0 (from -r requirements.txt (line 1))
+#8 7.081   Downloading fastapi-0.136.0-py3-none-any.whl.metadata (28 kB)
+#8 8.683 Collecting uvicorn==0.44.0 (from -r requirements.txt (line 2))
+#8 8.833   Downloading uvicorn-0.44.0-py3-none-any.whl.metadata (6.7 kB)
+#8 10.02 Collecting psycopg2-binary==2.9.11 (from -r requirements.txt (line 3))
+#8 10.16   Downloading psycopg2_binary-2.9.11-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl.metadata (4.9 kB)
+#8 11.20 Collecting redis==7.4.0 (from -r requirements.txt (line 4))
+#8 11.35   Downloading redis-7.4.0-py3-none-any.whl.metadata (12 kB)
+#8 11.82 Collecting prometheus-client==0.25.0 (from -r requirements.txt (line 5))
+#8 12.15   Downloading prometheus_client-0.25.0-py3-none-any.whl.metadata (2.1 kB)
+#8 12.87 Collecting starlette>=0.46.0 (from fastapi==0.136.0->-r requirements.txt (line 1))
+#8 13.01   Downloading starlette-1.8.0-py3-none-any.whl.metadata (6.6 kB)
+#8 15.14 Collecting pydantic>=2.9.0 (from fastapi==0.136.0->-r requirements.txt (line 1))
+#8 15.29   Downloading pydantic-2.14.1-py3-none-any.whl.metadata (133 kB)
+#8 16.63 Collecting typing-extensions>=4.8.0 (from fastapi==0.136.0->-r requirements.txt (line 1))
+#8 16.78   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#8 16.98 Collecting typing-inspection>=0.4.2 (from fastapi==0.136.0->-r requirements.txt (line 1))
+#8 17.12   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+#8 17.38 Collecting annotated-doc>=0.0.2 (from fastapi==0.136.0->-r requirements.txt (line 1))
+#8 17.53   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+#8 19.13 Collecting click>=7.0 (from uvicorn==0.44.0->-r requirements.txt (line 2))
+#8 19.28   Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+#8 19.61 Collecting h11>=0.8 (from uvicorn==0.44.0->-r requirements.txt (line 2))
+#8 19.76   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#8 20.12 Collecting annotated-types>=0.6.0 (from pydantic>=2.9.0->fastapi==0.136.0->-r requirements.txt (line 1))
+#8 20.27   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+#8 28.92 Collecting pydantic-core==2.50.1 (from pydantic>=2.9.0->fastapi==0.136.0->-r requirements.txt (line 1))
+#8 29.07   Downloading pydantic_core-2.50.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (6.5 kB)
+#8 30.06 Collecting anyio<5,>=4.0.0 (from starlette>=0.46.0->fastapi==0.136.0->-r requirements.txt (line 1))
+#8 30.20   Downloading anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+#8 31.09 Collecting idna>=2.8 (from anyio<5,>=4.0.0->starlette>=0.46.0->fastapi==0.136.0->-r requirements.txt (line 1))
+#8 31.23   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+#8 32.12 Downloading fastapi-0.136.0-py3-none-any.whl (117 kB)
+#8 37.55 Downloading uvicorn-0.44.0-py3-none-any.whl (69 kB)
+#8 40.03 Downloading psycopg2_binary-2.9.11-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.whl (4.4 MB)
+#8 69.98    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 165.1 kB/s  0:00:30
+#8 70.14 Downloading redis-7.4.0-py3-none-any.whl (409 kB)
+#8 72.42 Downloading prometheus_client-0.25.0-py3-none-any.whl (64 kB)
+#8 72.95 Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+#8 73.22 Downloading click-8.5.0-py3-none-any.whl (125 kB)
+#8 73.92 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#8 74.75 Downloading pydantic-2.14.1-py3-none-any.whl (488 kB)
+#8 77.09 Downloading pydantic_core-2.50.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (2.0 MB)
+#8 84.85    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 283.3 kB/s  0:00:07
+#8 85.01 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#8 85.83 Downloading starlette-1.8.0-py3-none-any.whl (79 kB)
+#8 86.84 Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
+#8 87.48 Downloading idna-3.20-py3-none-any.whl (69 kB)
+#8 88.04 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#8 88.65 Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+#8 89.48 Installing collected packages: typing-extensions, redis, psycopg2-binary, prometheus-client, idna, h11, click, annotated-types, annotated-doc, uvicorn, typing-inspection, pydantic-core, anyio, starlette, pydantic, fastapi
+#8 90.52 
+#8 90.52 Successfully installed annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.15.1 click-8.5.0 fastapi-0.136.0 h11-0.16.0 idna-3.20 prometheus-client-0.25.0 psycopg2-binary-2.9.11 pydantic-2.14.1 pydantic-core-2.50.1 redis-7.4.0 starlette-1.8.0 typing-extensions-4.16.0 typing-inspection-0.4.4 uvicorn-0.44.0
+#8 90.52 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+#8 DONE 90.8s
+
+#9 [5/5] COPY main.py .
+#9 DONE 0.0s
+
+#10 exporting to image
+#10 exporting layers
+#10 exporting layers 1.2s done
+#10 exporting manifest sha256:e658b4a860233e84015b83c9c434196222755cca5d9a5e1c6b9d0380cbb0fd3d
+#10 exporting manifest sha256:e658b4a860233e84015b83c9c434196222755cca5d9a5e1c6b9d0380cbb0fd3d done
+#10 exporting config sha256:03e26e19e34eaebe8c72699cdab3afeb7334fab0cb495acb80f905de0d9997ac done
+#10 exporting attestation manifest sha256:978fd2878b1fbfd8c1c6adcbefaac5530e4580e96808ebbc53f3e5ca5bf20a6d 0.0s done
+#10 exporting manifest list sha256:38caefe97a03efde1ce7d9cad179a1ce728e116132b04867d8573a674504e960 done
+#10 naming to docker.io/library/quickticket-events:lab12-a done
+#10 unpacking to docker.io/library/quickticket-events:lab12-a
+#10 unpacking to docker.io/library/quickticket-events:lab12-a 0.3s done
+#10 DONE 1.5s

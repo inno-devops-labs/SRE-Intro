@@ -1,0 +1,37 @@
+# Lab 12: same checkout flow, using the existing high-capacity Lab 11 event (id=6).
+# Log HTTP outcomes so transport errors cannot hide behind missing server metrics.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mixedload
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mixedload
+  template:
+    metadata:
+      labels:
+        app: mixedload
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl:latest
+          command: ["sh", "-c"]
+          args:
+            - |
+              while true; do
+                # Read path (no dependencies on payments / Redis)
+                curl -sS --max-time 15 -w " status=%{http_code}\n" http://gateway:8080/events -o /dev/null
+
+                # Full checkout chain (exercises events+postgres+redis+payments)
+                RES=$(curl -sS --max-time 15 -w " status=%{http_code}\n" -X POST http://gateway:8080/events/6/reserve \
+                        -H "Content-Type: application/json" \
+                        -d '{"quantity":1}')
+                RID=$(echo "$RES" | sed -n 's/.*reservation_id":"\([^"]*\).*/\1/p')
+                if [ -n "$RID" ]; then
+                  curl -sS --max-time 15 -w " status=%{http_code}\n" -X POST http://gateway:8080/reserve/$RID/pay -o /dev/null
+                fi
+
+                sleep 1
+              done

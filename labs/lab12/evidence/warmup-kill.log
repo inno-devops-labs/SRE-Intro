@@ -1,0 +1,18 @@
+2026-10-18T09:33:40.746854+00:00
+$ kubectl delete pod gateway-f44d6dfc8-4jf7p --wait=false
+pod "gateway-f44d6dfc8-4jf7p" deleted from default namespace
+
+$ kubectl delete pod events-7468b5ff5f-9khm2 --wait=false
+pod "events-7468b5ff5f-9khm2" deleted from default namespace
+
+$ kubectl get pods -l app in (gateway,events) -o wide
+NAME                      READY   STATUS        RESTARTS   AGE     IP           NODE                       NOMINATED NODE   READINESS GATES
+events-7468b5ff5f-9khm2   1/1     Terminating   0          2m51s   10.42.0.45   k3d-quickticket-server-0   <none>           <none>
+events-7468b5ff5f-wjrrq   1/1     Running       0          10s     10.42.0.55   k3d-quickticket-server-0   <none>           <none>
+events-7468b5ff5f-xrz2n   1/1     Running       0          2m40s   10.42.0.47   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-nb9nk   1/1     Running       0          66m     10.42.0.11   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-t2csx   1/1     Running       0          65m     10.42.0.12   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-th88c   1/1     Running       0          66m     10.42.0.10   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-v7j94   1/1     Running       0          10s     10.42.0.54   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-xdthw   1/1     Running       0          65m     10.42.0.13   k3d-quickticket-server-0   <none>           <none>
+

@@ -1,0 +1,21 @@
+2026-10-18T09:41:04.865426+00:00
+$ .venv/bin/python -c 'import json,subprocess,time
+for _ in range(60):
+    pods=json.loads(subprocess.check_output(["kubectl","get","pods","-l","app=events","-o","json"]))["items"]
+    if len(pods)==2 and all(not p["metadata"].get("deletionTimestamp") and p["spec"]["containers"][0]["image"]=="quickticket-events:lab12-b" and any(c["type"]=="Ready" and c["status"]=="True" for c in p["status"].get("conditions",[])) for p in pods): break
+    time.sleep(1)
+else: raise SystemExit("Old Events pods remain")
+print(json.dumps([{ "pod": p["metadata"]["name"], "image": p["spec"]["containers"][0]["image"], "imageID": p["status"]["containerStatuses"][0]["imageID"]} for p in pods],indent=2))'
+[
+  {
+    "pod": "events-5f47656f9c-kgjl7",
+    "image": "quickticket-events:lab12-b",
+    "imageID": "sha256:8c6dab0238e0b08a9eb4a19d7254c8187bdea2d4b58a922be3228a0a2732ff71"
+  },
+  {
+    "pod": "events-5f47656f9c-wgcb7",
+    "image": "quickticket-events:lab12-b",
+    "imageID": "sha256:8c6dab0238e0b08a9eb4a19d7254c8187bdea2d4b58a922be3228a0a2732ff71"
+  }
+]
+Exit status: 0

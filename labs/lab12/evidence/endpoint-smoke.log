@@ -1,0 +1,17 @@
+2026-10-18T09:42:12.501149+00:00
+$ .venv/bin/python scripts/check_lab12_endpoints.py
+events-5f47656f9c-kgjl7
+http://localhost:8081/health 200 PASS
+http://localhost:8081/events 200 PASS
+http://localhost:8081/events/1 200 PASS
+http://gateway:8080/health 200 PASS
+http://gateway:8080/events 200 PASS
+http://gateway:8080/events/1 200 PASS
+events-5f47656f9c-wgcb7
+http://localhost:8081/health 200 PASS
+http://localhost:8081/events 200 PASS
+http://localhost:8081/events/1 200 PASS
+http://gateway:8080/health 200 PASS
+http://gateway:8080/events 200 PASS
+http://gateway:8080/events/1 200 PASS
+Exit status: 0

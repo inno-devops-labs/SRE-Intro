@@ -1,0 +1,80 @@
+2026-10-18T09:31:00.482184+00:00
+$ kubectl apply -f k8s/events.yaml -f k8s/payments.yaml -f k8s/notifications.yaml -f k8s/pdb.yaml
+deployment.apps/events configured
+service/events configured
+deployment.apps/payments configured
+service/payments configured
+deployment.apps/notifications configured
+service/notifications unchanged
+poddisruptionbudget.policy/gateway-pdb created
+poddisruptionbudget.policy/events-pdb created
+poddisruptionbudget.policy/payments-pdb created
+poddisruptionbudget.policy/notifications-pdb created
+
+$ kubectl rollout status deployment/events --timeout=180s
+Waiting for deployment "events" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "events" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "events" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "events" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "events" rollout to finish: 1 old replicas are pending termination...
+deployment "events" successfully rolled out
+
+$ kubectl rollout status deployment/payments --timeout=180s
+deployment "payments" successfully rolled out
+
+$ kubectl rollout status deployment/notifications --timeout=180s
+deployment "notifications" successfully rolled out
+
+$ kubectl apply -f labs/lab8/mixedload.yaml
+deployment.apps/mixedload created
+
+$ kubectl apply -f labs/lab12/mixedload.yaml
+deployment.apps/mixedload configured
+
+$ kubectl rollout status deployment/mixedload --timeout=120s
+Waiting for deployment "mixedload" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "mixedload" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "mixedload" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "mixedload" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "mixedload" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "mixedload" rollout to finish: 1 old replicas are pending termination...
+deployment "mixedload" successfully rolled out
+
+$ kubectl get deploy,rollout,pdb
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backup-inspector   1/1     1            1           8d
+deployment.apps/events             2/2     2            2           27d
+deployment.apps/mixedload          2/2     2            2           43s
+deployment.apps/notifications      2/2     2            2           66m
+deployment.apps/payments           2/2     2            2           27d
+deployment.apps/postgres           1/1     1            1           27d
+deployment.apps/redis              1/1     1            1           27d
+
+NAME                          DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+rollout.argoproj.io/gateway   5         5         5            5           13d
+
+NAME                                           MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+poddisruptionbudget.policy/events-pdb          1               N/A               1                     64s
+poddisruptionbudget.policy/gateway-pdb         2               N/A               3                     64s
+poddisruptionbudget.policy/notifications-pdb   N/A             1                 1                     64s
+poddisruptionbudget.policy/payments-pdb        1               N/A               1                     64s
+
+$ kubectl exec deployment/postgres -- psql -U quickticket -d quickticket -c \d events
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default               
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null | 
+ venue         | text                     |           | not null | 
+ event_date    | timestamp with time zone |           | not null | 
+ total_tickets | integer                  |           | not null | 
+ price_cents   | integer                  |           | not null | 
+ email         | character varying(255)   |           |          | 
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+

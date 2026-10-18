@@ -1,0 +1,6 @@
+2026-10-18T09:39:44.761126+00:00
+$ kubectl get pods -l app=events -o 'custom-columns=NAME:.metadata.name,IMAGE:.spec.containers[0].image,IMAGE_ID:.status.containerStatuses[0].imageID'
+NAME                      IMAGE                        IMAGE_ID
+events-58d597f4d7-6wkk5   quickticket-events:lab12-a   sha256:03e26e19e34eaebe8c72699cdab3afeb7334fab0cb495acb80f905de0d9997ac
+events-58d597f4d7-bzg95   quickticket-events:lab12-a   sha256:03e26e19e34eaebe8c72699cdab3afeb7334fab0cb495acb80f905de0d9997ac
+Exit status: 0

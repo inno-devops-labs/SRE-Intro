@@ -1,0 +1,4 @@
+2026-10-18T09:42:14.259019+00:00
+$ kubectl scale deployment/mixedload --replicas=0
+deployment.apps/mixedload scaled
+Exit status: 0

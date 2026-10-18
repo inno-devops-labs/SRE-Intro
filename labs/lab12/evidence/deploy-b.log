@@ -1,0 +1,5 @@
+2026-10-18T09:40:53.684244+00:00
+$ kubectl apply -f k8s/events.yaml
+deployment.apps/events configured
+service/events unchanged
+Exit status: 0

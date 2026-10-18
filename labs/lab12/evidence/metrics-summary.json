@@ -1,0 +1,92 @@
+[
+  {
+    "phase": "before-kill",
+    "utc": "2026-10-18T09:37:04.193884+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1006.6797364710089,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 335.2838406009719
+  },
+  {
+    "phase": "after-kill",
+    "utc": "2026-10-18T09:37:27.318543+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1002.771218910492,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 333.6823718607253
+  },
+  {
+    "phase": "after-restart",
+    "utc": "2026-10-18T09:38:48.166369+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1005.3319066630902,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 331.14580971709086
+  },
+  {
+    "phase": "after-index",
+    "utc": "2026-10-18T09:39:00.043140+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1008.4722634169558,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 331.5152528760889
+  },
+  {
+    "phase": "bonus-baseline",
+    "utc": "2026-10-18T09:39:00.703435+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1005.7707078294543,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 331.00321463072754
+  },
+  {
+    "phase": "after-m1",
+    "utc": "2026-10-18T09:39:11.785512+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1000.4841337992364,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 329.674008266492
+  },
+  {
+    "phase": "after-deploy-a",
+    "utc": "2026-10-18T09:39:43.908302+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1013.0080283594311,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 332.708733364406
+  },
+  {
+    "phase": "after-m2",
+    "utc": "2026-10-18T09:39:57.047229+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1013.3380800381559,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 334.6313960780265
+  },
+  {
+    "phase": "after-deploy-b",
+    "utc": "2026-10-18T09:41:27.248262+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1009.0562789700654,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 336.3521262978572
+  },
+  {
+    "phase": "bonus-final",
+    "utc": "2026-10-18T09:41:43.876725+00:00",
+    "5xx_total": 0.0,
+    "5xx_increase_3m": 0.0,
+    "requests_increase_3m": 1013.1728983840426,
+    "scrape_targets": 5.0,
+    "checkout_success_3m": 336.35255544140756
+  }
+]

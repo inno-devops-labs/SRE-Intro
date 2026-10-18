@@ -1,0 +1,5 @@
+2026-10-18T09:41:45.178130+00:00
+$ kubectl get analysisruns gateway-59c65c6bbd-9-2
+NAME                     STATUS       AGE
+gateway-59c65c6bbd-9-2   Successful   7m6s
+Exit status: 0
