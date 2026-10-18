@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: payments
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: payments
@@ -12,12 +12,17 @@ spec:
       labels:
         app: payments
     spec:
+      terminationGracePeriodSeconds: 40
       imagePullSecrets:
         - name: ghcr-secret
       containers:
         - name: payments
           image: ghcr.io/wyroxx/quickticket-payments:1aaff1a590851432a683b368cef4197c7bda2024
           imagePullPolicy: Always
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           ports:
             - containerPort: 8082
           livenessProbe:
@@ -32,8 +37,8 @@ spec:
             httpGet:
               path: /health
               port: 8082
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
 
           resources:
             requests:

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: events
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: events
@@ -12,12 +12,15 @@ spec:
       labels:
         app: events
     spec:
-      imagePullSecrets:
-        - name: ghcr-secret
+      terminationGracePeriodSeconds: 40
       containers:
         - name: events
-          image: ghcr.io/wyroxx/quickticket-events:1aaff1a590851432a683b368cef4197c7bda2024
-          imagePullPolicy: Always
+          image: quickticket-events:lab12-b
+          imagePullPolicy: Never
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           ports:
             - containerPort: 8081
           livenessProbe:
@@ -32,8 +35,8 @@ spec:
             httpGet:
               path: /health
               port: 8081
-            periodSeconds: 5
-            failureThreshold: 2
+            periodSeconds: 2
+            failureThreshold: 1
 
           resources:
             requests:
@@ -54,7 +57,7 @@ spec:
             - name: DB_PASS
               value: "quickticket"
             - name: DB_MAX_CONNS
-              value: "50"
+              value: "25"
             - name: REDIS_HOST
               value: "redis"
             - name: REDIS_PORT
