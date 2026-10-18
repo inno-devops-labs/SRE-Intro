@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments
+  labels:
+    app: payments
+spec:
+  # Lab 12: two replicas, so one pod can be killed or evicted while the other serves.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payments
+  template:
+    metadata:
+      labels:
+        app: payments
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: payments
+          image: ghcr.io/kortezz12/quickticket-payments:a2dfee5f0663bd645857f685c294c0646bdb5f4b
+          # Immutable commit-SHA tag already on the node; no registry round trip per replica.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+          env:
+            - name: PAYMENT_FAILURE_RATE
+              value: "0.0"
+            - name: PAYMENT_LATENCY_MS
+              value: "0"
+          # payments has no dependencies, so /health is safe for both probes.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            periodSeconds: 5
+            failureThreshold: 2
+          # Lab 12 (12.2 finding): without this, a deleted pod stops listening at
+          # once, while kube-proxy still routes new connections to its IP for a
+          # moment; the gateway then logged "All connection attempts failed" and
+          # returned 502. The sleep keeps the pod serving until its IP is out of
+          # the Service endpoints.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments
+spec:
+  type: ClusterIP
+  selector:
+    app: payments
+  ports:
+    - port: 8082
+      targetPort: 8082

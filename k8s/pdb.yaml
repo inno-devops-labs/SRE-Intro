@@ -1,0 +1,49 @@
+# Lab 12: PodDisruptionBudgets. They limit voluntary disruptions only (drain,
+# eviction API, Argo Rollouts restarts); a crashed or OOM-killed pod is not
+# stopped by a PDB. ALLOWED DISRUPTIONS = healthy pods - minAvailable.
+#
+# gateway: 5 replicas, the only entry point. minAvailable 2 lets a node drain
+# take 3 pods at once and still leaves two pods for traffic; a tighter value
+# (4) would let only one pod go at a time and could block a drain for good.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+# events and payments: 2 replicas each, one of them must always be up.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payments
+---
+# notifications is fire-and-forget (Lab 11), so the budget is relative:
+# at most one pod down at a time, whatever the replica count is.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: notifications
