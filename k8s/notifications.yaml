@@ -1,0 +1,44 @@
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notifications
+  template:
+    metadata:
+      labels:
+        app: notifications
+    spec:
+        imagePullSecrets:
+        - name: ghcr-secret
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: notifications
+          image: ghcr.io/troshkins/quickticket-notifications:91cc7f5848eddfe1b085e9c1d109b0cfb8b66106
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          env:
+            - name: NOTIFY_FAILURE_RATE
+              value: "0.0"
+            - name: NOTIFY_LATENCY_MS
+              value: "0"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifications
+spec:
+  type: ClusterIP
+  selector:
+    app: notifications
+  ports:
+    - port: 8083
+      targetPort: 8083
