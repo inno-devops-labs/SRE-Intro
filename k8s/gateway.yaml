@@ -1,0 +1,104 @@
+# Lab 7: the gateway is an Argo Rollouts canary instead of a Deployment.
+# Service selector stays plain `app: gateway`, so stable and canary pods share
+# traffic by replica count (no traffic router): 1 of 5 pods = 20%.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+  labels:
+    app: gateway
+spec:
+  replicas: 5
+  revisionHistoryLimit: 3
+  # A canary that never becomes Ready never reaches the analysis step, so
+  # without these two fields it waits at step 0 forever. With them the rollout
+  # aborts itself 60s after the canary stops making progress.
+  progressDeadlineSeconds: 60
+  progressDeadlineAbort: true
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 20s}
+        # gateway-error-rate lives in k8s/analysis-template.yaml and queries the
+        # in-cluster Prometheus from labs/lab7/prometheus.yaml
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      # Kept from Lab 5 for a fresh node that has to pull from private ghcr.io.
+      # The secret is currently missing from the cluster, so kubelet logs a
+      # FailedToRetrieveImagePullSecret warning per pod; IfNotPresent below
+      # means the cached images are used anyway. Recreate it before a new node.
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: gateway
+          image: ghcr.io/tayaorshulskaya-oss/quickticket-gateway:latest
+          # Always would send every new canary pod to the private registry; the
+          # three CI-built tags are already on the node, so IfNotPresent reuses them.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: APP_VERSION
+              value: "v2"
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+          # Liveness asks only "is the process serving HTTP": /metrics touches no dependency.
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          # Readiness asks "can it do its job": /health checks events and payments.
+          # It also keeps a canary with a broken dependency out of the Service.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
+          
+      
+
+
