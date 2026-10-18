@@ -1,0 +1,437 @@
+{
+  "mode": "burst",
+  "url": "http://10.42.0.9:8080",
+  "started_at": "2026-10-18T08:33:46.539099+00:00",
+  "metrics_before": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 23.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 7.0",
+    "gateway_circuit_breaker_transitions_total{to=\"OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"} 1.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {
+    "200": 10,
+    "429": 90
+  },
+  "rows": [
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 200,
+      "retry_after": null
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    },
+    {
+      "status": 429,
+      "retry_after": "1"
+    }
+  ],
+  "metrics_after": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 23.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 7.0",
+    "gateway_circuit_breaker_transitions_total{to=\"OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"} 1.0",
+    "gateway_rate_limit_rejections_total{path=\"/events\"} 90.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 43.0",
+    "notifications_notify_total{result=\"failed\"} 0.0"
+  ],
+  "finished_at": "2026-10-18T08:33:46.726672+00:00"
+}

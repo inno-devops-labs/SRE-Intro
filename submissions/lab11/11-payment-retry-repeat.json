@@ -1,0 +1,188 @@
+{
+  "mode": "checkout",
+  "url": "http://10.42.0.9:8080",
+  "started_at": "2026-10-18T08:36:27.166974+00:00",
+  "metrics_before": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 23.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 7.0",
+    "gateway_circuit_breaker_transitions_total{to=\"OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"} 1.0",
+    "gateway_rate_limit_rejections_total{path=\"/events\"} 90.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {
+    "200": 30
+  },
+  "pay_p99_ms": 472.694,
+  "rows": [
+    {
+      "status": 200,
+      "seconds": 0.12090108398115262,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.472693874995457,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008887042000424117,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.011214875004952773,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.013063708000117913,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.2116482499986887,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.19078495798748918,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012380749976728112,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.00831512501463294,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.1758753339818213,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.37538587499875575,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.013323334016604349,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.016219708981225267,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.01030374999390915,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009424124989891425,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012738833989715204,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.010989458009134978,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.12893149998853914,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.3631901249755174,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.013821166998241097,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.18779879200155847,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.20624062497518025,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.016450292023364455,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009246417001122609,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.007924582983832806,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.18326633298420347,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.01355116700869985,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.01277820797986351,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.007205292000435293,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.015531582990661263,
+      "detail": null
+    }
+  ],
+  "metrics_after": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 37.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 18.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 7.0",
+    "gateway_circuit_breaker_transitions_total{to=\"OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"} 1.0",
+    "gateway_rate_limit_rejections_total{path=\"/events\"} 90.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 120.0",
+    "notifications_notify_total{result=\"failed\"} 0.0"
+  ],
+  "finished_at": "2026-10-18T08:36:35.339847+00:00"
+}

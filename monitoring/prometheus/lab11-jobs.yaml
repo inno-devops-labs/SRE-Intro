@@ -1,0 +1,6 @@
+# Merge these jobs into the existing prometheus.yml scrape_configs.
+# Keep the gateway pod-discovery job and existing alert rules.
+- job_name: notifications
+  scrape_interval: 5s
+  static_configs:
+    - targets: [notifications.default.svc.cluster.local:8083]

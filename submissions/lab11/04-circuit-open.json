@@ -1,0 +1,182 @@
+{
+  "mode": "checkout",
+  "url": "http://10.42.0.9:8080",
+  "started_at": "2026-10-18T08:32:58.550623+00:00",
+  "metrics_before": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 13.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 2.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {
+    "500": 5,
+    "503": 25
+  },
+  "pay_p99_ms": 488.643,
+  "rows": [
+    {
+      "status": 500,
+      "seconds": 0.3739540840033442,
+      "detail": "Payment failed"
+    },
+    {
+      "status": 500,
+      "seconds": 0.42281225000624545,
+      "detail": "Payment failed"
+    },
+    {
+      "status": 500,
+      "seconds": 0.4886427500168793,
+      "detail": "Payment failed"
+    },
+    {
+      "status": 500,
+      "seconds": 0.4215120000008028,
+      "detail": "Payment failed"
+    },
+    {
+      "status": 500,
+      "seconds": 0.39647400099784136,
+      "detail": "Payment failed"
+    },
+    {
+      "status": 503,
+      "seconds": 0.002915916993515566,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0038951669994276017,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0021652919822372496,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.001945500000147149,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0024415839870925993,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0028771669894922525,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.003929667000193149,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0014452920004259795,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0016029590042307973,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0014156249817460775,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0013867499947082251,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0015709160070400685,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0016554159810766578,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.001497707999078557,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.002084125007968396,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0023190829961095005,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0029360830085352063,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0021563750051427633,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0019585829868447036,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0020091659971512854,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.003942374984035268,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0020952920021954924,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0022964579984545708,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0025012910191435367,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.0020035829802509397,
+      "detail": "Payment service temporarily unavailable (circuit open)"
+    }
+  ],
+  "metrics_after": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 23.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 7.0",
+    "gateway_circuit_breaker_transitions_total{to=\"OPEN\"} 1.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 28.0",
+    "notifications_notify_total{result=\"failed\"} 0.0"
+  ],
+  "finished_at": "2026-10-18T08:33:06.002890+00:00"
+}

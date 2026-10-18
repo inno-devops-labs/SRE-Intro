@@ -1,0 +1,43 @@
+{
+  "notifications": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "result": "success"
+          },
+          "value": [
+            1792312342.336,
+            "20"
+          ]
+        },
+        {
+          "metric": {
+            "result": "failed"
+          },
+          "value": [
+            1792312342.336,
+            "10"
+          ]
+        }
+      ]
+    }
+  },
+  "pay_p99": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {},
+          "value": [
+            1792312342.429,
+            "0.03157092145392747"
+          ]
+        }
+      ]
+    }
+  }
+}

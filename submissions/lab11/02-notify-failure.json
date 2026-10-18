@@ -1,0 +1,174 @@
+{
+  "mode": "checkout",
+  "url": "http://10.42.0.9:8080",
+  "started_at": "2026-10-18T08:32:10.163918+00:00",
+  "metrics_before": [
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {
+    "200": 30
+  },
+  "pay_p99_ms": 19.693,
+  "rows": [
+    {
+      "status": 200,
+      "seconds": 0.013131625019013882,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008548625017283484,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.006796000001486391,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.010442875005537644,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.006873749982332811,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.007707416982157156,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008740582998143509,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008673500007716939,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.015678416995797306,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009891374997096136,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009101541014388204,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.00690237499657087,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008420790982199833,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.011143457988509908,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.010226084006717429,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.011808540992205963,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008952083007898182,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.01969279200420715,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009106042009079829,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009642499993788078,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.01270137500250712,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008099541009869426,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.010253499989630654,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.01291895899339579,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.007430124998791143,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.006763249984942377,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.007956458983244374,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009664790995884687,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012977416015928611,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.009666124999057502,
+      "detail": null
+    }
+  ],
+  "metrics_after": [
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 20.0",
+    "notifications_notify_total{result=\"failed\"} 10.0"
+  ],
+  "finished_at": "2026-10-18T08:32:15.708614+00:00"
+}

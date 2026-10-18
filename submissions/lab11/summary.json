@@ -1,0 +1,138 @@
+{
+  "started_at": "2026-10-18T08:31:56.867508+00:00",
+  "gateway_pod": "gateway-f44d6dfc8-4jf7p",
+  "event_id": 7,
+  "bounded_url": "http://10.42.0.19:8080",
+  "unbounded_url": "http://10.42.0.20:8080",
+  "01-baseline": {
+    "mode": "checkout",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:31:57.323104+00:00",
+    "statuses": {
+      "200": 30
+    },
+    "pay_p99_ms": 35.545,
+    "finished_at": "2026-10-18T08:32:02.950445+00:00"
+  },
+  "02-notify-failure": {
+    "mode": "checkout",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:32:10.163918+00:00",
+    "statuses": {
+      "200": 30
+    },
+    "pay_p99_ms": 19.693,
+    "finished_at": "2026-10-18T08:32:15.708614+00:00"
+  },
+  "03-payment-retry": {
+    "mode": "checkout",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:32:34.364204+00:00",
+    "statuses": {
+      "200": 28,
+      "500": 2
+    },
+    "pay_p99_ms": 482.081,
+    "finished_at": "2026-10-18T08:32:42.613676+00:00"
+  },
+  "04-circuit-open": {
+    "mode": "checkout",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:32:58.550623+00:00",
+    "statuses": {
+      "500": 5,
+      "503": 25
+    },
+    "pay_p99_ms": 488.643,
+    "finished_at": "2026-10-18T08:33:06.002890+00:00"
+  },
+  "05-circuit-recovery": {
+    "mode": "recovery",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:33:41.776987+00:00",
+    "statuses": {
+      "200": 15
+    },
+    "pay_p99_ms": 27.664,
+    "finished_at": "2026-10-18T08:33:45.152507+00:00"
+  },
+  "06-rate-burst": {
+    "mode": "burst",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:33:46.539099+00:00",
+    "statuses": {
+      "200": 10,
+      "429": 90
+    },
+    "finished_at": "2026-10-18T08:33:46.726672+00:00"
+  },
+  "07-rate-sustained": {
+    "mode": "sustained",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:33:48.055987+00:00",
+    "statuses": {
+      "200": 30
+    },
+    "finished_at": "2026-10-18T08:33:54.446500+00:00"
+  },
+  "08-events-baseline": {
+    "mode": "events-baseline",
+    "url": "http://10.42.0.19:8080",
+    "started_at": "2026-10-18T08:34:00.907304+00:00",
+    "statuses": {},
+    "pay_p99_ms": null,
+    "events_p99_ms": 11.93,
+    "events_samples": 28,
+    "events_ok": 28,
+    "events_slow": 0,
+    "events_statuses": {
+      "200": 28
+    },
+    "max_in_flight": 0.0,
+    "rejection_p99_ms": null,
+    "finished_at": "2026-10-18T08:34:04.060290+00:00"
+  },
+  "09-bulkhead": {
+    "mode": "bulkhead",
+    "url": "http://10.42.0.19:8080",
+    "started_at": "2026-10-18T08:34:09.085803+00:00",
+    "statuses": {
+      "200": 30,
+      "503": 60
+    },
+    "pay_p99_ms": 8216.457,
+    "events_p99_ms": 157.49,
+    "events_samples": 129,
+    "events_ok": 129,
+    "events_slow": 0,
+    "events_statuses": {
+      "200": 129
+    },
+    "max_in_flight": 10.0,
+    "rejection_p99_ms": 549.631,
+    "finished_at": "2026-10-18T08:34:24.866493+00:00"
+  },
+  "10-without-bulkhead": {
+    "mode": "bulkhead",
+    "url": "http://10.42.0.20:8080",
+    "started_at": "2026-10-18T08:34:27.573291+00:00",
+    "statuses": {
+      "200": 17,
+      "500": 13
+    },
+    "pay_p99_ms": 3652.83,
+    "events_p99_ms": 503.796,
+    "events_samples": 27,
+    "events_ok": 26,
+    "events_slow": 1,
+    "events_statuses": {
+      "200": 26,
+      "502": 1
+    },
+    "max_in_flight": 0.0,
+    "rejection_p99_ms": null,
+    "finished_at": "2026-10-18T08:34:31.873003+00:00"
+  },
+  "finished_at": "2026-10-18T08:34:31.902454+00:00",
+  "cleanup_errors": []
+}

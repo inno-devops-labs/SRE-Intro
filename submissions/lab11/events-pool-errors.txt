@@ -1,0 +1,28 @@
+INFO:     10.42.0.20:59990 - "POST /reservations/f5555c7f-3da7-412b-b4d4-8db76ea80eca/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60000 - "POST /reservations/5684fd7a-8196-4f6a-b5d3-36c722078547/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60038 - "POST /reservations/0c69c92a-f694-40dd-8c3a-9992661845c8/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60044 - "POST /reservations/dd670fcc-2310-4883-9688-6af4108b641f/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60082 - "POST /reservations/9aec2e51-a193-4480-9166-79adf351d6bc/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60070 - "POST /reservations/63dfe5a9-8a3b-452f-be32-6ad97da8e608/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60088 - "POST /reservations/97071d36-3aeb-4fd2-a581-0a1444ffed3d/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60098 - "POST /reservations/841c427c-754f-4d6c-8bb5-36859a0a95ed/confirm HTTP/1.1" 500 Internal Server Error
+INFO:     10.42.0.20:60110 - "POST /reservations/94f578c6-db90-4103-b020-498f4e9e533f/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60116 - "POST /reservations/8aacc065-afb3-4608-a9a9-7cc9e8c20a37/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60120 - "POST /reservations/ef2fcb97-cb7c-4f67-b37b-90bb589836bc/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60124 - "POST /reservations/0f3ea6a0-ae06-4ffe-b045-edefa7940e63/confirm HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+INFO:     10.42.0.20:60142 - "POST /reservations/58ca205f-037e-4375-8291-d93d6bdd7473/confirm HTTP/1.1" 500 Internal Server Error
+INFO:     10.42.0.20:60158 - "GET /events HTTP/1.1" 500 Internal Server Error
+psycopg2.pool.PoolError: connection pool exhausted
+psycopg2.pool.PoolError: connection pool exhausted

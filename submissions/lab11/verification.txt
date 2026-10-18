@@ -1,0 +1,260 @@
+Lab 11 final verification — 2026-10-18T08:37:31.687855+00:00
+
+$ .venv/bin/python -m pytest -q tests/test_lab11.py
+...............................                                          [100%]
+31 passed in 0.34s
+[exit 0]
+
+$ .venv/bin/python -m compileall -q app/gateway app/notifications tests scripts
+[exit 0]
+
+YAML parsing: passed
+
+$ .venv/bin/python scripts/lab11_experiments.py --help
+usage: lab11_experiments.py [-h] --run [--retry-only]
+
+Reproduce Lab 11 on the existing local k3d deployment (changes fault
+settings). Requires a healthy updated Gateway Rollout, Notifications, Events,
+Payments, Postgres, Redis and in-cluster Prometheus. Restores dependency fault
+settings and removes only its own probe pods and test data, including on
+failure.
+
+options:
+  -h, --help    show this help message and exit
+  --run         apply local fault injections and run tests
+  --retry-only  repeat only the statistical payment experiment with failure
+                rate 0.3
+[exit 0]
+
+$ .venv/bin/python scripts/lab11_probe.py --help
+usage: lab11_probe.py [-h] --url URL --event-id EVENT_ID
+                      --mode {checkout,recovery,burst,sustained,bulkhead,events-baseline}
+                      [--count COUNT] [--waves WAVES]
+
+Run inside a gateway-image probe pod; print machine-readable HTTP evidence.
+
+options:
+  -h, --help            show this help message and exit
+  --url URL
+  --event-id EVENT_ID
+  --mode {checkout,recovery,burst,sustained,bulkhead,events-baseline}
+  --count COUNT
+  --waves WAVES
+[exit 0]
+
+$ docker compose -f app/docker-compose.yaml config --quiet
+[exit 0]
+
+$ kubectl apply --dry-run=server -f k8s/gateway.yaml -f k8s/notifications.yaml
+rollout.argoproj.io/gateway configured (server dry run)
+service/gateway unchanged (server dry run)
+deployment.apps/notifications unchanged (server dry run)
+service/notifications unchanged (server dry run)
+[exit 0]
+
+$ git diff --check
+[exit 0]
+
+$ kubectl get rollout gateway -o json
+Selected fields from actual JSON response:
+{
+  "name": "gateway",
+  "image": "quickticket-gateway:lab11",
+  "env": [
+    {
+      "name": "EVENTS_URL",
+      "value": "http://events:8081"
+    },
+    {
+      "name": "PAYMENTS_URL",
+      "value": "http://payments:8082"
+    },
+    {
+      "name": "NOTIFICATIONS_URL",
+      "value": "http://notifications:8083"
+    },
+    {
+      "name": "GATEWAY_TIMEOUT_MS",
+      "value": "5000"
+    },
+    {
+      "name": "RETRY_MAX",
+      "value": "3"
+    },
+    {
+      "name": "RETRY_BASE_DELAY_MS",
+      "value": "100"
+    },
+    {
+      "name": "CB_FAILURE_THRESHOLD",
+      "value": "5"
+    },
+    {
+      "name": "CB_COOLDOWN_S",
+      "value": "30"
+    },
+    {
+      "name": "RATE_LIMIT_RPS",
+      "value": "10"
+    },
+    {
+      "name": "BULKHEAD_PAYMENTS_MAX",
+      "value": "10"
+    },
+    {
+      "name": "BULKHEAD_PAYMENTS_TIMEOUT_S",
+      "value": "0.5"
+    }
+  ],
+  "phase": "Healthy",
+  "replicas": 5,
+  "readyReplicas": 5
+}
+[exit 0]
+
+$ kubectl get pods -l app=gateway -o wide
+NAME                      READY   STATUS    RESTARTS   AGE     IP           NODE                       NOMINATED NODE   READINESS GATES
+gateway-f44d6dfc8-4jf7p   1/1     Running   0          11m     10.42.0.9    k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-nb9nk   1/1     Running   0          9m53s   10.42.0.11   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-t2csx   1/1     Running   0          9m27s   10.42.0.12   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-th88c   1/1     Running   0          9m53s   10.42.0.10   k3d-quickticket-server-0   <none>           <none>
+gateway-f44d6dfc8-xdthw   1/1     Running   0          9m27s   10.42.0.13   k3d-quickticket-server-0   <none>           <none>
+[exit 0]
+
+$ kubectl get deploy events payments notifications postgres redis
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+events          1/1     1            1           27d
+payments        1/1     1            1           27d
+notifications   1/1     1            1           12m
+postgres        1/1     1            1           27d
+redis           1/1     1            1           27d
+[exit 0]
+
+$ kubectl get pods -o json
+Selected fields from actual JSON response:
+[
+  {
+    "name": "backup-inspector-5944758f5d-ntrsq",
+    "phase": "Running"
+  },
+  {
+    "name": "events-6f49cbc98f-j2b5p",
+    "phase": "Running"
+  },
+  {
+    "name": "gateway-f44d6dfc8-4jf7p",
+    "phase": "Running"
+  },
+  {
+    "name": "gateway-f44d6dfc8-nb9nk",
+    "phase": "Running"
+  },
+  {
+    "name": "gateway-f44d6dfc8-t2csx",
+    "phase": "Running"
+  },
+  {
+    "name": "gateway-f44d6dfc8-th88c",
+    "phase": "Running"
+  },
+  {
+    "name": "gateway-f44d6dfc8-xdthw",
+    "phase": "Running"
+  },
+  {
+    "name": "notifications-6ccf8dd95b-dwwrs",
+    "phase": "Running"
+  },
+  {
+    "name": "payments-586dbcff8f-z7gjb",
+    "phase": "Running"
+  },
+  {
+    "name": "postgres-6fb69f6c48-vs9h5",
+    "phase": "Running"
+  },
+  {
+    "name": "postgres-backup-29871865-fxvsr",
+    "phase": "Succeeded"
+  },
+  {
+    "name": "postgres-backup-29871870-qqprt",
+    "phase": "Succeeded"
+  },
+  {
+    "name": "postgres-backup-29871875-nbtq2",
+    "phase": "Succeeded"
+  },
+  {
+    "name": "redis-5cbdd4d5ff-cvg66",
+    "phase": "Running"
+  }
+]
+[exit 0]
+
+$ kubectl exec gateway-f44d6dfc8-4jf7p -- sha256sum /app/main.py
+83c6cc438293ac1b01824788a1f9528bd5942ce2357ff9519c145cef2ac2087c  /app/main.py
+[exit 0]
+
+$ kubectl exec gateway-f44d6dfc8-nb9nk -- sha256sum /app/main.py
+83c6cc438293ac1b01824788a1f9528bd5942ce2357ff9519c145cef2ac2087c  /app/main.py
+[exit 0]
+
+$ kubectl exec gateway-f44d6dfc8-t2csx -- sha256sum /app/main.py
+83c6cc438293ac1b01824788a1f9528bd5942ce2357ff9519c145cef2ac2087c  /app/main.py
+[exit 0]
+
+$ kubectl exec gateway-f44d6dfc8-th88c -- sha256sum /app/main.py
+83c6cc438293ac1b01824788a1f9528bd5942ce2357ff9519c145cef2ac2087c  /app/main.py
+[exit 0]
+
+$ kubectl exec gateway-f44d6dfc8-xdthw -- sha256sum /app/main.py
+83c6cc438293ac1b01824788a1f9528bd5942ce2357ff9519c145cef2ac2087c  /app/main.py
+[exit 0]
+
+$ kubectl exec deployment/notifications -- sha256sum /app/main.py
+e58e4c5e93ff7d84b18aa2b1be3b4494e476e74cdec47f0a393da2b37248a9f3  /app/main.py
+[exit 0]
+
+Live source SHA-256 equals working tree (all five gateways and notifications): passed
+
+$ kubectl exec gateway-f44d6dfc8-4jf7p -- python -c import json, urllib.request
+for name, port in [('gateway',8080),('events',8081),('payments',8082),('notifications',8083)]:
+    data=json.load(urllib.request.urlopen(f'http://{name}:{port}/health'))
+    print(name, json.dumps(data))
+    assert data['status']=='healthy'
+    if name in ('payments','notifications'):
+        assert data['failure_rate']==0 and data['latency_ms']==0
+
+gateway {"status": "healthy", "checks": {"events": "ok", "payments": "ok", "notifications": "ok", "circuit_payments": "CLOSED"}}
+events {"status": "healthy", "checks": {"postgres": "ok", "redis": "ok"}}
+payments {"status": "healthy", "failure_rate": 0.0, "latency_ms": 0}
+notifications {"status": "healthy", "failure_rate": 0.0, "latency_ms": 0}
+[exit 0]
+
+$ kubectl get cm prometheus-config -n monitoring -o json
+Selected fields from actual JSON response:
+{
+  "global": {
+    "scrape_interval": "5s",
+    "evaluation_interval": "5s"
+  },
+  "jobs": [
+    "gateway",
+    "notifications"
+  ],
+  "alerts.yml": "groups:\n  - name: gateway-payment-latency\n    rules:\n      - alert: GatewayPaymentP99LatencyHigh\n        expr: histogram_quantile(0.99, sum by (le) (rate(gateway_request_duration_seconds_bucket{path=\"/reserve/{id}/pay\"}[1m]))) > 1\n        for: 30s\n        labels:\n          severity: warning\n        annotations:\n          summary: Gateway payment p99 latency exceeds 1 second\n          description: Payment checkout is slow even if requests still succeed.\n"
+}
+[exit 0]
+
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- http://localhost:9090/api/v1/query?query=up%7Bjob%3D%22gateway%22%7D
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"__name__":"up","instance":"10.42.0.9:8080","job":"gateway","pod":"gateway-f44d6dfc8-4jf7p","rs_hash":"f44d6dfc8"},"value":[1792312654.650,"1"]},{"metric":{"__name__":"up","instance":"10.42.0.11:8080","job":"gateway","pod":"gateway-f44d6dfc8-nb9nk","rs_hash":"f44d6dfc8"},"value":[1792312654.650,"1"]},{"metric":{"__name__":"up","instance":"10.42.0.10:8080","job":"gateway","pod":"gateway-f44d6dfc8-th88c","rs_hash":"f44d6dfc8"},"value":[1792312654.650,"1"]},{"metric":{"__name__":"up","instance":"10.42.0.12:8080","job":"gateway","pod":"gateway-f44d6dfc8-t2csx","rs_hash":"f44d6dfc8"},"value":[1792312654.650,"1"]},{"metric":{"__name__":"up","instance":"10.42.0.13:8080","job":"gateway","pod":"gateway-f44d6dfc8-xdthw","rs_hash":"f44d6dfc8"},"value":[1792312654.650,"1"]}]}}[exit 0]
+
+$ kubectl exec -n monitoring deployment/prometheus -- wget -qO- http://localhost:9090/api/v1/query?query=up%7Bjob%3D%22notifications%22%7D
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"__name__":"up","instance":"notifications.default.svc.cluster.local:8083","job":"notifications"},"value":[1792312654.720,"1"]}]}}[exit 0]
+
+$ kubectl exec deployment/postgres -- psql -U quickticket -d quickticket -At -c SELECT count(*) AS test_events_remaining FROM events WHERE name='Lab 11 experiment';
+0
+[exit 0]
+
+Temporary probe pods removed; dependency injection defaults restored; Gateway retains production lab defaults.

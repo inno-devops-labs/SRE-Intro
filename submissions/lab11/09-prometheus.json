@@ -1,0 +1,43 @@
+{
+  "rejections": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "__name__": "gateway_bulkhead_rejections_total",
+            "instance": "10.42.0.19:8080",
+            "job": "lab11-gateway",
+            "pod": "lab11-bounded",
+            "target": "payments"
+          },
+          "value": [
+            1792312467.197,
+            "60"
+          ]
+        }
+      ]
+    }
+  },
+  "max_in_flight": {
+    "status": "success",
+    "data": {
+      "resultType": "vector",
+      "result": [
+        {
+          "metric": {
+            "instance": "10.42.0.19:8080",
+            "job": "lab11-gateway",
+            "pod": "lab11-bounded",
+            "target": "payments"
+          },
+          "value": [
+            1792312467.399,
+            "10"
+          ]
+        }
+      ]
+    }
+  }
+}

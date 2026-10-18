@@ -1,0 +1,19 @@
+{
+  "started_at": "2026-10-18T08:36:16.942298+00:00",
+  "gateway_pod": "gateway-f44d6dfc8-4jf7p",
+  "event_id": 8,
+  "bounded_url": null,
+  "unbounded_url": null,
+  "11-payment-retry-repeat": {
+    "mode": "checkout",
+    "url": "http://10.42.0.9:8080",
+    "started_at": "2026-10-18T08:36:27.166974+00:00",
+    "statuses": {
+      "200": 30
+    },
+    "pay_p99_ms": 472.694,
+    "finished_at": "2026-10-18T08:36:35.339847+00:00"
+  },
+  "finished_at": "2026-10-18T08:36:41.563779+00:00",
+  "cleanup_errors": []
+}

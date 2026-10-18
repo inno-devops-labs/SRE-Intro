@@ -1,0 +1,30 @@
+{
+  "mode": "events-baseline",
+  "url": "http://10.42.0.19:8080",
+  "started_at": "2026-10-18T08:34:00.907304+00:00",
+  "metrics_before": [
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {},
+  "pay_p99_ms": null,
+  "rows": [],
+  "events_p99_ms": 11.93,
+  "events_samples": 28,
+  "events_ok": 28,
+  "events_slow": 0,
+  "events_statuses": {
+    "200": 28
+  },
+  "max_in_flight": 0.0,
+  "rejection_p99_ms": null,
+  "metrics_after": [
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 43.0",
+    "notifications_notify_total{result=\"failed\"} 0.0"
+  ],
+  "finished_at": "2026-10-18T08:34:04.060290+00:00"
+}

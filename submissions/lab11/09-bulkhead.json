@@ -1,0 +1,486 @@
+{
+  "mode": "bulkhead",
+  "url": "http://10.42.0.19:8080",
+  "started_at": "2026-10-18T08:34:09.085803+00:00",
+  "metrics_before": [
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {
+    "200": 30,
+    "503": 60
+  },
+  "pay_p99_ms": 8216.457,
+  "rows": [
+    {
+      "status": 200,
+      "seconds": 8.211531669978285,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 8.182383213017602,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 8.21272458700696,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 8.182997711992357,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 8.158078170003137,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0558064180077054,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.054133333993377,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 8.216457045986317,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0533832520013675,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 8.18483492100495,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5204091670166235,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.52066466701217,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5207012920000125,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5320277510036249,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5321905839955434,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5327082510048058,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5328139170014765,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5329102090036031,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5330330010037869,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5331490420212504,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5333708760153968,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5335439589980524,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5337836669932585,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5312237089965492,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5336648339871317,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5339714589936193,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5341889589908533,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5344218329992145,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5294796669913922,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5296707920206245,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.044624043017393,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0439352100074757,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.15483383499668,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.1550869600032456,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0428678760072216,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5267764169839211,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.1554763770254795,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.2317819599993527,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5258377080026548,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5259127090102993,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.528079792013159,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.2343219600152224,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.2339196679822635,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5267737919930369,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5267843760084361,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5270195830089506,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5264213340124115,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.151822542975424,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5269957089913078,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5288161259959452,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5253305009973701,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5258204590063542,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5261778749991208,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5233814589737449,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5234907920239493,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5235797080094926,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5268109999888111,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5268511250033043,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5269138340081554,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5269902090076357,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.042603000998497,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.1841240439971443,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.19025533500826,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0898350850038696,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0463268760067876,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5437420000089332,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.180280126980506,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0889619599911384,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5362227080040611,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.541237875004299,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.1874837929790374,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.5496311250026338,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.1863456270075403,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.542043499997817,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5407784999988507,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5399852919799741,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.531476208998356,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 200,
+      "seconds": 3.186464376980439,
+      "detail": null
+    },
+    {
+      "status": 503,
+      "seconds": 0.547956875001546,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5325696250074543,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5405709590122569,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5381229589984287,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5335370840039104,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5307109169953037,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5295181249966845,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5320327919907868,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.54489587500575,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5440815420006402,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5446107920142822,
+      "detail": "Payment service busy (bulkhead full)"
+    },
+    {
+      "status": 503,
+      "seconds": 0.5437826670240611,
+      "detail": "Payment service busy (bulkhead full)"
+    }
+  ],
+  "events_p99_ms": 157.49,
+  "events_samples": 129,
+  "events_ok": 129,
+  "events_slow": 0,
+  "events_statuses": {
+    "200": 129
+  },
+  "max_in_flight": 10.0,
+  "rejection_p99_ms": 549.631,
+  "metrics_after": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 60.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 73.0",
+    "notifications_notify_total{result=\"failed\"} 0.0"
+  ],
+  "finished_at": "2026-10-18T08:34:24.866493+00:00"
+}

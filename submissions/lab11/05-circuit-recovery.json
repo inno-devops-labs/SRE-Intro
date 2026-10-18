@@ -1,0 +1,109 @@
+{
+  "mode": "recovery",
+  "url": "http://10.42.0.9:8080",
+  "started_at": "2026-10-18T08:33:41.776987+00:00",
+  "metrics_before": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 23.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 7.0",
+    "gateway_circuit_breaker_transitions_total{to=\"OPEN\"} 1.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {
+    "200": 15
+  },
+  "pay_p99_ms": 27.664,
+  "rows": [
+    {
+      "status": 200,
+      "seconds": 0.011078416020609438,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.008132333983667195,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012847374979173765,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.02766391698969528,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.011825749999843538,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.013645416998770088,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012071958015440032,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012544290977530181,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.015295500023057684,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.006746915983967483,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.010870165977394208,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.013302292005391791,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012419459002558142,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.012072999990778044,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 0.014147249981760979,
+      "detail": null
+    }
+  ],
+  "metrics_after": [
+    "gateway_retry_total{result=\"retried\",target=\"payments\"} 23.0",
+    "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"} 7.0",
+    "gateway_retry_total{result=\"exhausted\",target=\"payments\"} 7.0",
+    "gateway_circuit_breaker_transitions_total{to=\"OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"} 1.0",
+    "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"} 1.0",
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 43.0",
+    "notifications_notify_total{result=\"failed\"} 0.0"
+  ],
+  "finished_at": "2026-10-18T08:33:45.152507+00:00"
+}

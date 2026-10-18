@@ -1,0 +1,185 @@
+{
+  "mode": "bulkhead",
+  "url": "http://10.42.0.20:8080",
+  "started_at": "2026-10-18T08:34:27.573291+00:00",
+  "metrics_before": [
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "statuses": {
+    "200": 17,
+    "500": 13
+  },
+  "pay_p99_ms": 3652.83,
+  "rows": [
+    {
+      "status": 200,
+      "seconds": 3.0235737930051982,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.0944562930089887,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.09355154298828,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.3264789179957006,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.1219817509991117,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.651892502006376,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.652830294013256,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.53322604301502,
+      "detail": null
+    },
+    {
+      "status": 500,
+      "seconds": 3.525342751003336,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.4399995430139825,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 200,
+      "seconds": 3.6514524600061122,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.6519884190056473,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.65162358499947,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.6521857939951587,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.6511799189902376,
+      "detail": null
+    },
+    {
+      "status": 500,
+      "seconds": 3.5900640850013588,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.5294628760020714,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.5272608349914663,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.533505168015836,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.630078793008579,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 200,
+      "seconds": 3.652807959995698,
+      "detail": null
+    },
+    {
+      "status": 200,
+      "seconds": 3.648810211016098,
+      "detail": null
+    },
+    {
+      "status": 500,
+      "seconds": 3.6253692520258483,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.626342917996226,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 200,
+      "seconds": 3.6486212110030465,
+      "detail": null
+    },
+    {
+      "status": 500,
+      "seconds": 3.6320572099939454,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 200,
+      "seconds": 3.648184126999695,
+      "detail": null
+    },
+    {
+      "status": 500,
+      "seconds": 3.6275693769857753,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.630320002004737,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    },
+    {
+      "status": 500,
+      "seconds": 3.63374216799275,
+      "detail": "Payment succeeded but confirmation failed \u2014 contact support"
+    }
+  ],
+  "events_p99_ms": 503.796,
+  "events_samples": 27,
+  "events_ok": 26,
+  "events_slow": 1,
+  "events_statuses": {
+    "200": 26,
+    "502": 1
+  },
+  "max_in_flight": 0.0,
+  "rejection_p99_ms": null,
+  "metrics_after": [
+    "gateway_bulkhead_in_flight{target=\"payments\"} 0.0",
+    "gateway_bulkhead_rejections_total{target=\"payments\"} 0.0"
+  ],
+  "notification_metrics": [
+    "notifications_notify_total{result=\"success\"} 90.0",
+    "notifications_notify_total{result=\"failed\"} 0.0"
+  ],
+  "finished_at": "2026-10-18T08:34:31.873003+00:00"
+}
