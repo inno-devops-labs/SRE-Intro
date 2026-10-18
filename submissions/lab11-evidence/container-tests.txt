@@ -1,0 +1,45 @@
+test_breaker_open_recovery_and_single_probe (test_lab11.Patterns.test_breaker_open_recovery_and_single_probe) ... {"time":"2026-10-15 13:30:14,158","level":"WARNING","service":"gateway","msg":"circuit[test] CLOSED -> OPEN"}
+{"time":"2026-10-15 13:30:14,159","level":"WARNING","service":"gateway","msg":"circuit[test] OPEN -> HALF_OPEN"}
+{"time":"2026-10-15 13:30:14,159","level":"WARNING","service":"gateway","msg":"circuit[test] HALF_OPEN -> CLOSED"}
+ok
+test_bulkhead_timeout_cancellation_and_release (test_lab11.Patterns.test_bulkhead_timeout_cancellation_and_release) ... ok
+test_checkout_does_not_wait_for_notification (test_lab11.Patterns.test_checkout_does_not_wait_for_notification) ... {"time":"2026-10-15 13:30:14,173","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://payments:8082/charge "HTTP/1.1 200 OK""}
+{"time":"2026-10-15 13:30:14,173","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://events:8081/reservations/abc/confirm "HTTP/1.1 200 OK""}
+ok
+test_failed_and_cancelled_probe_reopen (test_lab11.Patterns.test_failed_and_cancelled_probe_reopen) ... {"time":"2026-10-15 13:30:14,174","level":"WARNING","service":"gateway","msg":"circuit[test] CLOSED -> OPEN"}
+{"time":"2026-10-15 13:30:14,174","level":"WARNING","service":"gateway","msg":"circuit[test] OPEN -> HALF_OPEN"}
+{"time":"2026-10-15 13:30:14,174","level":"WARNING","service":"gateway","msg":"circuit[test] HALF_OPEN -> OPEN"}
+{"time":"2026-10-15 13:30:14,174","level":"WARNING","service":"gateway","msg":"circuit[test] CLOSED -> OPEN"}
+{"time":"2026-10-15 13:30:14,174","level":"WARNING","service":"gateway","msg":"circuit[test] OPEN -> HALF_OPEN"}
+{"time":"2026-10-15 13:30:14,174","level":"WARNING","service":"gateway","msg":"circuit[test] HALF_OPEN -> OPEN"}
+ok
+test_http_rate_limit_headers_and_exemptions (test_lab11.Patterns.test_http_rate_limit_headers_and_exemptions) ... {"time":"2026-10-15 13:30:14,193","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://test/unknown "HTTP/1.1 404 Not Found""}
+{"time":"2026-10-15 13:30:14,194","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://test/unknown "HTTP/1.1 429 Too Many Requests""}
+{"time":"2026-10-15 13:30:14,197","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://test/metrics "HTTP/1.1 200 OK""}
+ok
+test_limiter_boundary_and_independent_keys (test_lab11.Patterns.test_limiter_boundary_and_independent_keys) ... ok
+test_notification_failure_does_not_gate_health (test_lab11.Patterns.test_notification_failure_does_not_gate_health) ... {"time":"2026-10-15 13:30:14,199","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://notifications:8083/notify "HTTP/1.1 500 Internal Server Error""}
+{"time":"2026-10-15 13:30:14,199","level":"WARNING","service":"gateway","msg":"notify failed (non-critical) order=abc err=Server error '500 Internal Server Error' for url 'http://notifications:8083/notify'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"}
+{"time":"2026-10-15 13:30:14,199","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://events:8081/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-15 13:30:14,199","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://payments:8082/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-15 13:30:14,199","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://notifications:8083/health "HTTP/1.1 500 Internal Server Error""}
+ok
+test_notifications_faults_validation_and_metrics (test_lab11.Patterns.test_notifications_faults_validation_and_metrics) ... {"time":"2026-10-15 13:30:14,203","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://test/notify "HTTP/1.1 422 Unprocessable Entity""}
+{"time":"2026-10-15 13:30:14,204","level":"WARNING","service":"gateway","msg":"Notification failed (injected) event=order_confirmed order=abc"}
+{"time":"2026-10-15 13:30:14,205","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://test/notify "HTTP/1.1 500 Internal Server Error""}
+{"time":"2026-10-15 13:30:14,206","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://test/health "HTTP/1.1 200 OK""}
+{"time":"2026-10-15 13:30:14,208","level":"INFO","service":"gateway","msg":"Notification sent event=order_confirmed order=abc"}
+{"time":"2026-10-15 13:30:14,209","level":"INFO","service":"gateway","msg":"HTTP Request: POST http://test/notify "HTTP/1.1 200 OK""}
+{"time":"2026-10-15 13:30:14,211","level":"INFO","service":"gateway","msg":"HTTP Request: GET http://test/metrics "HTTP/1.1 200 OK""}
+ok
+test_retry_exhaustion_and_invalid_attempts (test_lab11.Patterns.test_retry_exhaustion_and_invalid_attempts) ... ok
+test_retry_rejects_permanent_and_unknown_errors (test_lab11.Patterns.test_retry_rejects_permanent_and_unknown_errors) ... ok
+test_retry_transient_statuses_and_transport (test_lab11.Patterns.test_retry_transient_statuses_and_transport) ... ok
+test_stale_success_cannot_close_open_breaker (test_lab11.Patterns.test_stale_success_cannot_close_open_breaker) ... {"time":"2026-10-15 13:30:14,215","level":"WARNING","service":"gateway","msg":"circuit[test] CLOSED -> OPEN"}
+ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.059s
+
+OK
