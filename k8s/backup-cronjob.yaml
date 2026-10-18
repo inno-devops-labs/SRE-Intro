@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: quickticket-backup
+spec:
+  schedule: "*/5 * * * *"
+  # Scheduled backups are enabled after the retention exercise.
+  suspend: false
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-backup
+              image: postgres:17-alpine
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGPORT
+                  value: "5432"
+                - name: PGDATABASE
+                  value: quickticket
+                - name: PGUSER
+                  value: quickticket
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-backup-credentials
+                      key: password
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  stamp="$(date -u +%Y%m%dT%H%M%SZ)_${HOSTNAME}"
+                  temporary="/backups/.quickticket_${stamp}.dump.tmp"
+                  completed="/backups/quickticket_${stamp}.dump"
+                  pg_dump -Fc -f "${temporary}"
+                  mv "${temporary}" "${completed}"
+                  echo "created ${completed}"
+                  ls -1t /backups/quickticket_*.dump 2>/dev/null | awk 'NR > 5' | while read -r old; do
+                    echo "deleting ${old}"
+                    rm -f "${old}"
+                  done
+                  echo "retained dumps:"
+                  ls -1t /backups/quickticket_*.dump 2>/dev/null || true
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: backups
+              persistentVolumeClaim:
+                claimName: postgres-backups
