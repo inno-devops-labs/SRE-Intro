@@ -1,0 +1,2427 @@
+{
+  "generated_utc": "2026-10-18T21:53:04.9928432Z",
+  "source": "scripts/lab11/probe.py JSONL, summarized by scripts/lab11/summarize.py",
+  "notes": "Do not add Service metric snapshots to per-pod totals; Service connections can select different pods. Created timestamps are excluded from deltas. Raw per-request JSONL retained outside Git.",
+  "runs": [
+    {
+      "file": "a-baseline.jsonl",
+      "start": "2026-10-18T21:41:30.152328+00:00",
+      "end": "2026-10-18T21:41:39.178476+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:41:39.178353+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 18.046,
+          "p95_ms": 38.449,
+          "p99_ms": 68.397
+        },
+        {
+          "timestamp": "2026-10-18T21:41:39.178416+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 10.182,
+          "p95_ms": 20.009,
+          "p99_ms": 25.673
+        },
+        {
+          "timestamp": "2026-10-18T21:41:39.178460+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 1,
+      "payment_reasons": {
+        "200 confirmed": 30
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:41:30.212094+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 9.621,
+          "body": {
+            "reservation_id": "57e3cb44-1c97-4303-8df2-92c17c9f3f40",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:41:30.230632+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/57e3cb44-1c97-4303-8df2-92c17c9f3f40/pay",
+          "status": 200,
+          "duration_ms": 18.454,
+          "body": {
+            "order_id": "57e3cb44-1c97-4303-8df2-92c17c9f3f40",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://gateway:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 750,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 810,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 60,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {
+            "payments_charges_total{result=\"success\"}": 1720
+          },
+          "after": {
+            "payments_charges_total{result=\"success\"}": 1780
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 60
+          }
+        }
+      }
+    },
+    {
+      "file": "a-notify.jsonl",
+      "start": "2026-10-18T21:42:15.875488+00:00",
+      "end": "2026-10-18T21:42:25.387822+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:42:25.387631+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 22.101,
+          "p95_ms": 75.171,
+          "p99_ms": 164.072
+        },
+        {
+          "timestamp": "2026-10-18T21:42:25.387716+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 12.393,
+          "p95_ms": 23.207,
+          "p99_ms": 24.491
+        },
+        {
+          "timestamp": "2026-10-18T21:42:25.387794+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 1,
+      "payment_reasons": {
+        "200 confirmed": 30
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:42:15.932307+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 12.34,
+          "body": {
+            "reservation_id": "191c2d51-6dd8-484a-8c76-579a62118c8e",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:42:15.954164+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/191c2d51-6dd8-484a-8c76-579a62118c8e/pay",
+          "status": 200,
+          "duration_ms": 21.761,
+          "body": {
+            "order_id": "191c2d51-6dd8-484a-8c76-579a62118c8e",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://gateway:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 0,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 20,
+            "notifications_notify_total{result=\"failed\"}": 10
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 20,
+            "notifications_notify_total{result=\"failed\"}": 10
+          }
+        },
+        "http://payments:8082": {
+          "before": {
+            "payments_charges_total{result=\"success\"}": 1780
+          },
+          "after": {
+            "payments_charges_total{result=\"success\"}": 1810
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 30
+          }
+        }
+      }
+    },
+    {
+      "file": "a-baseline-repeat.jsonl",
+      "start": "2026-10-18T21:42:57.396058+00:00",
+      "end": "2026-10-18T21:43:06.702205+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:43:06.702027+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 20.232,
+          "p95_ms": 98.124,
+          "p99_ms": 106.477
+        },
+        {
+          "timestamp": "2026-10-18T21:43:06.702126+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 11.135,
+          "p95_ms": 20.32,
+          "p99_ms": 30.098
+        },
+        {
+          "timestamp": "2026-10-18T21:43:06.702165+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 1,
+      "payment_reasons": {
+        "200 confirmed": 30
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:42:57.490738+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 30.098,
+          "body": {
+            "reservation_id": "995c6b2c-8331-4512-b84c-a4ca0ea8cb6c",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:42:57.515103+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/995c6b2c-8331-4512-b84c-a4ca0ea8cb6c/pay",
+          "status": 200,
+          "duration_ms": 24.274,
+          "body": {
+            "order_id": "995c6b2c-8331-4512-b84c-a4ca0ea8cb6c",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://gateway:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 3,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 82,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 79,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {
+            "payments_charges_total{result=\"success\"}": 1813
+          },
+          "after": {
+            "payments_charges_total{result=\"success\"}": 1892
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 79
+          }
+        }
+      }
+    },
+    {
+      "file": "a-notify-repeat.jsonl",
+      "start": "2026-10-18T21:43:31.741397+00:00",
+      "end": "2026-10-18T21:43:40.792304+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:43:40.792189+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 17.783,
+          "p95_ms": 28.152,
+          "p99_ms": 32.964
+        },
+        {
+          "timestamp": "2026-10-18T21:43:40.792261+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 10.405,
+          "p95_ms": 26.146,
+          "p99_ms": 69.289
+        },
+        {
+          "timestamp": "2026-10-18T21:43:40.792292+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 1,
+      "payment_reasons": {
+        "200 confirmed": 30
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:43:31.796540+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 11.23,
+          "body": {
+            "reservation_id": "f7ad4c77-1959-4bdb-b355-894aa4d3c2bf",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:43:31.814151+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/f7ad4c77-1959-4bdb-b355-894aa4d3c2bf/pay",
+          "status": 200,
+          "duration_ms": 17.535,
+          "body": {
+            "order_id": "f7ad4c77-1959-4bdb-b355-894aa4d3c2bf",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://gateway:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 11,
+            "notifications_notify_total{result=\"failed\"}": 10
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 67,
+            "notifications_notify_total{result=\"failed\"}": 33
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 56,
+            "notifications_notify_total{result=\"failed\"}": 23
+          }
+        },
+        "http://payments:8082": {
+          "before": {
+            "payments_charges_total{result=\"success\"}": 2027
+          },
+          "after": {
+            "payments_charges_total{result=\"success\"}": 2106
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 79
+          }
+        }
+      }
+    },
+    {
+      "file": "b-retry.jsonl",
+      "start": "2026-10-18T21:44:37.006929+00:00",
+      "end": "2026-10-18T21:44:47.900117+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:44:47.899928+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 28,
+            "500": 2
+          },
+          "p50_ms": 19.521,
+          "p95_ms": 378.316,
+          "p99_ms": 440.6
+        },
+        {
+          "timestamp": "2026-10-18T21:44:47.900037+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 10.426,
+          "p95_ms": 15.088,
+          "p99_ms": 19.331
+        },
+        {
+          "timestamp": "2026-10-18T21:44:47.900097+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 1,
+      "payment_reasons": {
+        "200 confirmed": 28,
+        "500 Payment failed": 2
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:44:37.089478+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 12.621,
+          "body": {
+            "reservation_id": "6e335088-e22a-446c-9c4a-ebac60f160de",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:44:37.111946+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/6e335088-e22a-446c-9c4a-ebac60f160de/pay",
+          "status": 200,
+          "duration_ms": 22.378,
+          "body": {
+            "order_id": "6e335088-e22a-446c-9c4a-ebac60f160de",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        },
+        "pay HTTP 500": {
+          "timestamp": "2026-10-18T21:44:40.621288+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/9da8c3a5-4764-4266-b31c-e961ca531110/pay",
+          "status": 500,
+          "duration_ms": 354.443,
+          "body": {
+            "detail": "Payment failed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://gateway:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 11,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 2,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 11,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 2,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.128:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 11,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 2,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 11,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 2,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.123:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.124:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.125:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.127:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 173,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 201,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 28,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {
+            "payments_charges_total{result=\"success\"}": 28,
+            "payments_charges_total{result=\"failed\"}": 13
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 28,
+            "payments_charges_total{result=\"failed\"}": 13
+          }
+        }
+      }
+    },
+    {
+      "file": "b-retry-validation.jsonl",
+      "start": "2026-10-18T21:49:54.471234+00:00",
+      "end": "2026-10-18T21:50:05.657504+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:50:05.657370+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 16.713,
+          "p95_ms": 457.666,
+          "p99_ms": 470.459
+        },
+        {
+          "timestamp": "2026-10-18T21:50:05.657441+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 10.295,
+          "p95_ms": 14.327,
+          "p99_ms": 36.282
+        },
+        {
+          "timestamp": "2026-10-18T21:50:05.657478+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 1,
+      "payment_reasons": {
+        "200 confirmed": 30
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:49:54.557946+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 11.844,
+          "body": {
+            "reservation_id": "04bf0ecd-91ed-475e-accf-41cd7b3b6fa1",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:49:54.575293+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/04bf0ecd-91ed-475e-accf-41cd7b3b6fa1/pay",
+          "status": 200,
+          "duration_ms": 17.271,
+          "body": {
+            "order_id": "04bf0ecd-91ed-475e-accf-41cd7b3b6fa1",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://gateway:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 23,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 13,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.128:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 90,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 90,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.123:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.124:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 23,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 13,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.125:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.127:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 251,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 281,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 30,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {
+            "payments_charges_total{result=\"success\"}": 30,
+            "payments_charges_total{result=\"failed\"}": 13
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 30,
+            "payments_charges_total{result=\"failed\"}": 13
+          }
+        }
+      }
+    },
+    {
+      "file": "c-circuit.jsonl",
+      "start": "2026-10-18T21:45:31.172714+00:00",
+      "end": "2026-10-18T21:45:39.071310+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:45:39.071190+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 80,
+          "statuses": {
+            "500": 24,
+            "503": 56
+          },
+          "p50_ms": 3.454,
+          "p95_ms": 461.287,
+          "p99_ms": 504.908
+        },
+        {
+          "timestamp": "2026-10-18T21:45:39.071258+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 80,
+          "statuses": {
+            "200": 80
+          },
+          "p50_ms": 10.786,
+          "p95_ms": 113.662,
+          "p99_ms": 137.868
+        },
+        {
+          "timestamp": "2026-10-18T21:45:39.071295+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 5,
+      "payment_reasons": {
+        "500 Payment failed": 24,
+        "503 Payment service temporarily unavailable (circuit open)": 56
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:45:31.349203+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.123:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 113.285,
+          "body": {
+            "reservation_id": "a28e191b-4bd4-41f0-a8d3-aeb544e960bd",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 500": {
+          "timestamp": "2026-10-18T21:45:31.763602+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.123:8080",
+          "method": "POST",
+          "path": "/reserve/a28e191b-4bd4-41f0-a8d3-aeb544e960bd/pay",
+          "status": 500,
+          "duration_ms": 414.296,
+          "body": {
+            "detail": "Payment failed"
+          },
+          "retry_after": null
+        },
+        "pay HTTP 503": {
+          "timestamp": "2026-10-18T21:45:34.005676+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.128:8080",
+          "method": "POST",
+          "path": "/reserve/ceae6c20-cac0-495f-af7a-83ecf045d22c/pay",
+          "status": 503,
+          "duration_ms": 3.45,
+          "body": {
+            "detail": "Payment service temporarily unavailable (circuit open)"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://10.42.0.128:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 11,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 2,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 8,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 4,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.123:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.124:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.125:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.127:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 201,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 201,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 0,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {
+            "payments_charges_total{result=\"failed\"}": 72
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"failed\"}": 72
+          }
+        }
+      }
+    },
+    {
+      "file": "c-recovery.jsonl",
+      "start": "2026-10-18T21:46:30.688317+00:00",
+      "end": "2026-10-18T21:46:34.205375+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:46:34.205171+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 15,
+          "statuses": {
+            "200": 15
+          },
+          "p50_ms": 155.497,
+          "p95_ms": 273.512,
+          "p99_ms": 273.512
+        },
+        {
+          "timestamp": "2026-10-18T21:46:34.205270+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 15,
+          "statuses": {
+            "200": 15
+          },
+          "p50_ms": 101.049,
+          "p95_ms": 213.122,
+          "p99_ms": 213.122
+        },
+        {
+          "timestamp": "2026-10-18T21:46:34.205331+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 5,
+      "payment_reasons": {
+        "200 confirmed": 15
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:46:30.942711+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.127:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 184.612,
+          "body": {
+            "reservation_id": "522217f8-5a27-4edc-b032-6b167f2289d5",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:46:31.146782+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.127:8080",
+          "method": "POST",
+          "path": "/reserve/522217f8-5a27-4edc-b032-6b167f2289d5/pay",
+          "status": 200,
+          "duration_ms": 203.976,
+          "body": {
+            "order_id": "522217f8-5a27-4edc-b032-6b167f2289d5",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://10.42.0.128:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.123:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.124:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.125:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.127:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 201,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 216,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 15,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {
+            "payments_charges_total{result=\"success\"}": 15
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 15
+          }
+        }
+      }
+    },
+    {
+      "file": "d-rate.jsonl",
+      "start": "2026-10-18T21:46:35.248971+00:00",
+      "end": "2026-10-18T21:46:43.371426+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:46:43.371219+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 0,
+          "statuses": {}
+        },
+        {
+          "timestamp": "2026-10-18T21:46:43.371268+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 0,
+          "statuses": {}
+        },
+        {
+          "timestamp": "2026-10-18T21:46:43.371370+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 120,
+          "statuses": {
+            "200": 30,
+            "429": 90
+          },
+          "p50_ms": 276.16,
+          "p95_ms": 490.35,
+          "p99_ms": 579.532
+        }
+      ],
+      "peak_client_pay_in_flight": 0,
+      "payment_reasons": {},
+      "examples": {
+        "/events HTTP 200": {
+          "timestamp": "2026-10-18T21:46:35.388355+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.128:8080",
+          "method": "GET",
+          "path": "/events",
+          "status": 200,
+          "duration_ms": 87.847,
+          "body": [
+            {
+              "id": 1,
+              "name": "Go Conference 2026",
+              "venue": "Main Hall A",
+              "date": "2026-09-15T09:00:00+00:00",
+              "total_tickets": 100000,
+              "price_cents": 5000,
+              "available": 91287
+            },
+            {
+              "id": 4,
+              "name": "Python Workshop",
+              "venue": "Lab 301",
+              "date": "2026-09-22T14:00:00+00:00",
+              "total_tickets": 25,
+              "price_cents": 2000,
+              "available": 23
+            },
+            {
+              "id": 2,
+              "name": "SRE Meetup",
+              "venue": "Room 204",
+              "date": "2026-10-01T18:00:00+00:00",
+              "total_tickets": 30,
+              "price_cents": 0,
+              "available": 30
+            },
+            {
+              "id": 5,
+              "name": "Kubernetes Deep Dive",
+              "venue": "Auditorium B",
+              "date": "2026-10-10T10:00:00+00:00",
+              "total_tickets": 10000,
+              "price_cents": 8000,
+              "available": 9998
+            },
+            {
+              "id": 3,
+              "name": "Cloud Native Summit",
+              "venue": "Expo Center",
+              "date": "2026-11-20T10:00:00+00:00",
+              "total_tickets": 10000,
+              "price_cents": 15000,
+              "available": 9832
+            }
+          ],
+          "retry_after": null
+        },
+        "/events HTTP 429": {
+          "timestamp": "2026-10-18T21:46:35.389923+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.128:8080",
+          "method": "GET",
+          "path": "/events",
+          "status": 429,
+          "duration_ms": 84.833,
+          "body": {
+            "error": "rate_limited",
+            "path": "/events",
+            "limit_rps": 10
+          },
+          "retry_after": "1"
+        },
+        "/metrics HTTP 200": {
+          "timestamp": "2026-10-18T21:46:35.789452+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.128:8080",
+          "method": "GET",
+          "path": "/metrics",
+          "status": 200,
+          "duration_ms": 457.084,
+          "body": {
+            "prometheus_exposition": true
+          },
+          "retry_after": null
+        },
+        "/health HTTP 200": {
+          "timestamp": "2026-10-18T21:46:35.888907+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.128:8080",
+          "method": "GET",
+          "path": "/health",
+          "status": 200,
+          "duration_ms": 556.798,
+          "body": {
+            "status": "healthy",
+            "checks": {
+              "events": "ok",
+              "payments": "ok",
+              "notifications": "ok",
+              "circuit_payments": "CLOSED"
+            }
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 90,
+      "retry_after_values": {
+        "1": 90
+      },
+      "events_ok_below_500ms": 25,
+      "events_slow_above_500ms": 5,
+      "per_target_metrics": {
+        "http://10.42.0.128:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 90,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 90,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 216,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 216,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 0,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {
+            "payments_charges_total{result=\"success\"}": 15
+          },
+          "after": {
+            "payments_charges_total{result=\"success\"}": 15
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 0
+          }
+        }
+      }
+    },
+    {
+      "file": "e-before.jsonl",
+      "start": "2026-10-18T21:47:43.221099+00:00",
+      "end": "2026-10-18T21:47:53.484324+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:47:53.484129+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 25,
+            "500": 5
+          },
+          "p50_ms": 4513.308,
+          "p95_ms": 4894.302,
+          "p99_ms": 4894.805
+        },
+        {
+          "timestamp": "2026-10-18T21:47:53.484224+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 10.982,
+          "p95_ms": 21.316,
+          "p99_ms": 48.232
+        },
+        {
+          "timestamp": "2026-10-18T21:47:53.484288+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 40,
+          "statuses": {
+            "200": 40
+          },
+          "p50_ms": 13.751,
+          "p95_ms": 381.843,
+          "p99_ms": 693.357
+        }
+      ],
+      "peak_client_pay_in_flight": 30,
+      "payment_reasons": {
+        "200 confirmed": 25,
+        "500 Payment succeeded but confirmation failed — contact support": 5
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:47:43.322337+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.139:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 48.232,
+          "body": {
+            "reservation_id": "e9f329dc-0ab5-4abe-ab15-722026bb9712",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "/events HTTP 200": {
+          "timestamp": "2026-10-18T21:47:45.422266+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.139:8080",
+          "method": "GET",
+          "path": "/events",
+          "status": 200,
+          "duration_ms": 238.686,
+          "body": [
+            {
+              "id": 1,
+              "name": "Go Conference 2026",
+              "venue": "Main Hall A",
+              "date": "2026-09-15T09:00:00+00:00",
+              "total_tickets": 100000,
+              "price_cents": 5000,
+              "available": 91287
+            },
+            {
+              "id": 4,
+              "name": "Python Workshop",
+              "venue": "Lab 301",
+              "date": "2026-09-22T14:00:00+00:00",
+              "total_tickets": 25,
+              "price_cents": 2000,
+              "available": 23
+            },
+            {
+              "id": 2,
+              "name": "SRE Meetup",
+              "venue": "Room 204",
+              "date": "2026-10-01T18:00:00+00:00",
+              "total_tickets": 30,
+              "price_cents": 0,
+              "available": 30
+            },
+            {
+              "id": 5,
+              "name": "Kubernetes Deep Dive",
+              "venue": "Auditorium B",
+              "date": "2026-10-10T10:00:00+00:00",
+              "total_tickets": 10000,
+              "price_cents": 8000,
+              "available": 9998
+            },
+            {
+              "id": 3,
+              "name": "Cloud Native Summit",
+              "venue": "Expo Center",
+              "date": "2026-11-20T10:00:00+00:00",
+              "total_tickets": 10000,
+              "price_cents": 15000,
+              "available": 9832
+            }
+          ],
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:47:48.634113+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.139:8080",
+          "method": "POST",
+          "path": "/reserve/a73d455d-cc6f-4446-932f-9270c68212b0/pay",
+          "status": 200,
+          "duration_ms": 3442.571,
+          "body": {
+            "order_id": "a73d455d-cc6f-4446-932f-9270c68212b0",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        },
+        "pay HTTP 500": {
+          "timestamp": "2026-10-18T21:47:49.788839+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.139:8080",
+          "method": "POST",
+          "path": "/reserve/b449094e-b91a-4e07-bc14-53b04d7d5014/pay",
+          "status": 500,
+          "duration_ms": 4588.579,
+          "body": {
+            "detail": "Payment succeeded but confirmation failed — contact support"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 39,
+      "events_slow_above_500ms": 1,
+      "per_target_metrics": {
+        "http://10.42.0.139:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 216,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 241,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 25,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {
+            "payments_charges_total{result=\"success\"}": 30
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 30
+          }
+        }
+      }
+    },
+    {
+      "file": "e-after.jsonl",
+      "start": "2026-10-18T21:48:44.138461+00:00",
+      "end": "2026-10-18T21:48:52.745187+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:48:52.745003+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 30,
+          "statuses": {
+            "200": 10,
+            "503": 20
+          },
+          "p50_ms": 609.768,
+          "p95_ms": 3402.715,
+          "p99_ms": 3402.774
+        },
+        {
+          "timestamp": "2026-10-18T21:48:52.745110+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 30,
+          "statuses": {
+            "200": 30
+          },
+          "p50_ms": 10.277,
+          "p95_ms": 13.736,
+          "p99_ms": 18.65
+        },
+        {
+          "timestamp": "2026-10-18T21:48:52.745167+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 40,
+          "statuses": {
+            "200": 40
+          },
+          "p50_ms": 9.802,
+          "p95_ms": 96.547,
+          "p99_ms": 107.939
+        }
+      ],
+      "peak_client_pay_in_flight": 30,
+      "payment_reasons": {
+        "503 bulkhead_full": 20,
+        "200 confirmed": 10
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:48:44.205298+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.142:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 18.65,
+          "body": {
+            "reservation_id": "e7e3a2d8-ef85-43e7-9175-2aa90514dd70",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "/events HTTP 200": {
+          "timestamp": "2026-10-18T21:48:46.119185+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.142:8080",
+          "method": "GET",
+          "path": "/events",
+          "status": 200,
+          "duration_ms": 96.547,
+          "body": [
+            {
+              "id": 1,
+              "name": "Go Conference 2026",
+              "venue": "Main Hall A",
+              "date": "2026-09-15T09:00:00+00:00",
+              "total_tickets": 100000,
+              "price_cents": 5000,
+              "available": 91287
+            },
+            {
+              "id": 4,
+              "name": "Python Workshop",
+              "venue": "Lab 301",
+              "date": "2026-09-22T14:00:00+00:00",
+              "total_tickets": 25,
+              "price_cents": 2000,
+              "available": 23
+            },
+            {
+              "id": 2,
+              "name": "SRE Meetup",
+              "venue": "Room 204",
+              "date": "2026-10-01T18:00:00+00:00",
+              "total_tickets": 30,
+              "price_cents": 0,
+              "available": 30
+            },
+            {
+              "id": 5,
+              "name": "Kubernetes Deep Dive",
+              "venue": "Auditorium B",
+              "date": "2026-10-10T10:00:00+00:00",
+              "total_tickets": 10000,
+              "price_cents": 8000,
+              "available": 9998
+            },
+            {
+              "id": 3,
+              "name": "Cloud Native Summit",
+              "venue": "Expo Center",
+              "date": "2026-11-20T10:00:00+00:00",
+              "total_tickets": 10000,
+              "price_cents": 15000,
+              "available": 9807
+            }
+          ],
+          "retry_after": null
+        },
+        "pay HTTP 503": {
+          "timestamp": "2026-10-18T21:48:46.623697+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.142:8080",
+          "method": "POST",
+          "path": "/reserve/0886af84-9f19-427e-a674-c92bb9bab323/pay",
+          "status": 503,
+          "duration_ms": 597.238,
+          "body": {
+            "error": "bulkhead_full",
+            "message": "Payment concurrency capacity is busy; try again.",
+            "reservation_id": "0886af84-9f19-427e-a674-c92bb9bab323"
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:48:49.153953+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.142:8080",
+          "method": "POST",
+          "path": "/reserve/7335f96c-ca82-427b-95e3-89389915941c/pay",
+          "status": 200,
+          "duration_ms": 3128.239,
+          "body": {
+            "order_id": "7335f96c-ca82-427b-95e3-89389915941c",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 40,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://10.42.0.142:8080": {
+          "before": {
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_bulkhead_rejections_total{target=\"payments\"}": 20,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 10,
+          "delta": {
+            "gateway_bulkhead_rejections_total{target=\"payments\"}": 20,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 241,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 251,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 10,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {
+            "payments_charges_total{result=\"success\"}": 10
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 10
+          }
+        }
+      }
+    },
+    {
+      "file": "final-health.jsonl",
+      "start": "2026-10-18T21:52:31.626894+00:00",
+      "end": "2026-10-18T21:52:33.816448+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:52:33.816363+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 0,
+          "statuses": {}
+        },
+        {
+          "timestamp": "2026-10-18T21:52:33.816401+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 0,
+          "statuses": {}
+        },
+        {
+          "timestamp": "2026-10-18T21:52:33.816432+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 0,
+      "payment_reasons": {},
+      "examples": {
+        "/health HTTP 200": {
+          "timestamp": "2026-10-18T21:52:31.702791+00:00",
+          "kind": "request",
+          "target": "http://10.42.0.128:8080",
+          "method": "GET",
+          "path": "/health",
+          "status": 200,
+          "duration_ms": 17.269,
+          "body": {
+            "status": "healthy",
+            "checks": {
+              "events": "ok",
+              "payments": "ok",
+              "notifications": "ok",
+              "circuit_payments": "CLOSED"
+            }
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://10.42.0.128:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 90,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 19,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 6,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 6,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 90,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_rate_limit_rejections_total{path=\"/events\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.123:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.124:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 23,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 23,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.125:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://10.42.0.127:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 10,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 281,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 281,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 0,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {},
+          "peak_occupancy": 0,
+          "delta": {}
+        }
+      }
+    },
+    {
+      "file": "final-checkout.jsonl",
+      "start": "2026-10-18T21:52:34.163761+00:00",
+      "end": "2026-10-18T21:52:36.440974+00:00",
+      "summaries": [
+        {
+          "timestamp": "2026-10-18T21:52:36.440885+00:00",
+          "kind": "summary",
+          "group": "pay",
+          "count": 1,
+          "statuses": {
+            "200": 1
+          },
+          "p50_ms": 18.587,
+          "p95_ms": 18.587,
+          "p99_ms": 18.587
+        },
+        {
+          "timestamp": "2026-10-18T21:52:36.440938+00:00",
+          "kind": "summary",
+          "group": "reserve",
+          "count": 1,
+          "statuses": {
+            "200": 1
+          },
+          "p50_ms": 9.597,
+          "p95_ms": 9.597,
+          "p99_ms": 9.597
+        },
+        {
+          "timestamp": "2026-10-18T21:52:36.440962+00:00",
+          "kind": "summary",
+          "group": "events",
+          "count": 0,
+          "statuses": {}
+        }
+      ],
+      "peak_client_pay_in_flight": 1,
+      "payment_reasons": {
+        "200 confirmed": 1
+      },
+      "examples": {
+        "reserve HTTP 200": {
+          "timestamp": "2026-10-18T21:52:34.212170+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/events/3/reserve",
+          "status": 200,
+          "duration_ms": 9.597,
+          "body": {
+            "reservation_id": "53fb2bc8-9586-4c62-a4cf-11662c94e3e1",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "expires_in_seconds": 300
+          },
+          "retry_after": null
+        },
+        "pay HTTP 200": {
+          "timestamp": "2026-10-18T21:52:34.230862+00:00",
+          "kind": "request",
+          "target": "http://gateway:8080",
+          "method": "POST",
+          "path": "/reserve/53fb2bc8-9586-4c62-a4cf-11662c94e3e1/pay",
+          "status": 200,
+          "duration_ms": 18.587,
+          "body": {
+            "order_id": "53fb2bc8-9586-4c62-a4cf-11662c94e3e1",
+            "event_id": 3,
+            "quantity": 1,
+            "total_cents": 15000,
+            "status": "confirmed"
+          },
+          "retry_after": null
+        }
+      },
+      "transport_errors": 0,
+      "rate_limited": 0,
+      "retry_after_values": {},
+      "events_ok_below_500ms": 0,
+      "events_slow_above_500ms": 0,
+      "per_target_metrics": {
+        "http://gateway:8080": {
+          "before": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 23,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "after": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 23,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 5,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 11,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 1,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 1,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "gateway_retry_total{result=\"retried\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"exhausted\",target=\"payments\"}": 0,
+            "gateway_retry_total{result=\"succeeded_after_retry\",target=\"payments\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"HALF_OPEN\"}": 0,
+            "gateway_circuit_breaker_transitions_total{to=\"CLOSED\"}": 0,
+            "gateway_bulkhead_in_flight{target=\"payments\"}": 0
+          }
+        },
+        "http://notifications:8083": {
+          "before": {
+            "notifications_notify_total{result=\"success\"}": 281,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "after": {
+            "notifications_notify_total{result=\"success\"}": 282,
+            "notifications_notify_total{result=\"failed\"}": 0
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "notifications_notify_total{result=\"success\"}": 1,
+            "notifications_notify_total{result=\"failed\"}": 0
+          }
+        },
+        "http://payments:8082": {
+          "before": {},
+          "after": {
+            "payments_charges_total{result=\"success\"}": 1
+          },
+          "peak_occupancy": 0,
+          "delta": {
+            "payments_charges_total{result=\"success\"}": 1
+          }
+        }
+      }
+    }
+  ]
+}

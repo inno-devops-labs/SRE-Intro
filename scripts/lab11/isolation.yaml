@@ -1,0 +1,52 @@
+# Temporary single-process before/after fixture, NOT part of ArgoCD k8s/.
+# Same image and resources as gateway; only bulkhead toggle changes between runs.
+# Delete after preserving evidence. The production Rollout stays at five replicas.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab11-isolation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lab11-isolation
+  template:
+    metadata:
+      labels:
+        app: lab11-isolation
+    spec:
+      containers:
+        - name: gateway
+          image: quickticket-gateway:lab11
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EVENTS_URL
+              value: http://events:8081
+            - name: PAYMENTS_URL
+              value: http://payments:8082
+            - name: NOTIFICATIONS_URL
+              value: http://notifications:8083
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+            - name: RATE_LIMIT_RPS
+              value: "1000"
+            - name: BULKHEAD_ENABLED
+              value: "false"
+            - name: BULKHEAD_PAYMENTS_MAX
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+              value: "0.5"
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            periodSeconds: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

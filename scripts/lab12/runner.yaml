@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lab12-observer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lab12-observer
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list]
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lab12-observer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lab12-observer
+subjects:
+  - kind: ServiceAccount
+    name: lab12-observer
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab12-client
+  labels:
+    app: lab12-client
+spec:
+  serviceAccountName: lab12-observer
+  restartPolicy: Never
+  containers:
+    - name: tools
+      image: quickticket-lab12-tools:v1
+      imagePullPolicy: Never
+      env:
+        - name: PGHOST
+          value: postgres
+        - name: PGUSER
+          value: quickticket
+        - name: PGDATABASE
+          value: quickticket
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-backup-credentials
+              key: password
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: "1"
+          memory: 256Mi
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+  volumes:
+    - name: scripts
+      configMap:
+        name: lab12-scripts
