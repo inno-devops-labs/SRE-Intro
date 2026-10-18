@@ -1,0 +1,1 @@
+Recovery checkout results: ok=30 fail=0

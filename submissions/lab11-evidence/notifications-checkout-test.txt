@@ -1,0 +1,1 @@
+Checkout results: ok=30 fail=0

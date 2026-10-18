@@ -1,0 +1,5 @@
+Lab 11.6 — Payments retry
+Fault injection: PAYMENT_FAILURE_RATE=0.3
+Checkout test: 30 attempts, ok=28, fail=2
+Prometheus retry counters: retried=14, succeeded_after_retry=7, exhausted=2
+Two payments still failed after retry attempts were exhausted.

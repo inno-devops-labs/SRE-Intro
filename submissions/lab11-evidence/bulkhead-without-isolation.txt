@@ -1,0 +1,2 @@
+PAY statuses: {200: 22, 500: 8}
+EVENTS: ok=28 slow=2 p99=997.4 ms
