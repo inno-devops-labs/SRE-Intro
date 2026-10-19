@@ -27,7 +27,8 @@ async def main():
             if response.status_code == 429:
                 assert response.headers['Retry-After'] == '1'
         if mode == 'burst':
-            await asyncio.gather(*(run(i) for i in range(n)))
+            for i in range(n):
+                await run(i)
         else:
             for i in range(n):
                 await run(i)

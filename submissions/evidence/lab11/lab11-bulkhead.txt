@@ -1,0 +1,4 @@
+{"pay_statuses": {"200": 10, "503": 20}, "events_ok": 30, "events_slow_over_500ms": 0, "events_p99_ms": 268.49}
+gateway_bulkhead_in_flight{target="payments"} 0.0
+gateway_bulkhead_rejections_total{target="payments"} 20.0
+gateway_bulkhead_rejections_created{target="payments"} 1.792399659335819e+09
