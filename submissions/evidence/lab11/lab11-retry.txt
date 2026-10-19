@@ -1,0 +1,4 @@
+{"mode": "checkout", "count": 30, "statuses": {"200": 28, "500": 2}, "pay_p99_ms": 480.12, "retry_after": null}
+notifications_notify_total{result="success"} 45.0
+payments_charges_total{result="success"} 53.0
+payments_charges_total{result="failed"} 34.0
