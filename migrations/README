@@ -1,0 +1,10 @@
+QuickTicket Alembic migration chain, Lab 12.
+
+The database objects already exist from app/seed.sql. Stamp the baseline revision
+(c12a00000001) ONLY after checking the current database schema. Then upgrade
+one revision at a time with the separate deployments between migrations.
+
+Do not use `alembic upgrade head` before Deploy A and Deploy B: doing so
+would remove `event_date` while old events application pods still query it.
+
+See LAB12_WINDOWS_KALI_GUIDE.md and submissions/lab12.md.
