@@ -1,0 +1,30 @@
+Run from the repository root with migrations/requirements.txt installed.
+Forward the lab database: kubectl port-forward svc/postgres 15432:5432
+
+Existing database with the original event_date schema:
+  If unversioned, first: alembic stamp 0001
+  alembic upgrade 0003
+  alembic upgrade 0004        # add scheduled_at
+  Deploy A (COALESCE fallback reads); wait for all Events pods to be ready.
+  alembic upgrade 0005        # backfill and enforce new NOT NULL
+  Deploy B (scheduled_at only); wait for all Events pods to be ready.
+  alembic upgrade 0006        # drop old column, retain a date index
+
+Do not upgrade straight to head while old Events code is running.
+The committed Events source is Deploy B. Deploy A's three SQL changes and
+all transition results are recorded in submissions/lab12.md.
+
+Fresh empty database:
+  psql ... -v ON_ERROR_STOP=1 -f app/seed.sql
+  alembic stamp 0006
+  alembic current
+The final seed includes scheduled_at, nullable email, and the date index.
+It already represents 0006, so do not run the old-column migrations on it.
+Stamp only after verifying that the seed completed on an empty database.
+
+Rollback order (coordinate writers and readers):
+  downgrade to 0005 restores event_date and copies scheduled_at into it;
+  deploy compatible fallback code, stop new-only writes or dual-write;
+  downgrade to 0004 reconciles old dates and restores the old NOT NULL;
+  roll every reader back to the old code before downgrading to 0003.
+A one-time copy is not enough if new-only writers continue afterwards.
