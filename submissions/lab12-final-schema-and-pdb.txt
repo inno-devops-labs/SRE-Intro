@@ -1,0 +1,33 @@
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null |
+ venue         | text                     |           | not null |
+ total_tickets | integer                  |           | not null |
+ price_cents   | integer                  |           | not null |
+ email         | character varying(255)   |           |          |
+ scheduled_at  | timestamp with time zone |           | not null |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+    "idx_events_scheduled_at" btree (scheduled_at)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+     version_num
+----------------------
+ 0006_drop_event_date
+(1 row)
+
+NAME                MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+events-pdb          1               N/A               1                     14m
+gateway-pdb         2               N/A               3                     14m
+notifications-pdb   N/A             1                 1                     14m
+payments-pdb        1               N/A               1                     14m
+NAME                       READY   STATUS    RESTARTS   AGE     IP            NODE                       NOMINATED NODE   READINESS GATES
+gateway-674f9fc4bc-6md5k   1/1     Running   0          5m54s   10.42.0.196   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-dbm9f   1/1     Running   0          53s     10.42.0.203   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-fchft   1/1     Running   0          17s     10.42.0.204   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-rrzc2   1/1     Running   0          119s    10.42.0.200   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-zc2pg   1/1     Running   0          3m6s    10.42.0.199   k3d-quickticket-server-0   <none>           <none>
+[{"labelSelector":{"matchLabels":{"app":"gateway"}},"maxSkew":1,"topologyKey":"kubernetes.io/hostname","whenUnsatisfiable":"ScheduleAnyway"}]

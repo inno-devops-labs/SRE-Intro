@@ -1,0 +1,44 @@
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+events          2/2     2            2           19d
+payments        2/2     2            2           19d
+notifications   2/2     2            2           57m
+NAME      DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+gateway   5         5         5            5           12d
+NAME                MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+events-pdb          1               N/A               1                     18m
+gateway-pdb         2               N/A               3                     18m
+notifications-pdb   N/A             1                 1                     18m
+payments-pdb        1               N/A               1                     18m
+NAME                       READY   STATUS    RESTARTS   AGE     IP            NODE                       NOMINATED NODE   READINESS GATES
+gateway-674f9fc4bc-jgb89   1/1     Running   0          3m4s    10.42.0.211   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-jqgb2   1/1     Running   0          3m8s    10.42.0.210   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-mlnvc   1/1     Running   0          3m20s   10.42.0.207   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-n7gdt   1/1     Running   0          3m16s   10.42.0.208   k3d-quickticket-server-0   <none>           <none>
+gateway-674f9fc4bc-v8h5v   1/1     Running   0          3m12s   10.42.0.209   k3d-quickticket-server-0   <none>           <none>
+NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+postgres-data   Bound    pvc-bcd533dc-88ec-45de-bda1-99e633590165   1Gi        RWO            local-path     <unset>                 5d23h
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null |
+ venue         | text                     |           | not null |
+ total_tickets | integer                  |           | not null |
+ price_cents   | integer                  |           | not null |
+ email         | character varying(255)   |           |          |
+ scheduled_at  | timestamp with time zone |           | not null |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+    "idx_events_scheduled_at" btree (scheduled_at)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+ count
+-------
+  9210
+(1 row)
+
+     version_num
+----------------------
+ 0006_drop_event_date
+(1 row)

@@ -1,0 +1,37 @@
+INFO alembic.runtime.migration: Context impl PostgresqlImpl.
+INFO alembic.runtime.migration: Will assume transactional DDL.
+INFO alembic.runtime.migration: Running downgrade 0006_drop_event_date -> 0005_backfill_scheduled_at, Contract only after every events pod uses scheduled_at exclusively.
+INFO alembic.runtime.migration: Running downgrade 0005_backfill_scheduled_at -> 0004_add_scheduled_at, Backfill the six-row lab fixture before enforcing the new constraint.
+INFO alembic.runtime.migration: Running downgrade 0004_add_scheduled_at -> 0003_event_date_index, Expand the event schema while the legacy reader is still deployed.
+INFO alembic.runtime.migration: Running downgrade 0003_event_date_index -> 0002_events_email, Index the legacy event date without blocking ordinary writes.
+INFO alembic.runtime.migration: Context impl PostgresqlImpl.
+INFO alembic.runtime.migration: Will assume transactional DDL.
+INFO alembic.runtime.migration: Running upgrade 0002_events_email -> 0003_event_date_index, Index the legacy event date without blocking ordinary writes.
+INFO alembic.runtime.migration: Running upgrade 0003_event_date_index -> 0004_add_scheduled_at, Expand the event schema while the legacy reader is still deployed.
+INFO alembic.runtime.migration: Running upgrade 0004_add_scheduled_at -> 0005_backfill_scheduled_at, Backfill the six-row lab fixture before enforcing the new constraint.
+INFO alembic.runtime.migration: Running upgrade 0005_backfill_scheduled_at -> 0006_drop_event_date, Contract only after every events pod uses scheduled_at exclusively.
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null |
+ venue         | text                     |           | not null |
+ total_tickets | integer                  |           | not null |
+ price_cents   | integer                  |           | not null |
+ email         | character varying(255)   |           |          |
+ scheduled_at  | timestamp with time zone |           | not null |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+    "idx_events_scheduled_at" btree (scheduled_at)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+ count
+-------
+  4749
+(1 row)
+
+     version_num
+----------------------
+ 0006_drop_event_date
+(1 row)

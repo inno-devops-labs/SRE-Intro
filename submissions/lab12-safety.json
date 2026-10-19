@@ -1,0 +1,1 @@
+{"backup_on_host":"/tmp/lab12-before-1792155189278.dump","backup_in_postgres_pod":"/tmp/lab12-before-1792155189278.dump","initial_revision":"0002_events_email","initial_events":6,"initial_orders":4749,"isolated_restore_database":"lab12_verify_1792155255925","fresh_seed_database":"lab12_fresh_1792155491126","restored_upgrade_downgrade_upgrade_verified":true}

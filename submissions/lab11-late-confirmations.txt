@@ -1,0 +1,26 @@
+Read-only verification of the 25 HTTP-500 reservation IDs in lab11-bulkhead-baseline.json:
+ confirmed_despite_gateway_500
+-------------------------------
+                             9
+(1 row)
+
+All baseline variants (same read-only check):
+       phase       | confirmed_despite_500
+-------------------+-----------------------
+ bulkhead-baseline |                     9
+(1 row)
+
+         phase          | confirmed_despite_500
+------------------------+-----------------------
+ bulkhead-baseline-500m |                     0
+(1 row)
+
+           phase            | confirmed_despite_500
+----------------------------+-----------------------
+ bulkhead-baseline-isolated |                    11
+(1 row)
+
+              phase               | confirmed_despite_500
+----------------------------------+-----------------------
+ bulkhead-baseline-isolated-1000m |                     0
+(1 row)

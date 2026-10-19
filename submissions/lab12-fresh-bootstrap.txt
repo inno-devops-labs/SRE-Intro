@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import main; main.startup(); print("fresh events",len(main.list_events())); print("fresh health",main.health().body.decode())
+    ^^^^^^^^^^^
+  File "/app/main.py", line 25, in <module>
+    REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+ValueError: invalid literal for int() with base 10: 'tcp://10.43.133.172:6379'
+pod default/lab12-fresh-check terminated (Error)
+                                        Table "public.events"
+    Column     |           Type           | Collation | Nullable |              Default
+---------------+--------------------------+-----------+----------+------------------------------------
+ id            | integer                  |           | not null | nextval('events_id_seq'::regclass)
+ name          | text                     |           | not null |
+ venue         | text                     |           | not null |
+ scheduled_at  | timestamp with time zone |           | not null |
+ total_tickets | integer                  |           | not null |
+ price_cents   | integer                  |           | not null |
+ email         | character varying(255)   |           |          |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+    "idx_events_scheduled_at" btree (scheduled_at)
+Referenced by:
+    TABLE "orders" CONSTRAINT "orders_event_id_fkey" FOREIGN KEY (event_id) REFERENCES events(id)
+
+     version_num
+----------------------
+ 0006_drop_event_date
+(1 row)

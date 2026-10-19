@@ -1,0 +1,24 @@
+--- /tmp/lab12-events-a.py	2026-10-16 15:58:55
++++ /tmp/lab12-events-b.py	2026-10-16 15:58:55
+@@ -141,10 +141,10 @@
+     try:
+         cur = conn.cursor()
+         cur.execute("""
+-            SELECT e.id, e.name, e.venue, COALESCE(e.scheduled_at, e.event_date) AS event_date, e.total_tickets, e.price_cents,
++            SELECT e.id, e.name, e.venue, e.scheduled_at AS event_date, e.total_tickets, e.price_cents,
+                    COALESCE(SUM(o.quantity), 0) as confirmed
+             FROM events e LEFT JOIN orders o ON e.id = o.event_id
+-            GROUP BY e.id ORDER BY COALESCE(e.scheduled_at, e.event_date)
++            GROUP BY e.id ORDER BY e.scheduled_at
+         """)
+         rows = cur.fetchall()
+         cur.close()
+@@ -166,7 +166,7 @@
+     try:
+         cur = conn.cursor()
+         cur.execute("""
+-            SELECT e.id, e.name, e.venue, COALESCE(e.scheduled_at, e.event_date) AS event_date, e.total_tickets, e.price_cents,
++            SELECT e.id, e.name, e.venue, e.scheduled_at AS event_date, e.total_tickets, e.price_cents,
+                    COALESCE(SUM(o.quantity), 0) as confirmed
+             FROM events e LEFT JOIN orders o ON e.id = o.event_id
+             WHERE e.id = %s GROUP BY e.id

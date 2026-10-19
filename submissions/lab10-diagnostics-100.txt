@@ -1,0 +1,16 @@
+2026-10-10T15:27:48Z
+NAME                       CPU(cores)   MEMORY(bytes)
+gateway-79795445b6-jrdf5   130m         94Mi
+gateway-79795445b6-n5rsx   112m         100Mi
+gateway-79795445b6-tcv6b   101m         97Mi
+gateway-79795445b6-wt9hr   92m          92Mi
+gateway-79795445b6-zt6pk   63m          94Mi
+NAME                      CPU(cores)   MEMORY(bytes)
+events-7654d76c47-c9zpc   206m         148Mi
+NAME                        CPU(cores)   MEMORY(bytes)
+payments-5744c894c8-m9s29   28m          83Mi
+    raise PoolError("connection pool exhausted")
+psycopg2.pool.PoolError: connection pool exhausted
+ERROR:    Exception in ASGI application
+    raise PoolError("connection pool exhausted")
+psycopg2.pool.PoolError: connection pool exhausted

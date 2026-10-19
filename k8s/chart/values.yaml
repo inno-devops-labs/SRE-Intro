@@ -1,0 +1,50 @@
+gateway:
+  replicas: 1
+  image: ghcr.io/tdzdslippen/quickticket-gateway:latest
+  port: 8080
+  timeoutMs: "5000"
+
+events:
+  replicas: 1
+  image: ghcr.io/tdzdslippen/quickticket-events:latest
+  port: 8081
+  db:
+    host: postgres
+    port: "5432"
+    name: quickticket
+    user: quickticket
+    password: quickticket
+    maxConnections: "10"
+  redis:
+    host: redis
+    port: "6379"
+    timeoutMs: "1000"
+  reservationTtl: "300"
+
+payments:
+  replicas: 1
+  image: ghcr.io/tdzdslippen/quickticket-payments:latest
+  port: 8082
+  failureRate: "0.0"
+  latencyMs: "0"
+
+postgres:
+  replicas: 1
+  image: postgres:17-alpine
+  port: 5432
+  database: quickticket
+  user: quickticket
+  password: quickticket
+
+redis:
+  replicas: 1
+  image: redis:7-alpine
+  port: 6379
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

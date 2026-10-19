@@ -1,0 +1,19 @@
+Abridged live schema after 0003_event_date_index, before starting 0004_add_scheduled_at:
+
+Table "public.events"
+    Column     |           Type           | Nullable
+---------------+--------------------------+----------
+ id            | integer                  | not null
+ name          | text                     | not null
+ venue         | text                     | not null
+ event_date    | timestamp with time zone | not null
+ total_tickets | integer                  | not null
+ price_cents   | integer                  | not null
+ email         | character varying(255)   |
+Indexes:
+    "events_pkey" PRIMARY KEY, btree (id)
+    "idx_events_event_date" btree (event_date)
+
+Catalog validity check returned:
+ events_pkey           | t
+ idx_events_event_date | t

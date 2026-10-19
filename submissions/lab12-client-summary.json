@@ -1,0 +1,250 @@
+{
+  "whole_bonus": {
+    "start": "2026-10-16T13:03:27.467056+00:00",
+    "end": "2026-10-16T13:06:54.521063+00:00",
+    "receipts": 2246,
+    "statuses": {
+      "200": 2246
+    },
+    "errors": []
+  },
+  "windows": [
+    {
+      "action": "evict",
+      "value": "checkpoint",
+      "start": "2026-10-16T12:56:44.962868+00:00",
+      "end": "2026-10-16T12:56:58.090934+00:00",
+      "receipts": 162,
+      "statuses": {
+        "200": 161,
+        "000": 1
+      },
+      "errors": [
+        {
+          "pod": "mixedload-9767d4dc7-85wpp",
+          "utc": "2026-10-16T12:56:45Z",
+          "operation": "read",
+          "status": "000"
+        }
+      ]
+    },
+    {
+      "action": "kill",
+      "value": "checkpoint",
+      "start": "2026-10-16T12:58:36.645626+00:00",
+      "end": "2026-10-16T12:59:21.870580+00:00",
+      "receipts": 302,
+      "statuses": {
+        "200": 294,
+        "reserve_failed": 4,
+        "000": 4
+      },
+      "errors": [
+        {
+          "pod": "mixedload-9767d4dc7-5rxhg",
+          "utc": "2026-10-16T12:58:49Z",
+          "operation": "reserve_failed",
+          "status": "reserve_failed"
+        },
+        {
+          "pod": "mixedload-9767d4dc7-5rxhg",
+          "utc": "2026-10-16T12:58:52Z",
+          "operation": "pay",
+          "status": "000"
+        },
+        {
+          "pod": "mixedload-9767d4dc7-5rxhg",
+          "utc": "2026-10-16T12:58:56Z",
+          "operation": "read",
+          "status": "000"
+        },
+        {
+          "pod": "mixedload-9767d4dc7-5rxhg",
+          "utc": "2026-10-16T12:58:56Z",
+          "operation": "reserve_failed",
+          "status": "reserve_failed"
+        },
+        {
+          "pod": "mixedload-9767d4dc7-85wpp",
+          "utc": "2026-10-16T12:58:56Z",
+          "operation": "read",
+          "status": "000"
+        },
+        {
+          "pod": "mixedload-9767d4dc7-85wpp",
+          "utc": "2026-10-16T12:58:56Z",
+          "operation": "reserve_failed",
+          "status": "reserve_failed"
+        },
+        {
+          "pod": "mixedload-9767d4dc7-85wpp",
+          "utc": "2026-10-16T12:58:56Z",
+          "operation": "read",
+          "status": "000"
+        },
+        {
+          "pod": "mixedload-9767d4dc7-85wpp",
+          "utc": "2026-10-16T12:58:56Z",
+          "operation": "reserve_failed",
+          "status": "reserve_failed"
+        }
+      ]
+    },
+    {
+      "action": "restart",
+      "value": "checkpoint",
+      "start": "2026-10-16T12:59:23.361143+00:00",
+      "end": "2026-10-16T12:59:52.514603+00:00",
+      "receipts": 238,
+      "statuses": {
+        "200": 238
+      },
+      "errors": []
+    },
+    {
+      "action": "migrate",
+      "value": "0003_event_date_index",
+      "start": "2026-10-16T13:03:01.746556+00:00",
+      "end": "2026-10-16T13:03:12.953014+00:00",
+      "receipts": 128,
+      "statuses": {
+        "200": 128
+      },
+      "errors": []
+    },
+    {
+      "action": "migrate",
+      "value": "0004_add_scheduled_at",
+      "start": "2026-10-16T13:03:27.467056+00:00",
+      "end": "2026-10-16T13:03:38.487422+00:00",
+      "receipts": 112,
+      "statuses": {
+        "200": 112
+      },
+      "errors": []
+    },
+    {
+      "action": "deploy",
+      "value": "A",
+      "start": "2026-10-16T13:03:54.292339+00:00",
+      "end": "2026-10-16T13:04:19.956668+00:00",
+      "receipts": 230,
+      "statuses": {
+        "200": 230
+      },
+      "errors": []
+    },
+    {
+      "action": "migrate",
+      "value": "0005_backfill_scheduled_at",
+      "start": "2026-10-16T13:05:12.253895+00:00",
+      "end": "2026-10-16T13:05:23.472151+00:00",
+      "receipts": 152,
+      "statuses": {
+        "200": 152
+      },
+      "errors": []
+    },
+    {
+      "action": "deploy",
+      "value": "B",
+      "start": "2026-10-16T13:05:42.968815+00:00",
+      "end": "2026-10-16T13:06:09.737625+00:00",
+      "receipts": 340,
+      "statuses": {
+        "200": 340
+      },
+      "errors": []
+    },
+    {
+      "action": "migrate",
+      "value": "0006_drop_event_date",
+      "start": "2026-10-16T13:06:42.691498+00:00",
+      "end": "2026-10-16T13:06:54.521063+00:00",
+      "receipts": 164,
+      "statuses": {
+        "200": 164
+      },
+      "errors": []
+    },
+    {
+      "action": "kill",
+      "value": "process-readiness",
+      "start": "2026-10-16T13:07:27.774562+00:00",
+      "end": "2026-10-16T13:07:47.667380+00:00",
+      "receipts": 254,
+      "statuses": {
+        "200": 254
+      },
+      "errors": []
+    },
+    {
+      "action": "restart",
+      "value": "process-readiness",
+      "start": "2026-10-16T13:07:49.085331+00:00",
+      "end": "2026-10-16T13:08:20.929833+00:00",
+      "receipts": 386,
+      "statuses": {
+        "200": 386
+      },
+      "errors": []
+    }
+  ],
+  "all_errors": [
+    {
+      "pod": "mixedload-9767d4dc7-5rxhg",
+      "utc": "2026-10-16T12:58:49Z",
+      "operation": "reserve_failed",
+      "status": "reserve_failed"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-5rxhg",
+      "utc": "2026-10-16T12:58:52Z",
+      "operation": "pay",
+      "status": "000"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-5rxhg",
+      "utc": "2026-10-16T12:58:56Z",
+      "operation": "read",
+      "status": "000"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-5rxhg",
+      "utc": "2026-10-16T12:58:56Z",
+      "operation": "reserve_failed",
+      "status": "reserve_failed"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-85wpp",
+      "utc": "2026-10-16T12:56:45Z",
+      "operation": "read",
+      "status": "000"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-85wpp",
+      "utc": "2026-10-16T12:58:56Z",
+      "operation": "read",
+      "status": "000"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-85wpp",
+      "utc": "2026-10-16T12:58:56Z",
+      "operation": "reserve_failed",
+      "status": "reserve_failed"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-85wpp",
+      "utc": "2026-10-16T12:58:56Z",
+      "operation": "read",
+      "status": "000"
+    },
+    {
+      "pod": "mixedload-9767d4dc7-85wpp",
+      "utc": "2026-10-16T12:58:56Z",
+      "operation": "reserve_failed",
+      "status": "reserve_failed"
+    }
+  ],
+  "total_receipts": 8580
+}

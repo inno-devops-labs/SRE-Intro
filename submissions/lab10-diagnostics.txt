@@ -1,0 +1,31 @@
+2026-10-10T15:26:12Z
+NAME                           CPU(cores)   MEMORY(bytes)
+events-5948655c57-cr84s        205m         139Mi
+gateway-79795445b6-jrdf5       42m          92Mi
+gateway-79795445b6-n5rsx       58m          99Mi
+gateway-79795445b6-tcv6b       53m          94Mi
+gateway-79795445b6-wt9hr       33m          91Mi
+gateway-79795445b6-zt6pk       56m          93Mi
+lab10-load-50-isolated-w2hpj   38m          66Mi
+payments-5744c894c8-m9s29      14m          83Mi
+postgres-c8778f757-tkdxl       12m          51Mi
+redis-d8d9865df-2bjvg          7m           7Mi
+    raise PoolError("connection pool exhausted")
+psycopg2.pool.PoolError: connection pool exhausted
+ max_connections
+-----------------
+ 100
+(1 row)
+
+        state        | count
+---------------------+-------
+                     |     5
+ active              |     1
+ idle in transaction |     7
+(3 rows)
+
+[pod/gateway-79795445b6-wt9hr/gateway] 228
+[pod/gateway-79795445b6-jrdf5/gateway] 227
+[pod/gateway-79795445b6-zt6pk/gateway] 157
+[pod/gateway-79795445b6-n5rsx/gateway] 208
+[pod/gateway-79795445b6-tcv6b/gateway] 169

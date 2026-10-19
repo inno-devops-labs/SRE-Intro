@@ -1,0 +1,19 @@
+test_breaker_opens_and_recovers (__main__.PatternsTest.test_breaker_opens_and_recovers) ... {"time":"2026-10-16 12:16:58,519","level":"WARNING","service":"gateway","msg":"circuit[test] CLOSED -> OPEN"}
+{"time":"2026-10-16 12:16:58,519","level":"WARNING","service":"gateway","msg":"circuit[test] OPEN -> HALF_OPEN"}
+{"time":"2026-10-16 12:16:58,519","level":"WARNING","service":"gateway","msg":"circuit[test] HALF_OPEN -> CLOSED"}
+ok
+test_bulkhead_capacity_timeout_and_cancel_release (__main__.PatternsTest.test_bulkhead_capacity_timeout_and_cancel_release) ... ok
+test_bulkhead_releases_after_exception (__main__.PatternsTest.test_bulkhead_releases_after_exception) ... ok
+test_cancel_is_not_retried (__main__.PatternsTest.test_cancel_is_not_retried) ... ok
+test_exhausted (__main__.PatternsTest.test_exhausted) ... ok
+test_half_open_failure_and_single_probe (__main__.PatternsTest.test_half_open_failure_and_single_probe) ... {"time":"2026-10-16 12:16:58,537","level":"WARNING","service":"gateway","msg":"circuit[test] OPEN -> HALF_OPEN"}
+{"time":"2026-10-16 12:16:58,538","level":"WARNING","service":"gateway","msg":"circuit[test] HALF_OPEN -> OPEN"}
+ok
+test_limiter_expiry_and_separate_keys (__main__.PatternsTest.test_limiter_expiry_and_separate_keys) ... ok
+test_non_retryable (__main__.PatternsTest.test_non_retryable) ... ok
+test_retry_transient_errors (__main__.PatternsTest.test_retry_transient_errors) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.030s
+
+OK

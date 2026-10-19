@@ -1,0 +1,127 @@
+{
+  "history": [
+    {
+      "deployStartedAt": "2026-09-26T13:24:44Z",
+      "deployedAt": "2026-09-26T13:24:45Z",
+      "id": 0,
+      "initiatedBy": {
+        "automated": true
+      },
+      "revision": "78fbd40659a0b0437b1c20031cf2c41b7258386e",
+      "source": {
+        "path": "k8s",
+        "repoURL": "https://github.com/tdzdslippen/SRE-Intro.git",
+        "targetRevision": "main"
+      }
+    },
+    {
+      "deployStartedAt": "2026-09-26T13:27:04Z",
+      "deployedAt": "2026-09-26T13:27:05Z",
+      "id": 1,
+      "initiatedBy": {
+        "username": "admin"
+      },
+      "revision": "1e870be3dd37266936e8c4bf517ad6f283934e31",
+      "source": {
+        "path": "k8s",
+        "repoURL": "https://github.com/tdzdslippen/SRE-Intro.git",
+        "targetRevision": "main"
+      }
+    },
+    {
+      "deployStartedAt": "2026-09-26T13:27:37Z",
+      "deployedAt": "2026-09-26T13:27:38Z",
+      "id": 2,
+      "initiatedBy": {
+        "username": "admin"
+      },
+      "revision": "a8020f855dddb9a5260a8a9ba233185ed8713861",
+      "source": {
+        "path": "k8s",
+        "repoURL": "https://github.com/tdzdslippen/SRE-Intro.git",
+        "targetRevision": "main"
+      }
+    },
+    {
+      "deployStartedAt": "2026-09-26T13:28:58Z",
+      "deployedAt": "2026-09-26T13:29:00Z",
+      "id": 3,
+      "initiatedBy": {
+        "username": "admin"
+      },
+      "revision": "2e5478494c4d897ac98f071f9de2324eee294496",
+      "source": {
+        "path": "k8s",
+        "repoURL": "https://github.com/tdzdslippen/SRE-Intro.git",
+        "targetRevision": "main"
+      }
+    }
+  ],
+  "sync": "OutOfSync",
+  "health": "Progressing",
+  "autoSync": false
+}
+[
+  {
+    "name": "gateway-55989f747c",
+    "created": "2026-10-03T21:34:38Z",
+    "revision": "3",
+    "replicas": 0
+  },
+  {
+    "name": "gateway-5966c95bb7",
+    "created": "2026-10-03T21:43:31Z",
+    "revision": "5",
+    "replicas": 0
+  },
+  {
+    "name": "gateway-79795445b6",
+    "created": "2026-10-03T21:35:31Z",
+    "revision": "6",
+    "replicas": 5
+  },
+  {
+    "name": "gateway-84c55bf96d",
+    "created": "2026-10-03T21:30:42Z",
+    "revision": "2",
+    "replicas": 0
+  },
+  {
+    "name": "gateway-96d79c59b",
+    "created": "2026-10-03T21:29:47Z",
+    "revision": "1",
+    "replicas": 0
+  }
+]
+[
+  {
+    "name": "gateway-5966c95bb7-5-2",
+    "phase": "Failed",
+    "started": "2026-10-03T21:45:15Z",
+    "completed": "2026-10-03T21:46:35Z"
+  },
+  {
+    "name": "gateway-79795445b6-4-2",
+    "phase": "Successful",
+    "started": "2026-10-03T21:37:04Z",
+    "completed": "2026-10-03T21:38:44Z"
+  },
+  {
+    "name": "gateway-no-traffic-check",
+    "phase": "Failed",
+    "started": "2026-10-03T21:37:18Z",
+    "completed": "2026-10-03T21:37:18Z"
+  }
+]
+8c47220 2026-10-10T18:13:06+03:00 feat(lab9): add database migrations, recovery tests and backups
+4e0e335 2026-10-04T17:52:39+03:00 feat(lab8): add chaos experiments and improve events resilience
+82f402b 2026-10-04T00:59:04+03:00 feat(lab7): add gateway canary rollout and automated analysis
+fe3fcf3 2026-09-28T00:09:42+03:00 feat(lab6): add alerting and incident response
+2e54784 2026-09-26T13:28:37Z ci: update image tags to a8020f855dddb9a5260a8a9ba233185ed8713861
+a8020f8 2026-09-26T16:27:21+03:00 Revert "feat: deploy new gateway version [skip ci]"
+1e870be 2026-09-26T16:26:51+03:00 feat: deploy new gateway version [skip ci]
+78fbd40 2026-09-26T13:10:39Z ci: update image tags to 71bc18c558601a75bf88a047c6a85bb61af256f0
+71bc18c 2026-09-26T16:08:45+03:00 feat(lab5): add CI/CD pipeline and ArgoCD GitOps
+097032c 2026-09-20T18:20:59+03:00 feat(lab4): deploy QuickTicket to Kubernetes
+43076f3 2026-09-20T15:33:20+03:00 feat(lab3): add monitoring dashboard and SLO rules
+[{"conclusion":"success","createdAt":"2026-09-26T13:28:00Z","databaseId":36245255630,"headSha":"a8020f855dddb9a5260a8a9ba233185ed8713861","updatedAt":"2026-09-26T13:28:41Z"},{"conclusion":"success","createdAt":"2026-09-26T13:10:01Z","databaseId":36244249730,"headSha":"71bc18c558601a75bf88a047c6a85bb61af256f0","updatedAt":"2026-09-26T13:10:44Z"}]

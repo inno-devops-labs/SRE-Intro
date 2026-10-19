@@ -1,0 +1,6 @@
+pod/mixedload-9767d4dc7-5rxhg condition met
+pod/mixedload-9767d4dc7-85wpp condition met
+health {'status': 'healthy', 'checks': {'events': 'ok', 'payments': 'ok', 'notifications': 'ok', 'circuit_payments': 'CLOSED'}}
+events 6 date_key True
+checkout 200 {'order_id': '43bbfb79-4c69-4db5-a6a3-e55b8e4c989f', 'event_id': 6, 'quantity': 1, 'total_cents': 100, 'status': 'confirmed'}
+OK

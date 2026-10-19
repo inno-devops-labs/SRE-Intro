@@ -1,0 +1,4 @@
+{"time":"2026-10-16 12:59:31,540","level":"INFO","service":"events","msg":"DB pool created (max=10)"}
+{"time":"2026-10-16 12:59:31,546","level":"INFO","service":"events","msg":"Redis connected"}
+fresh events 5
+fresh health {"status":"healthy","checks":{"postgres":"ok","redis":"ok"}}
