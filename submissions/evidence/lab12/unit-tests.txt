@@ -1,0 +1,13 @@
+test_bulkhead_releases_on_cancel (test_lab11.ResilienceTests.test_bulkhead_releases_on_cancel) ... ok
+test_circuit_open_recovery_and_single_probe (test_lab11.ResilienceTests.test_circuit_open_recovery_and_single_probe) ... {"time":"2026-10-19 11:53:57,126","level":"WARNING","service":"gateway","msg":"circuit[cb] CLOSED -> OPEN"}
+{"time":"2026-10-19 11:53:57,126","level":"WARNING","service":"gateway","msg":"circuit[cb] OPEN -> HALF_OPEN"}
+{"time":"2026-10-19 11:53:57,126","level":"WARNING","service":"gateway","msg":"circuit[cb] HALF_OPEN -> CLOSED"}
+ok
+test_sliding_window_and_separate_paths (test_lab11.ResilienceTests.test_sliding_window_and_separate_paths) ... ok
+test_status_retry_classification (test_lab11.ResilienceTests.test_status_retry_classification) ... ok
+test_transient_retry_and_exhaustion (test_lab11.ResilienceTests.test_transient_retry_and_exhaustion) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.020s
+
+OK

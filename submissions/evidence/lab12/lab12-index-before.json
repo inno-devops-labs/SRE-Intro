@@ -1,0 +1,12 @@
+{
+  "query": "sum(increase(gateway_requests_total{status=~\"5..\"}[1m])) or vector(0)",
+  "values": [
+    {
+      "metric": {},
+      "value": [
+        1792399801.776,
+        "0"
+      ]
+    }
+  ]
+}

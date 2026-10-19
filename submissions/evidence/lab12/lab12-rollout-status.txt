@@ -1,0 +1,6 @@
+Progressing - more replicas need to be updated
+Paused - CanaryPauseStep
+Progressing - more replicas need to be updated
+Progressing - updated replicas are still becoming available
+Progressing - waiting for all steps to complete
+Healthy

@@ -52,10 +52,15 @@ spec:
           value: '10'
         - name: BULKHEAD_PAYMENTS_TIMEOUT_S
           value: '0.5'
+        - name: UVICORN_TIMEOUT_GRACEFUL_SHUTDOWN
+          value: '30'
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /health
             port: 8080
-          periodSeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 5
+          failureThreshold: 1
         livenessProbe:
           tcpSocket:
             port: 8080
@@ -67,6 +72,21 @@ spec:
             port: 8080
           periodSeconds: 2
           failureThreshold: 30
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 10
+      terminationGracePeriodSeconds: 40
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: gateway
   strategy:
     canary:
       maxSurge: 0

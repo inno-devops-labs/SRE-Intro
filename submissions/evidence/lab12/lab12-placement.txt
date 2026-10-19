@@ -1,0 +1,6 @@
+NAME                       READY   STATUS    RESTARTS   AGE   IP           NODE                               NOMINATED NODE   READINESS GATES
+gateway-69f8f766cc-c4x7z   1/1     Running   0          61s   10.42.1.20   k3d-quickticket-lab1112-agent-1    <none>           <none>
+gateway-69f8f766cc-hnxdg   1/1     Running   0          47s   10.42.1.21   k3d-quickticket-lab1112-agent-1    <none>           <none>
+gateway-69f8f766cc-qlbn2   1/1     Running   0          57s   10.42.2.27   k3d-quickticket-lab1112-server-0   <none>           <none>
+gateway-69f8f766cc-slhkv   1/1     Running   0          54s   10.42.0.25   k3d-quickticket-lab1112-agent-0    <none>           <none>
+gateway-69f8f766cc-vqfq9   1/1     Running   0          51s   10.42.0.26   k3d-quickticket-lab1112-agent-0    <none>           <none>

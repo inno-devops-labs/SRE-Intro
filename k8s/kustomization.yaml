@@ -8,3 +8,4 @@ resources:
 - gateway.yaml
 - analysis-template.yaml
 - notifications.yaml
+- pdb.yaml

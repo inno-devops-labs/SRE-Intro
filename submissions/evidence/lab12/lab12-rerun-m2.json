@@ -1,0 +1,12 @@
+{
+  "query": "sum(gateway_requests_total{status=~\"5..\",rs_hash=\"69f8f766cc\"}) or vector(0)",
+  "values": [
+    {
+      "metric": {},
+      "value": [
+        1792399977.087,
+        "6"
+      ]
+    }
+  ]
+}

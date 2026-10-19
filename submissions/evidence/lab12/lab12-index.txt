@@ -1,0 +1,4 @@
+       indexname       |                                   indexdef
+-----------------------+------------------------------------------------------------------------------
+ idx_events_event_date | CREATE INDEX idx_events_event_date ON public.events USING btree (event_date)
+(1 row)

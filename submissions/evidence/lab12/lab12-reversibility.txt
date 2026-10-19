@@ -1,0 +1,26 @@
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running stamp_revision  -> 0006
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running downgrade 0006 -> 0005, Contract only AFTER Deploy B is completely rolled out.
+INFO  [alembic.runtime.migration] Running downgrade 0005 -> 0004, Backfill after Deploy A, before Deploy B (tiny course dataset).
+INFO  [alembic.runtime.migration] Running downgrade 0004 -> 0003, Expand: add nullable replacement column.
+INFO  [alembic.runtime.migration] Running downgrade 0003 -> 0002, Index event_date without blocking writers.
+INFO  [alembic.runtime.migration] Running downgrade 0002 -> 0001, Add optional email without backfill or table rewrite.
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 0001 -> 0002, Add optional email without backfill or table rewrite.
+INFO  [alembic.runtime.migration] Running upgrade 0002 -> 0003, Index event_date without blocking writers.
+INFO  [alembic.runtime.migration] Running upgrade 0003 -> 0004, Expand: add nullable replacement column.
+INFO  [alembic.runtime.migration] Running upgrade 0004 -> 0005, Backfill after Deploy A, before Deploy B (tiny course dataset).
+INFO  [alembic.runtime.migration] Running upgrade 0005 -> 0006, Contract only AFTER Deploy B is completely rolled out.
+ count | count
+-------+-------
+     5 |     5
+(1 row)
+
+ indisvalid
+------------
+ t
+(1 row)
