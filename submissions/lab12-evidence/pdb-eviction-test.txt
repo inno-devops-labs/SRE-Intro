@@ -1,0 +1,18 @@
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "Cannot evict pod as it would violate the pod's disruption budget.",
+  "reason": "TooManyRequests",
+  "details": {
+    "causes": [
+      {
+        "reason": "DisruptionBudget",
+        "message": "The disruption budget events-pdb needs 2 healthy pods and has 2 currently"
+      }
+    ]
+  },
+  "code": 429
+}
+HTTP 429

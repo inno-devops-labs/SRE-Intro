@@ -1,0 +1,7 @@
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 29f225b42ece -> 83c468f105dd, index events.event_date concurrently
+
+real	0m0.633s
+user	0m0.455s
+sys	0m0.074s

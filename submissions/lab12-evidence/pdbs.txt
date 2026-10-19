@@ -1,0 +1,5 @@
+NAME                MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+events-pdb          1               N/A               1                     0s
+gateway-pdb         2               N/A               3                     0s
+notifications-pdb   N/A             1                 1                     0s
+payments-pdb        1               N/A               1                     0s

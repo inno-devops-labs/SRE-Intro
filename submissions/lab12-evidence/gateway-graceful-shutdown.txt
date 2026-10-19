@@ -1,0 +1,3 @@
+grace=40s
+preStop=["sh","-c","sleep 10"]
+readinessPeriod=2s

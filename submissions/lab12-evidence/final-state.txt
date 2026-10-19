@@ -1,0 +1,70 @@
+=== Deployments ===
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+events          2/2     2            2           27d
+payments        2/2     2            2           27d
+notifications   2/2     2            2           3h9m
+mixedload       2/2     2            2           47m
+
+=== Gateway Rollout ===
+Name:            gateway
+Namespace:       default
+Status:          [32m✔[0m Healthy
+Strategy:        Canary
+  Step:          10/10
+  SetWeight:     100
+  ActualWeight:  100
+Images:          quickticket-gateway:v1 ([32mstable[0m)
+Replicas:
+  Desired:       5
+  Current:       5
+  Updated:       5
+  Ready:         5
+  Available:     5
+
+NAME                                 KIND         STATUS        AGE   INFO
+⟳ gateway                            Rollout      [32m✔[0m Healthy     14d
+├──# revision:16
+│  ├──⧉ [32mgateway-6f86d87798[0m           ReplicaSet   [32m✔[0m Healthy     29m   [32mstable[0m
+│  │  ├──□ gateway-6f86d87798-drp9t  Pod          [32m✔[0m Running     19m   ready:1/1
+│  │  ├──□ gateway-6f86d87798-8fhnd  Pod          [32m✔[0m Running     19m   ready:1/1
+│  │  ├──□ gateway-6f86d87798-x4qsw  Pod          [32m✔[0m Running     19m   ready:1/1
+│  │  ├──□ gateway-6f86d87798-wdhzf  Pod          [32m✔[0m Running     19m   ready:1/1
+│  │  └──□ gateway-6f86d87798-vv6j9  Pod          [32m✔[0m Running     19m   ready:1/1
+│  └──α [0mgateway-6f86d87798-16-2[0m      AnalysisRun  [32m✔[0m Successful  28m   [32m✔[0m 3
+├──# revision:15
+│  ├──⧉ gateway-7f79f885f8           ReplicaSet   [0m•[0m ScaledDown  43m
+│  └──α [0mgateway-7f79f885f8-15-2[0m      AnalysisRun  [32m✔[0m Successful  42m   [32m✔[0m 3
+├──# revision:14
+│  ├──⧉ gateway-58cfc8dfff           ReplicaSet   [0m•[0m ScaledDown  84m
+│  └──α [0mgateway-58cfc8dfff-14-2[0m      AnalysisRun  [32m✔[0m Successful  83m   [32m✔[0m 3
+├──# revision:13
+│  ├──⧉ gateway-7cc8d6f648           ReplicaSet   [0m•[0m ScaledDown  92m
+│  └──α [0mgateway-7cc8d6f648-13-2[0m      AnalysisRun  [32m✔[0m Successful  91m   [32m✔[0m 3
+├──# revision:12
+│  ├──⧉ gateway-669ffc45b6           ReplicaSet   [0m•[0m ScaledDown  102m
+│  └──α [0mgateway-669ffc45b6-12-2[0m      AnalysisRun  [32m✔[0m Successful  100m  [32m✔[0m 3
+├──# revision:11
+│  └──⧉ gateway-66bdc67966           ReplicaSet   [0m•[0m ScaledDown  112m
+├──# revision:10
+│  └──⧉ gateway-ff5565c5             ReplicaSet   [0m•[0m ScaledDown  121m
+├──# revision:9
+│  └──⧉ gateway-59c6cfb6bf           ReplicaSet   [0m•[0m ScaledDown  157m
+├──# revision:8
+│  └──⧉ gateway-7d79dcbb87           ReplicaSet   [0m•[0m ScaledDown  13d
+├──# revision:7
+│  ├──⧉ gateway-5bcbd9ff4            ReplicaSet   [0m•[0m ScaledDown  13d
+│  └──α [0mgateway-5bcbd9ff4-7-2[0m        AnalysisRun  [31m✖[0m Failed      13d   [31m✖[0m 2
+└──# revision:5
+   └──⧉ gateway-9b68dc7f6            ReplicaSet   [0m•[0m ScaledDown  13d
+
+=== PDBs ===
+NAME                MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
+events-pdb          1               N/A               1                     44m
+gateway-pdb         2               N/A               3                     44m
+notifications-pdb   N/A             1                 1                     44m
+payments-pdb        1               N/A               1                     44m
+
+=== Alembic ===
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+6c2154cb9ed7 (head)

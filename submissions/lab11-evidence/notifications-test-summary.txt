@@ -1,0 +1,6 @@
+Lab 11.5 — Notifications failure isolation
+Fault injection: NOTIFY_FAILURE_RATE=0.3, NOTIFY_LATENCY_MS=300
+Checkout test: 30 attempts, ok=30, fail=0
+Notification counters after the test: failed=12, success=18
+Gateway /pay p99: 24.85 ms (Prometheus 15-minute query window)
+Fault injection was reset to NOTIFY_FAILURE_RATE=0.0, NOTIFY_LATENCY_MS=0.

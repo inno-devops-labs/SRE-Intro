@@ -1,0 +1,48 @@
+diff --git a/app/events/main.py b/app/events/main.py
+index 72c5d3c..72ed766 100644
+--- a/app/events/main.py
++++ b/app/events/main.py
+@@ -141,10 +141,10 @@ def list_events():
+     try:
+         cur = conn.cursor()
+         cur.execute("""
+-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
++            SELECT e.id, e.name, e.venue, e.scheduled_at AS event_date, e.total_tickets, e.price_cents,
+                    COALESCE(SUM(o.quantity), 0) as confirmed
+             FROM events e LEFT JOIN orders o ON e.id = o.event_id
+-            GROUP BY e.id ORDER BY e.event_date
++            GROUP BY e.id ORDER BY e.scheduled_at
+         """)
+         rows = cur.fetchall()
+         cur.close()
+@@ -166,7 +166,7 @@ def get_event(event_id: int):
+     try:
+         cur = conn.cursor()
+         cur.execute("""
+-            SELECT e.id, e.name, e.venue, e.event_date, e.total_tickets, e.price_cents,
++            SELECT e.id, e.name, e.venue, e.scheduled_at AS event_date, e.total_tickets, e.price_cents,
+                    COALESCE(SUM(o.quantity), 0) as confirmed
+             FROM events e LEFT JOIN orders o ON e.id = o.event_id
+             WHERE e.id = %s GROUP BY e.id
+diff --git a/app/seed.sql b/app/seed.sql
+index 55a1966..c5bbc95 100644
+--- a/app/seed.sql
++++ b/app/seed.sql
+@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS events (
+     id SERIAL PRIMARY KEY,
+     name TEXT NOT NULL,
+     venue TEXT NOT NULL,
+-    event_date TIMESTAMPTZ NOT NULL,
++    scheduled_at TIMESTAMPTZ NOT NULL,
+     total_tickets INT NOT NULL,
+     price_cents INT NOT NULL
+ );
+@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS orders (
+ );
+
+ -- Seed events
+-INSERT INTO events (name, venue, event_date, total_tickets, price_cents) VALUES
++INSERT INTO events (name, venue, scheduled_at, total_tickets, price_cents) VALUES
+     ('Go Conference 2026', 'Main Hall A', '2026-09-15 09:00:00+00', 100, 5000),
+     ('SRE Meetup', 'Room 204', '2026-10-01 18:00:00+00', 30, 0),
+     ('Cloud Native Summit', 'Expo Center', '2026-11-20 10:00:00+00', 500, 15000),

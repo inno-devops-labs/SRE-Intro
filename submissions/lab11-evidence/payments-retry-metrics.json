@@ -1,0 +1,1 @@
+{"status":"success","data":{"resultType":"vector","result":[{"metric":{"result":"retried"},"value":[1792359150.924,"14"]},{"metric":{"result":"succeeded_after_retry"},"value":[1792359150.924,"7"]},{"metric":{"result":"exhausted"},"value":[1792359150.924,"2"]}]}}

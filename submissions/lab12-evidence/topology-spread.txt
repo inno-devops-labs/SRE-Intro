@@ -1,0 +1,17 @@
+=== Live topology spread constraint ===
+      topologySpreadConstraints:
+      - labelSelector:
+          matchLabels:
+            app: gateway
+        maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+status:
+
+=== Gateway pod placement ===
+NAME                       READY   STATUS    RESTARTS   AGE     IP           NODE                       NOMINATED NODE   READINESS GATES
+gateway-7f79f885f8-6c4ln   1/1     Running   0          11m     10.42.0.24   k3d-quickticket-server-0   <none>           <none>
+gateway-7f79f885f8-f6494   1/1     Running   0          7m54s   10.42.0.27   k3d-quickticket-server-0   <none>           <none>
+gateway-7f79f885f8-k8gzq   1/1     Running   0          9m1s    10.42.0.25   k3d-quickticket-server-0   <none>           <none>
+gateway-7f79f885f8-r85hs   1/1     Running   0          6m47s   10.42.0.28   k3d-quickticket-server-0   <none>           <none>
+gateway-7f79f885f8-xcqnt   1/1     Running   0          6m10s   10.42.0.29   k3d-quickticket-server-0   <none>           <none>

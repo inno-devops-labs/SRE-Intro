@@ -1,0 +1,3 @@
+13: payment failed HTTP 500: {"detail":"Payment failed"}
+30: payment failed HTTP 500: {"detail":"Payment failed"}
+Checkout results with payment failures injected: ok=28 fail=2
