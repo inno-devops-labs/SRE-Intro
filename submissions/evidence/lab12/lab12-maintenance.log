@@ -1,0 +1,14 @@
+pod "gateway-69f8f766cc-6kgkp" deleted from default namespace
+pod "events-748fcf4f55-cd8v8" deleted from default namespace
+pod/gateway-69f8f766cc-6kgkp condition met
+pod/events-748fcf4f55-6klx7 condition met
+pod/events-748fcf4f55-hpx96 condition met
+Healthy
+rollout 'gateway' restarts in 0s
+pod/gateway-69f8f766cc-fqv9k condition met
+pod/gateway-69f8f766cc-gnz9v condition met
+pod/gateway-69f8f766cc-hwt2m condition met
+pod/gateway-69f8f766cc-lwws9 condition met
+pod/gateway-69f8f766cc-ntwrd condition met
+Progressing - rollout is restarting
+Healthy

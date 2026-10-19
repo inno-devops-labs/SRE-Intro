@@ -1,0 +1,11 @@
+--- a/app/events/main.py
++++ b/app/events/main.py
+@@ -144 +144 @@
+-            SELECT e.id, e.name, e.venue, e.scheduled_at AS event_date, e.total_tickets, e.price_cents,
++            SELECT e.id, e.name, e.venue, COALESCE(e.scheduled_at, e.event_date) AS event_date, e.total_tickets, e.price_cents,
+@@ -147 +147 @@
+-            GROUP BY e.id ORDER BY e.scheduled_at
++            GROUP BY e.id ORDER BY COALESCE(e.scheduled_at, e.event_date)
+@@ -169 +169 @@
+-            SELECT e.id, e.name, e.venue, e.scheduled_at AS event_date, e.total_tickets, e.price_cents,
++            SELECT e.id, e.name, e.venue, COALESCE(e.scheduled_at, e.event_date) AS event_date, e.total_tickets, e.price_cents,

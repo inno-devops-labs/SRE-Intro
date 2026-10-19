@@ -1,0 +1,20 @@
+{
+  "counts": {
+    "events:200": 2531,
+    "reserve:200": 510,
+    "pay:200": 509,
+    "transport_error": 3,
+    "events:502": 5,
+    "events:429": 9
+  },
+  "errors": [
+    "All connection attempts failed",
+    "All connection attempts failed",
+    "",
+    "{\"detail\":\"Events service unavailable\"}",
+    "{\"detail\":\"Events service unavailable\"}",
+    "{\"detail\":\"Events service unavailable\"}",
+    "{\"detail\":\"Events service unavailable\"}",
+    "{\"detail\":\"Events service unavailable\"}"
+  ]
+}
