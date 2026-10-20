@@ -1,0 +1,120 @@
+# Gateway as an Argo Rollouts canary (Lab 7) with dependency-free probes (Lab 8),
+# Lab 11 resilience tunables, and Lab 12 topology spread + graceful shutdown.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: gateway
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 20s}
+        - analysis:
+            templates:
+              - templateName: gateway-error-rate
+            args:
+              - name: canary-hash
+                valueFrom:
+                  podTemplateHashValue: Latest
+        - setWeight: 50
+        - pause: {duration: 20s}
+        - setWeight: 100
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+        version: "v2"
+    spec:
+      # Spread replicas across nodes. ScheduleAnyway = preferred, not mandatory,
+      # so pods still schedule on single-node k3d.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: gateway
+      # Give in-flight requests time to finish after SIGTERM (10s preStop + up to 30s drain).
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: gateway
+          image: quickticket-gateway:lab11-v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: EVENTS_URL
+              value: "http://events:8081"
+            - name: PAYMENTS_URL
+              value: "http://payments:8082"
+            - name: GATEWAY_TIMEOUT_MS
+              value: "5000"
+            - name: APP_VERSION
+              value: "v4"
+            - name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
+            # Lab 11 resilience tunables (change via kubectl set env, no rebuild)
+            - name: RETRY_MAX
+              value: "3"
+            - name: RETRY_BASE_DELAY_MS
+              value: "100"
+            - name: CB_FAILURE_THRESHOLD
+              value: "5"
+            - name: CB_COOLDOWN_S
+              value: "30"
+            - name: RATE_LIMIT_RPS
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_MAX
+              value: "10"
+            - name: BULKHEAD_PAYMENTS_TIMEOUT_S
+              value: "0.5"
+          lifecycle:
+            # Sleep BEFORE SIGTERM reaches the app: the endpoints controller and
+            # kube-proxy on every node need a few seconds to stop routing new
+            # connections here. Without it uvicorn closes its socket while
+            # iptables still sends traffic → connection refused (seen in Lab 12).
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
+          # Liveness = "is this process alive?" only. /metrics has no downstream
+          # dependencies; restarting a pod can't fix a missing dependency (Lab 8, Exp 3).
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          # Readiness = "can this pod serve anything?". Gateway handles dependency
+          # failures per request, so it must not leave the Service because of them.
+          # Stays on /metrics, NOT /health: gateway /health is 503 whenever events or
+          # payments is degraded, which would pull all 5 replicas at once (Lab 8, Exp 3).
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            periodSeconds: 2
+            failureThreshold: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080

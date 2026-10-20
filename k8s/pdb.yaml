@@ -1,0 +1,47 @@
+# PodDisruptionBudgets: limit how many pods voluntary disruptions (node drain,
+# eviction API, cluster autoscaler) may take down at once. They do NOT protect
+# against involuntary failures (OOM, node crash) or `kubectl delete pod`.
+#
+# gateway: critical path, 5 replicas. minAvailable 2 lets a drain take 3 at a time,
+# so nodes can still be replaced; 4 would allow only 1 and make drains crawl/stall.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gateway-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: gateway
+---
+# events / payments: 2 replicas, at least one must stay up at all times.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: events-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: events
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: payments
+---
+# notifications is best-effort (fire-and-forget since Lab 11): a softer bar.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: notifications-pdb
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: notifications

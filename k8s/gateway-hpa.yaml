@@ -1,0 +1,21 @@
+# Optional Lab 12.9 demo: CPU-based autoscaling for the gateway Rollout.
+# HPA owns spec.replicas while it exists — the Rollout's `replicas: 5` is then
+# only the starting point. Utilization is measured against requests.cpu (50m).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: gateway
+spec:
+  scaleTargetRef:
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: gateway
+  minReplicas: 5    # don't drop below the Lab 7 base
+  maxReplicas: 12
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
