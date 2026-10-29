@@ -1,0 +1,2 @@
+- name: NOTIFICATIONS_URL
+              value: "http://notifications:8083"
